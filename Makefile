@@ -11,7 +11,7 @@ mpitest-thru: mpitest.cc
 	OMPI_CC="$(OMPI_CC)" OMPI_CFLAGS="$(CFLAGS)" mpicc $(CPPFLAGS) $(CFLAGS) --pass-through $+ -o mpitest
 
 run: mpitest
-	LD_PRELOAD="/usr/lib64/mpi/gcc/openmpi/lib64/libvt-mt.so" NX_ARGS="--smp-cpus=1 --schedule=polling" mpirun -np 2 ./mpitest
+	NX_ARGS="--summary --smp-cpus=1 --spins=0 --enable-block --schedule=polling" mpirun -x NX_ARGS -np 2 ./mpitest
 
 debug: mpitest
 	NX_ARGS="--smp-cpus=1 --schedule=polling --verbose" mpirun -np 2 konsole -e gdb ./mpitest

@@ -12,7 +12,7 @@ void do_master( int sendMsg ) {
     MPI_Status status;
     MPI_Request request;
 
-    usleep(50000000);
+    usleep(10000000);
     MPI_Isend( &sendMsg, 1, MPI_INT, 1, 0, MPI_COMM_WORLD, &request );
     std::cout <<"Sent " << sendMsg << std::endl;
 
@@ -38,7 +38,7 @@ void do_slave( int *recvMsg ) {
 #pragma omp task label(dummy)
 void dummy( int rank ) {
 	std::cout <<"Proc " << rank <<  ": I'm doing something!" << std::endl;
-   usleep(5000);
+   usleep(1000000);
 }
  
 int main( int argc, char * argv[] )
@@ -46,16 +46,17 @@ int main( int argc, char * argv[] )
     int rank;
     int sendMsg = 123;
     int recvMsg = 0;
-    int provided;
-    MPI_Init_thread( &argc, &argv, MPI_THREAD_MULTIPLE, &provided );
-    assert( provided == MPI_THREAD_MULTIPLE );
+    //int provided;
+    //MPI_Init_thread( &argc, &argv, MPI_THREAD_MULTIPLE, &provided );
+    //assert( provided == MPI_THREAD_MULTIPLE );
+    MPI_Init( &argc, &argv );
  
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     if(rank == 0)
         do_master( sendMsg );
     else {
         do_slave( &recvMsg );
-        for( int i = 0; i < 50; i++ )
+        for( int i = 0; i < 15; i++ )
             dummy( rank );
     }
     #pragma omp taskwait
