@@ -1,0 +1,13 @@
+MCC_HOME=$(HOME)/ompss/mcxx-nonblock-mpi
+NANOS_HOME=$(HOME)/ompss/nanox-nonblock-mpi
+
+pwd=/home/bsc15/bsc15685/tests/mpi-nonblocking
+
+AM_CPPFLAGS=@mpiinc@ -I@top_srcdir@/src $(CPPFLAGS)
+AM_CXXFLAGS=$(CXXFLAGS)
+AM_LDFLAGS=@mpilib@ @mpilibs@ $(LDFLAGS)
+
+pkginclude_HEADERS=
+lib_LTLIBRARIES=libmpiompss-interop.la
+libmpiompss_interop_la_SOURCES=src/mpioverload.cc
+
