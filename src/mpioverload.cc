@@ -1,16 +1,19 @@
-#include <stdio.h>
 #include <mpi.h>
-
-#include "nanos.h"
+#include <nanox/nanos.h>
 #include "mpiconditionchecker.hpp"
+
+#if MPI_VERSION >= 3
+    #define MPI3CONST const
+#else
+    #define MPI3CONST
+#endif
 
 extern "C" {
 
-int MPI_Send( const void *buf, int count, MPI_Datatype datatype,
+int MPI_Send( MPI3CONST void *buf, int count, MPI_Datatype datatype,
     int dest, int tag, MPI_Comm comm )
 {
     int ierror = MPI_SUCCESS;
-    printf("Doing MPI_Send\n");
 
     MPI_Status status;
     MPI_Request request;
@@ -21,7 +24,6 @@ int MPI_Send( const void *buf, int count, MPI_Datatype datatype,
     nanos_sync_cond_wait( &waitCond );
 
     //ierror = PMPI_Send(buf, count, datatype, dest, tag, comm);
-    printf("Done MPI_Send\n");
     return ierror + status.MPI_ERROR;
 }
 
@@ -29,7 +31,6 @@ int MPI_Recv( void *buf, int count, MPI_Datatype datatype,
     int source, int tag, MPI_Comm comm, MPI_Status *status )
 {
     int ierror = MPI_SUCCESS;
-    printf("Doing MPI_Recv\n");
 
     MPI_Request request;
 
@@ -40,9 +41,10 @@ int MPI_Recv( void *buf, int count, MPI_Datatype datatype,
     nanos_polling_cond_wait( &waitCond );
 
     //ierror = PMPI_Recv (buf, count, datatype, source, tag, comm, status );
-    printf("Done MPI_Recv\n");
     return ierror + status->MPI_ERROR;
 }
+
+#if MPI_VERSION >=3
 
 int MPI_Barrier(MPI_Comm comm)
 {
@@ -73,7 +75,7 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     return ierror + status.MPI_ERROR;
 }
 
-int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+int MPI_Sendrecv( MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
                        int dest, int sendtag,
                        void *recvbuf, int recvcount, MPI_Datatype recvtype,
                        int source, int recvtag,
@@ -92,6 +94,8 @@ int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 
     return ierror + status->MPI_ERROR;
 }
+
+#endif
 
 }// extern C
 

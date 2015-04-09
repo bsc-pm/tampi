@@ -1,11 +1,11 @@
 #
 # SYNOPSIS
 #
-#   AX_CHECK_MPI
+#   AX_CHECK_OMPSS
 #
 # DESCRIPTION
 #
-#   Check whether MPI path to the headers and libraries are correctly specified.
+#   Check whether OmpSs path to the headers and libraries are correctly specified.
 #
 # LICENSE
 #
@@ -37,42 +37,36 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-AC_DEFUN([AX_CHECK_MPI],[
+AC_DEFUN([AX_CHECK_OMPSS],[
 AC_PREREQ(2.59)dnl for _AC_LANG_PREFIX
 
-#Check if an mpi implementation is installed.
-AC_ARG_WITH(mpi,
-[AS_HELP_STRING([--with-mpi,--with-mpi=PATH],
-                [search in system directories or specify prefix directory for installed mpi package])])
-AC_ARG_WITH(mpi-include,
-[AS_HELP_STRING([--with-mpi-include=PATH],
-                [specify directory for installed mpi include files])])
-AC_ARG_WITH(mpi-lib,
-[AS_HELP_STRING([--with-mpi-lib=PATH],
-                [specify directory for the installed mpi library])])
+#Check if an ompss implementation is installed.
+AC_ARG_WITH(ompss,
+[AS_HELP_STRING([--with-ompss,--with-ompss=PATH],
+                [search in system directories or specify prefix directory for installed ompss package])])
+AC_ARG_WITH(ompss-include,
+[AS_HELP_STRING([--with-ompss-include=PATH],
+                [specify directory for installed ompss include files])])
+AC_ARG_WITH(ompss-lib,
+[AS_HELP_STRING([--with-ompss-lib=PATH],
+                [specify directory for the installed ompss library])])
 
-# Search for mpi by default
-if test "x$with_mpi" != xno; then
-  mpi_prefix=$with_mpi
-  AC_CHECK_FILE([$mpi_prefix/include64],
-    [mpiinc=-I$mpi_prefix/include64],
-    [mpiinc=-I$mpi_prefix/include])
-  AC_CHECK_FILE([$mpi_prefix/lib64],
-    [mpilib=-L$mpi_prefix/lib64],
-    [mpilib=-L$mpi_prefix/lib])
+# Search for ompss by default
+if test "x$with_ompss" != xno; then
+  ompss_prefix=$with_ompss
+  ompssinc="-I $ompss_prefix/include"
+  ompsslib=-L$ompss_prefix/lib
 fi
-if test "x$with_mpi_include" != x; then
-  AC_CHECK_FILE([$mpi_prefix/include64],
-    [mpiinc=-L$mpi_prefix/include64],
-    [mpiinc=-L$mpi_prefix/include])
+if test "x$with_ompss_include" != x; then
+  ompssinc="-I $with_ompss_include"
 fi
-if test "x$with_mpi_lib" != x; then
-  mpilib="-L$with_mpi_lib"
+if test "x$with_ompss_lib" != x; then
+  ompsslib="-L$with_ompss_lib"
 fi
 
-# This is fulfilled even if $with_mpi="yes" 
+# This is fulfilled even if $with_ompss="yes" 
 # This happens when user leaves --with-value alone
-if test x$with_mpi != xno; then
+if test x$with_ompss != xno; then
 
     #tests if provided headers and libraries are usable and correct
     bak_CFLAGS="$CFLAGS"
@@ -81,43 +75,43 @@ if test x$with_mpi != xno; then
     bak_LDFLAGS="$LDFLAGS"
 
     CFLAGS=
-    CPPFLAGS=$mpiinc
+    CPPFLAGS=$ompssinc
     LIBS=
-    LDFLAGS=$mpilib
+    LDFLAGS=$ompsslib
 
-    # Check if mpi.h header file exists and compiles
-    AC_CHECK_HEADER([mpi.h], [mpi=yes],[mpi=no])
+    # Check if nanos.h header file exists and compiles
+    AC_CHECK_HEADER([nanox/nanos.h], [ompss=yes],[ompss=no])
 
-    # Look for MPI_Init function in libmpi.so library
-    if test x$mpi == xyes; then
-      AC_CHECK_LIB([mpi],
-                     [MPI_Init],
-                     [mpi=yes
-                      LIBS="$LIBS -lmpi"],
-                     [mpi=no])
+    # Look for nanox_polling_cond_wait function in libnanox-c.so library
+    if test x$ompss == xyes; then
+      AC_CHECK_LIB([nanox-c],
+                     [nanos_polling_cond_wait],
+                     [ompss=yes
+                      LIBS="$LIBS -lompss"],
+                     [ompss=no])
     fi
 
-    mpilibs=$LIBS
+    ompsslibs=$LIBS
 
     CFLAGS="$bak_CFLAGS"
     CPPFLAGS="$bak_CPPFLAGS"
     LIBS="$bak_LIBS"
     LDFLAGS="$bak_LDFLAGS"
 
-    if test x$mpi != xyes; then
+    if test x$ompss != xyes; then
         AC_MSG_ERROR([
 ------------------------------
-mpi path was not correctly specified. 
+ompss path was not correctly specified. 
 Please, check that the provided directories are correct.
 ------------------------------])
     fi
 fi
 
-AC_SUBST([mpi])
-AC_SUBST([mpi_prefix])
-AC_SUBST([mpiinc])
-AC_SUBST([mpilib])
-AC_SUBST([mpilibs])
+AC_SUBST([ompss])
+AC_SUBST([ompss_prefix])
+AC_SUBST([ompssinc])
+AC_SUBST([ompsslib])
+AC_SUBST([ompsslibs])
 
-])dnl AX_CHECK_MPI
+])dnl AX_CHECK_OMPSS
 

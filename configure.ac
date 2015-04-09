@@ -19,6 +19,8 @@ LT_INIT([static disable-shared])
 AC_PROG_CXX
 
 # Checks for libraries.
+# OmpSs
+AX_CHECK_OMPSS
 
 # MPI
 AX_CHECK_MPI
@@ -35,3 +37,7 @@ AC_TYPE_SIZE_T
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
+
+echo "- MPI-OmpSs interoperability library -"
+echo "       - Configuration summary -"
+echo "Installation prefix: $prefix"

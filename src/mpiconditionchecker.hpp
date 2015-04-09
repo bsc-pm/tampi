@@ -1,10 +1,9 @@
 #include <mpi.h>
-#include <iostream>
 #include <cassert>
 #include <vector>
 
-#include "synchronizedcondition_decl.hpp"
-#include "schedule_decl.hpp"
+#include <nanox-dev/synchronizedcondition_decl.hpp>
+#include <nanox-dev/schedule_decl.hpp>
 
 namespace nanos {
 
