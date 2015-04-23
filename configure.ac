@@ -3,17 +3,21 @@
 
 AC_PREREQ([2.69])
 AC_INIT([MPI-OmpSs interoperability library], [0.1], [jbellon@bsc.es])
-AC_CONFIG_SRCDIR([src/mpioverload.cc])
-AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_MACRO_DIR([m4])
 
-# Automake initialization
-AM_INIT_AUTOMAKE([-Wall dist-bzip2 -Wno-portability subdir-objects])
+AC_LANG([C++])
+
+AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_SRCDIR([src])
+AC_CONFIG_HEADERS([config.h])
 
 # AM_PROG_AR must be called before LT_INIT or a warning ensues
 AM_PROG_AR
+
 # Turn off static libraries.
 LT_INIT([static disable-shared])
+
+# Automake initialization
+AM_INIT_AUTOMAKE([-Wall dist-bzip2 -Wno-portability subdir-objects])
 
 # Checks for programs.
 AC_PROG_CXX

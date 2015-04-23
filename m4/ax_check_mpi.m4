@@ -97,6 +97,14 @@ if test x$with_mpi != xno; then
                      [mpi=no])
     fi
 
+    if test x$mpi == xyes; then
+      AC_CHECK_LIB([mpicxx],
+                     [_ZN3MPI11Init_threadEi],
+                     [mpi=yes
+                      LIBS="$LIBS -lmpicxx"],
+                     [mpi=no])
+    fi
+
     mpilibs=$LIBS
 
     CFLAGS="$bak_CFLAGS"
