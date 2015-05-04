@@ -33,7 +33,6 @@ int MPI_Send( MPI3CONST void *buf, int count, MPI_Datatype datatype,
         ierror = waitCond->getResult();
     }
 
-    //ierror = PMPI_Send(buf, count, datatype, dest, tag, comm);
     return ierror;
 }
 
@@ -55,7 +54,6 @@ int MPI_Recv( void *buf, int count, MPI_Datatype datatype,
         //delete waitCond; Note: the scheduler will take care of deleting the condition
     }
 
-    //ierror = PMPI_Recv (buf, count, datatype, source, tag, comm, status );
     return ierror;
 }
 
@@ -144,6 +142,55 @@ int MPI_Sendrecv_replace( void *buf, int count, MPI_Datatype datatype,
 }
 
 #if MPI_VERSION >=3
+int MPI_Gatherv( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+    void *recvbuf, const int recvcounts[], const int displs[], MPI_Datatype
+recvtype,
+    int root, MPI_Comm comm )
+{
+    debug0( "Intercepted " << __FUNCTION__ );
+    int ierror = MPI_SUCCESS;
+
+    MPI_Status status;
+    MPI_Request request;
+
+    ierror = MPI_Igatherv( sendbuf, sendcount, sendtype,
+                           recvbuf, recvcounts, displs, recvtype,
+                           root, comm, &request );
+
+    if( ierror == MPI_SUCCESS ) {
+        shared_pointer<MPI_SingleTest> waitCond = shared_pointer<MPI_SingleTest>(new MPI_SingleTest(&request, &status) );
+        nanos_sync_cond_wait( waitCond.getPointer() );
+
+        ierror = waitCond->getResult();
+    }
+
+    return ierror;
+}
+
+int MPI_Reduce( const void *sendbuf, void *recvbuf, int count,
+               MPI_Datatype datatype, MPI_Op op, int root,
+               MPI_Comm comm )
+{
+    debug0( "Intercepted " << __FUNCTION__ );
+    int ierror = MPI_SUCCESS;
+
+    MPI_Status status;
+    MPI_Request request;
+
+    ierror = MPI_Ireduce( sendbuf, recvbuf, count,
+                          datatype, op, root,
+                          comm, &request );
+
+    if( ierror == MPI_SUCCESS ) {
+        shared_pointer<MPI_SingleTest> waitCond = shared_pointer<MPI_SingleTest>(new MPI_SingleTest(&request, &status) );
+        nanos_sync_cond_wait( waitCond.getPointer() );
+
+        ierror = waitCond->getResult();
+    }
+
+    return ierror;
+}
+
 int MPI_Barrier(MPI_Comm comm)
 {
     debug0( "Intercepted " << __FUNCTION__ );
