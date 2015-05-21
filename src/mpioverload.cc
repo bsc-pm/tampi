@@ -27,8 +27,8 @@ int MPI_Send( MPI3CONST void *buf, int count, MPI_Datatype datatype,
     ierror = MPI_Isend( buf, count, datatype, dest, tag, comm, &request );
 
     if( ierror == MPI_SUCCESS ) {
-        shared_pointer<MPI_SingleTest> waitCond = shared_pointer<MPI_SingleTest>(new MPI_SingleTest(&request, &status) );
-        nanos_sync_cond_wait( waitCond.getPointer() );
+        shared_pointer<MPI_SingleTest> waitCond(new MPI_SingleTest(&request, &status) );
+        nanos_polling_cond_wait( waitCond.getPointer() );
 
         ierror = waitCond->getResult();
     }
@@ -42,17 +42,20 @@ int MPI_Recv( void *buf, int count, MPI_Datatype datatype,
     debug0( "Intercepted " << __FUNCTION__ );
     int ierror = MPI_SUCCESS;
 
+    MPI_Status s;
     MPI_Request request;
 
     ierror = MPI_Irecv( buf, count, datatype, source, tag, comm, &request );
 
     if( ierror == MPI_SUCCESS ) {
-        shared_pointer<MPI_SingleTest> waitCond = shared_pointer<MPI_SingleTest>(new MPI_SingleTest(&request, status) );
+        shared_pointer<MPI_SingleTest> waitCond(new MPI_SingleTest(&request, &s) );
         nanos_polling_cond_wait( waitCond.getPointer() );
 
         ierror = waitCond->getResult();
-        //delete waitCond; Note: the scheduler will take care of deleting the condition
     }
+
+    if( status != MPI_STATUS_IGNORE )
+	memcpy( status, &s, sizeof(MPI_Status) );
 
     return ierror;
 }
@@ -64,30 +67,30 @@ int MPI_Sendrecv( MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
                        MPI_Comm comm, MPI_Status *status)
 {
     debug0( "Intercepted " << __FUNCTION__ );
-    int isend_error = MPI_SUCCESS;
-    int irecv_error = MPI_SUCCESS;
+    int ierror = MPI_SUCCESS;
     MPI_Request reqlist[2];
 
-    isend_error = MPI_Isend( sendbuf, sendcount, sendtype, dest, sendtag, comm, &reqlist[0] );
-    irecv_error = MPI_Irecv( recvbuf, recvcount, recvtype, source, recvtag, comm, &reqlist[1] );
+    ierror = MPI_Isend( sendbuf, sendcount, sendtype, dest, sendtag, comm, &reqlist[0] );
+    if( ierror == MPI_SUCCESS ) {
+       ierror = MPI_Irecv( recvbuf, recvcount, recvtype, source, recvtag, comm, &reqlist[1] );
+    }
 
-    if( isend_error == MPI_SUCCESS && irecv_error == MPI_SUCCESS ) {
+    if( ierror == MPI_SUCCESS ) {
         shared_pointer<MPI_MultipleTest> waitCond;
         if( status == MPI_STATUS_IGNORE ) {
             waitCond.setPointer( new MPI_MultipleTest(2, reqlist, MPI_STATUSES_IGNORE) );
-            shared_pointer<MPI_MultipleTest> waitCond = shared_pointer<MPI_MultipleTest>(new MPI_MultipleTest(2, reqlist, MPI_STATUSES_IGNORE) );
             nanos_polling_cond_wait( waitCond.getPointer() );
         } else {
             MPI_Status statuslist[2];
             waitCond.setPointer( new MPI_MultipleTest(2, reqlist, statuslist) );
             nanos_polling_cond_wait( waitCond.getPointer() );
-            // Copy the value of irecv status back to the status provided by the user
-            *status = statuslist[1];
+
+            std::memcpy( status, &statuslist[1], sizeof(MPI_Status) );
         }
-        irecv_error = waitCond->getResult();
+        ierror = waitCond->getResult();
     }
 
-    return isend_error? isend_error : irecv_error;
+    return ierror;
 }
 
 int MPI_Sendrecv_replace( void *buf, int count, MPI_Datatype datatype,
@@ -111,7 +114,6 @@ int MPI_Sendrecv_replace( void *buf, int count, MPI_Datatype datatype,
     } else {
         int ierror = MPI_SUCCESS;
         int alloc = MPI_SUCCESS;
-        MPI_Request reqlist[2];
         int packed_size;
         void *helperbuf = NULL;
 
@@ -141,6 +143,33 @@ int MPI_Sendrecv_replace( void *buf, int count, MPI_Datatype datatype,
     }
 }
 
+int MPI_Wait( MPI_Request *request, MPI_Status *status )
+{
+    int flag = 0;
+    int ierror = MPI_Test( request, &flag, status );
+    if( ierror == MPI_SUCCESS && flag != 1 ) {
+        shared_pointer<MPI_SingleTest> waitCond(new MPI_SingleTest(request, status) );
+        nanos_polling_cond_wait( waitCond.getPointer() );
+
+        ierror = waitCond->getResult();
+    }
+    return ierror;
+}
+
+int MPI_Waitall(int count, MPI_Request array_of_requests[],
+                      MPI_Status array_of_statuses[])
+{
+    int flag = 0;
+    int ierror = MPI_Testall( count, array_of_requests, &flag, array_of_statuses );
+    if( ierror = MPI_SUCCESS && flag != 1 ) {
+       shared_pointer<MPI_MultipleTest> waitCond;
+       waitCond.setPointer( new MPI_MultipleTest(count, array_of_requests, array_of_statuses) );
+       nanos_polling_cond_wait( waitCond.getPointer() );
+       ierror = waitCond->getResult();
+    }
+    return ierror;
+}
+
 #if MPI_VERSION >=3
 int MPI_Gatherv( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     void *recvbuf, const int recvcounts[], const int displs[], MPI_Datatype
@@ -159,7 +188,7 @@ recvtype,
 
     if( ierror == MPI_SUCCESS ) {
         shared_pointer<MPI_SingleTest> waitCond = shared_pointer<MPI_SingleTest>(new MPI_SingleTest(&request, &status) );
-        nanos_sync_cond_wait( waitCond.getPointer() );
+        nanos_polling_cond_wait( waitCond.getPointer() );
 
         ierror = waitCond->getResult();
     }
@@ -183,7 +212,7 @@ int MPI_Reduce( const void *sendbuf, void *recvbuf, int count,
 
     if( ierror == MPI_SUCCESS ) {
         shared_pointer<MPI_SingleTest> waitCond = shared_pointer<MPI_SingleTest>(new MPI_SingleTest(&request, &status) );
-        nanos_sync_cond_wait( waitCond.getPointer() );
+        nanos_polling_cond_wait( waitCond.getPointer() );
 
         ierror = waitCond->getResult();
     }
@@ -199,15 +228,13 @@ int MPI_Barrier(MPI_Comm comm)
     MPI_Status status;
 
     ierror = MPI_Ibarrier( comm, &request );
-
     if( ierror == MPI_SUCCESS ) {
-        shared_pointer<MPI_SingleTest> waitCond = shared_pointer<MPI_SingleTest>(new MPI_SingleTest(&request, &status) );
+        shared_pointer<MPI_SingleTest> waitCond(new MPI_SingleTest(&request, &status) );
         nanos_polling_cond_wait( waitCond.getPointer() );
 
         // What happens if error is MPI_ERR_IN_STATUS?
         ierror = waitCond->getResult();
     }
-
     return ierror;
 }
 
@@ -222,7 +249,7 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     ierror = MPI_Ibcast( buffer, count, datatype, root, comm, &request );
 
     if( ierror == MPI_SUCCESS ) {
-        shared_pointer<MPI_SingleTest> waitCond = shared_pointer<MPI_SingleTest>(new MPI_SingleTest(&request, &status) );
+        shared_pointer<MPI_SingleTest> waitCond(new MPI_SingleTest(&request, &status) );
         nanos_polling_cond_wait( waitCond.getPointer() );
 
         // What happens if error is MPI_ERR_IN_STATUS?
@@ -231,6 +258,7 @@ int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
 
     return ierror;
 }
+
 #endif
 
 }// extern C

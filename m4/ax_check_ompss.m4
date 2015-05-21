@@ -54,14 +54,14 @@ AC_ARG_WITH(ompss-lib,
 # Search for ompss by default
 if test "x$with_ompss" != xno; then
   ompss_prefix=$with_ompss
-  ompssinc="-I $ompss_prefix/include"
-  ompsslib=-L$ompss_prefix/lib
+  ompssinc="$ompss_prefix/include"
+  ompsslib=$ompss_prefix/lib
 fi
 if test "x$with_ompss_include" != x; then
-  ompssinc="-I $with_ompss_include"
+  ompssinc="$with_ompss_include"
 fi
 if test "x$with_ompss_lib" != x; then
-  ompsslib="-L$with_ompss_lib"
+  ompsslib="$with_ompss_lib"
 fi
 
 # This is fulfilled even if $with_ompss="yes" 
@@ -75,9 +75,9 @@ if test x$with_ompss != xno; then
     bak_LDFLAGS="$LDFLAGS"
 
     CFLAGS=
-    CPPFLAGS=$ompssinc
+    CPPFLAGS=-I$ompssinc
     LIBS=
-    LDFLAGS=$ompsslib
+    LDFLAGS=-L$ompsslib
 
     # Check if nanos.h header file exists and compiles
     AC_CHECK_HEADER([nanox/nanos.h], [ompss=yes],[ompss=no])
@@ -87,10 +87,11 @@ if test x$with_ompss != xno; then
       AC_CHECK_LIB([nanox-c],
                      [nanos_polling_cond_wait],
                      [ompss=yes
-                      LIBS="$LIBS -lompss"],
+                      LIBS="$LIBS $ompsslib/libnanox-c.la"],
                      [ompss=no])
     fi
 
+    ompssinc=-I$ompssinc
     ompsslibs=$LIBS
 
     CFLAGS="$bak_CFLAGS"

@@ -13,8 +13,8 @@ AC_CONFIG_HEADERS([config.h])
 # AM_PROG_AR must be called before LT_INIT or a warning ensues
 AM_PROG_AR
 
-# Turn off static libraries.
-LT_INIT([static disable-shared])
+# Turn off shared libraries.
+LT_INIT([shared static])
 
 # Automake initialization
 AM_INIT_AUTOMAKE([-Wall dist-bzip2 -Wno-portability subdir-objects])
@@ -28,6 +28,9 @@ AX_CHECK_OMPSS
 
 # MPI
 AX_CHECK_MPI
+
+# EXTRAE
+AX_CHECK_EXTRAE
 
 # Checks for header files.
 AC_CHECK_HEADERS([unistd.h])
