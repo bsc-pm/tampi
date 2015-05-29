@@ -51,6 +51,8 @@ AC_ARG_WITH(mpi-lib,
 [AS_HELP_STRING([--with-mpi-lib=PATH],
                 [specify directory for the installed mpi library])])
 
+AC_LANG_PUSH([C])
+
 # Search for mpi by default
 if test "x$with_mpi" != xno; then
   mpi_prefix=$with_mpi
@@ -97,14 +99,6 @@ if test x$with_mpi != xno; then
                      [mpi=no])
     fi
 
-    if test x$mpi == xyes; then
-      AC_CHECK_LIB([mpicxx],
-                     [_ZN3MPI11Init_threadEi],
-                     [mpi=yes
-                      LIBS="$LIBS -lmpicxx"],
-                     [mpi=no])
-    fi
-
     mpilibs=$LIBS
 
     CFLAGS="$bak_CFLAGS"
@@ -120,6 +114,8 @@ Please, check that the provided directories are correct.
 ------------------------------])
     fi
 fi
+
+AC_LANG_POP()
 
 AC_SUBST([mpi])
 AC_SUBST([mpi_prefix])

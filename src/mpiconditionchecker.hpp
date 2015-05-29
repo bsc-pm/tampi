@@ -1,31 +1,40 @@
 #include <mpi.h>
-
 #include <iostream>
 #include <sstream>
+#include <nanox/nanos.h>
 #include <nanox-dev/synchronizedcondition.hpp>
 #include <nanox-dev/schedule_decl.hpp>
 
 namespace nanos {
 
+namespace print {
+    template <typename OStreamType>
+    static inline OStreamType &join( OStreamType &&os )
+    {
+       os << std::endl;
+       return os;
+    }
+    
+    template <typename OStreamType, typename T, typename...Ts>
+    static inline OStreamType &join( OStreamType &&os, const T &first, const Ts&... rest)
+    {
+       os << first;
+       return join( os, rest... );
+    }
+
+    template <typename...Ts>
+    inline void dbg( const Ts&... msg )
+    {
+       std::stringstream ss;
+       join( ss, msg... );
+       nanos_debug( ss.str().c_str() );
+    }
+
+    // FIXME: try to detect at configure time which nanos version is being used (nanos_get_mode api call)
+    // and enable define preprocessor flags acordingly.
+}
+
 namespace mpi {
-
-#if 0
-// C++ Version of MPI_Test
-static bool test_request( MPI::Request &req, int* flag, MPI::Status &status )
-{
-    bool ret = req.Test( status );
-    *flag = (int) ret;
-    return ret;
-}
-
-// C++ Version of MPI_Testall
-static bool test_all_requests( size_t count, MPI::Request array_of_requests[], int *flag, MPI::Status array_of_statuses[] )
-{
-    bool ret = MPI::Request::Testall( count, array_of_requests, array_of_statuses );
-    *flag = (int) ret;
-    return ret;
-}
-#endif
 
 static void print_status_error( MPI_Status *status ) {
     switch( status->MPI_ERROR ) {

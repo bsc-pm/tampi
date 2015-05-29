@@ -1,6 +1,5 @@
 #include <mpi.h>
 #include <nanox/nanos.h>
-#include <nanox-dev/debug.hpp>
 #include <nanox-dev/smartpointer.hpp>
 #include "mpiconditionchecker.hpp"
 
@@ -18,7 +17,7 @@ using namespace nanos::mpi;
 int MPI_Send( MPI3CONST void *buf, int count, MPI_Datatype datatype,
     int dest, int tag, MPI_Comm comm )
 {
-    debug0( "Intercepted " << __FUNCTION__ );
+    print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Send" );
     int ierror = MPI_SUCCESS;
 
     MPI_Status status;
@@ -39,7 +38,7 @@ int MPI_Send( MPI3CONST void *buf, int count, MPI_Datatype datatype,
 int MPI_Recv( void *buf, int count, MPI_Datatype datatype,
     int source, int tag, MPI_Comm comm, MPI_Status *status )
 {
-    debug0( "Intercepted " << __FUNCTION__ );
+    print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Recv" );
     int ierror = MPI_SUCCESS;
 
     MPI_Status s;
@@ -66,7 +65,7 @@ int MPI_Sendrecv( MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
                        int source, int recvtag,
                        MPI_Comm comm, MPI_Status *status)
 {
-    debug0( "Intercepted " << __FUNCTION__ );
+    print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Sendrecv" );
     int ierror = MPI_SUCCESS;
     MPI_Request reqlist[2];
 
@@ -98,7 +97,7 @@ int MPI_Sendrecv_replace( void *buf, int count, MPI_Datatype datatype,
                        int source, int recvtag,
                        MPI_Comm comm, MPI_Status *status)
 {
-    debug0( "Intercepted " << __FUNCTION__ );
+    print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Sendrecv_replace" );
     /*
      * Note: this implementation tries to mimic its implementation in OpenMPI: 
      * https://github.com/open-mpi/ompi/blob/master/ompi/mpi/c/sendrecv_replace.c
@@ -176,7 +175,7 @@ int MPI_Gatherv( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 recvtype,
     int root, MPI_Comm comm )
 {
-    debug0( "Intercepted " << __FUNCTION__ );
+    print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Gatherv" );
     int ierror = MPI_SUCCESS;
 
     MPI_Status status;
@@ -200,7 +199,7 @@ int MPI_Reduce( const void *sendbuf, void *recvbuf, int count,
                MPI_Datatype datatype, MPI_Op op, int root,
                MPI_Comm comm )
 {
-    debug0( "Intercepted " << __FUNCTION__ );
+    print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Reduce" );
     int ierror = MPI_SUCCESS;
 
     MPI_Status status;
@@ -222,7 +221,7 @@ int MPI_Reduce( const void *sendbuf, void *recvbuf, int count,
 
 int MPI_Barrier(MPI_Comm comm)
 {
-    debug0( "Intercepted " << __FUNCTION__ );
+    print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Barrier" );
     int ierror = MPI_SUCCESS;
     MPI_Request request;
     MPI_Status status;
@@ -241,7 +240,7 @@ int MPI_Barrier(MPI_Comm comm)
 int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     int root, MPI_Comm comm)
 {
-    debug0( "Intercepted " << __FUNCTION__ );
+    print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Bcast" );
     int ierror = MPI_SUCCESS;
     MPI_Request request;
     MPI_Status status;

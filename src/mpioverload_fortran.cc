@@ -118,6 +118,7 @@ void mpi_waitall_( MPI_Fint * count, MPI_Fint array_of_requests[],
     }
 }
 
+#if MPI_VERSION >=3
 void mpi_barrier_( MPI_Fint *comm, MPI_Fint *ierror )
 {
     MPI_Comm c  = MPI_Comm_f2c( *comm );
@@ -135,12 +136,6 @@ void mpi_bcast_( void *buffer, MPI_Fint *count, MPI_Fint *datatype,
                             *root, c );
 }
 
-/*
-int MPI_Gatherv(MPICH2_CONST void *sendbuf, int sendcnt, MPI_Datatype sendtype,
-                       void *recvbuf, MPICH2_CONST int *recvcnts,
-                       MPICH2_CONST int *displs, MPI_Datatype recvtype,
-                       int root, MPI_Comm comm)
-*/
 void mpi_gatherv_(MPI3CONST void *sendbuf, MPI_Fint *sendcnt, MPI_Fint *sendtype,
                             void *recvbuf, MPI3CONST MPI_Fint *recvcnts, MPI3CONST MPI_Fint *displs, MPI_Fint *recvtype,
                             MPI_Fint *root, MPI_Fint *comm, MPI_Fint *ierror )
@@ -152,10 +147,6 @@ void mpi_gatherv_(MPI3CONST void *sendbuf, MPI_Fint *sendcnt, MPI_Fint *sendtype
     *ierror = MPI_Gatherv( sendbuf, *sendcnt, send_dt, recvbuf, recvcnts, displs, recv_dt, *root, c );
 }
 
-/*
-int MPI_Reduce(MPICH2_CONST void *sendbuf, void *recvbuf, int count,
-                      MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
-*/
 void mpi_reduce_( MPI3CONST void *sendbuf, void *recvbuf, MPI_Fint *count, MPI_Fint *datatype, 
                   MPI_Fint *op, MPI_Fint *root, MPI_Fint *comm, MPI_Fint *ierror )
 {
@@ -165,5 +156,6 @@ void mpi_reduce_( MPI3CONST void *sendbuf, void *recvbuf, MPI_Fint *count, MPI_F
 
     *ierror = MPI_Reduce( sendbuf, recvbuf, *count, dt, c_op, *root, c );
 }
+#endif
 
 }
