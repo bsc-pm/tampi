@@ -118,22 +118,54 @@ void mpi_waitall_( MPI_Fint * count, MPI_Fint array_of_requests[],
     }
 }
 
-#if MPI_VERSION >=3
-void mpi_barrier_( MPI_Fint *comm, MPI_Fint *ierror )
+void mpi_init_( MPI_Fint *ierr )
 {
-    MPI_Comm c  = MPI_Comm_f2c( *comm );
-    *ierror = MPI_Barrier( c );
+   *ierr = MPI_Init(NULL, NULL);
 }
 
-void mpi_bcast_( void *buffer, MPI_Fint *count, MPI_Fint *datatype,
-        MPI_Fint *root, MPI_Fint *comm,
-        MPI_Fint *ierror )
+void mpi_finalize_( MPI_Fint *ierr )
+{
+   *ierr = MPI_Finalize();
+}
+
+void mpi_comm_rank_( MPI_Fint *comm, MPI_Fint *rank, MPI_Fint *ierror )
+{
+   MPI_Comm c = MPI_Comm_f2c( *comm );
+   *ierror = MPI_Comm_rank( c, rank );
+}
+
+void mpi_comm_size_( MPI_Fint *comm, MPI_Fint *size, MPI_Fint *ierror )
+{
+   MPI_Comm c = MPI_Comm_f2c( *comm );
+   *ierror = MPI_Comm_size( c, size );
+}
+
+void mpi_abort_( MPI_Fint *comm, MPI_Fint *errcode, MPI_Fint *ierror )
+{
+   MPI_Comm c = MPI_Comm_f2c( *comm );
+   *ierror = MPI_Abort( c, *errcode );
+}
+
+void mpi_irecv_(void *buf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *source,
+                     MPI_Fint *tag,  MPI_Fint *comm, MPI_Fint *request, MPI_Fint *ierror )
 {
     MPI_Datatype dt = MPI_Type_f2c( *datatype );
     MPI_Comm c = MPI_Comm_f2c( *comm );
 
-    *ierror = MPI_Bcast( buffer, *count, dt, 
-                            *root, c );
+    MPI_Request req;
+    *ierror = MPI_Irecv( buf, *count, dt, *source, *tag, c, &req );
+    *request = MPI_Request_c2f( req );
+}
+
+void mpi_isend_( MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *dest, MPI_Fint *tag,
+                      MPI_Fint *comm, MPI_Fint *request, MPI_Fint *ierror )
+{
+    MPI_Datatype dt = MPI_Type_f2c( *datatype );
+    MPI_Comm c = MPI_Comm_f2c( *comm );
+
+    MPI_Request req;
+    *ierror = MPI_Isend( buf, *count, dt, *dest, *tag, c, &req );
+    *request = MPI_Request_c2f( req );
 }
 
 void mpi_gatherv_(MPI3CONST void *sendbuf, MPI_Fint *sendcnt, MPI_Fint *sendtype,
@@ -156,6 +188,21 @@ void mpi_reduce_( MPI3CONST void *sendbuf, void *recvbuf, MPI_Fint *count, MPI_F
 
     *ierror = MPI_Reduce( sendbuf, recvbuf, *count, dt, c_op, *root, c );
 }
-#endif
 
+void mpi_barrier_( MPI_Fint *comm, MPI_Fint *ierror )
+{
+    MPI_Comm c  = MPI_Comm_f2c( *comm );
+    *ierror = MPI_Barrier( c );
 }
+
+void mpi_bcast_( void *buffer, MPI_Fint *count, MPI_Fint *datatype,
+        MPI_Fint *root, MPI_Fint *comm,
+        MPI_Fint *ierror )
+{
+    MPI_Datatype dt = MPI_Type_f2c( *datatype );
+    MPI_Comm c = MPI_Comm_f2c( *comm );
+
+    *ierror = MPI_Bcast( buffer, *count, dt, *root, c );
+}
+
+}// extern C

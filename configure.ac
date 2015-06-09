@@ -4,11 +4,18 @@
 AC_PREREQ([2.69])
 AC_INIT([MPI-OmpSs interoperability library], [0.1], [jbellon@bsc.es])
 
-AC_LANG([C++])
-
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([config.h])
+
+AC_LANG([C++])
+# MPICXX and MPICC variables will be read for compile checks
+AC_ARG_VAR(MPICXX,[MPI C++ compiler command])
+AC_ARG_VAR(MPICC,[MPI C compiler command])
+
+# Look for a valid MPI compiler
+AC_PROG_CXX([$CXX $MPICXX mpiicpc mpicxx])
+AC_PROG_CC([$CC $MPICC mpiicc mpicc])
 
 # AM_PROG_AR must be called before LT_INIT or a warning ensues
 AM_PROG_AR
@@ -19,21 +26,18 @@ LT_INIT([shared static])
 # Automake initialization
 AM_INIT_AUTOMAKE([-Wall dist-bzip2 -Wno-portability subdir-objects])
 
-# Checks for programs.
-AC_PROG_CXX
+# Checks for header files.
+AC_CHECK_HEADERS([unistd.h])
 
-# Checks for libraries.
-# OmpSs
-AX_CHECK_OMPSS
-
+# Check for libraries
 # MPI
 AX_CHECK_MPI
 
+# OmpSs
+AX_CHECK_OMPSS
+
 # EXTRAE
 AX_CHECK_EXTRAE
-
-# Checks for header files.
-AC_CHECK_HEADERS([unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])

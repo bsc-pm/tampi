@@ -1,7 +1,7 @@
 #
 # SYNOPSIS
 #
-#   AX_CHECK_MPI
+#   AX_CHECK_MPI_CC
 #
 # DESCRIPTION
 #
@@ -38,90 +38,42 @@
 #   exception to the GPL to apply to your modified version as well.
 
 AC_DEFUN([AX_CHECK_MPI],[
-AC_PREREQ(2.59)dnl for _AC_LANG_PREFIX
+AC_REQUIRE([AC_PROG_CXX])
 
-#Check if an mpi implementation is installed.
-AC_ARG_WITH(mpi,
-[AS_HELP_STRING([--with-mpi,--with-mpi=PATH],
-                [search in system directories or specify prefix directory for installed mpi package])])
-AC_ARG_WITH(mpi-include,
-[AS_HELP_STRING([--with-mpi-include=PATH],
-                [specify directory for installed mpi include files])])
-AC_ARG_WITH(mpi-lib,
-[AS_HELP_STRING([--with-mpi-lib=PATH],
-                [specify directory for the installed mpi library])])
+CFLAGS=
+CPPFLAGS=
+LIBS=
+LDFLAGS=
 
 AC_LANG_PUSH([C])
 
-# Search for mpi by default
-if test "x$with_mpi" != xno; then
-  mpi_prefix=$with_mpi
-  AC_CHECK_FILE([$mpi_prefix/include64],
-    [mpiinc=-I$mpi_prefix/include64],
-    [mpiinc=-I$mpi_prefix/include])
-  AC_CHECK_FILE([$mpi_prefix/lib64],
-    [mpilib=-L$mpi_prefix/lib64],
-    [mpilib=-L$mpi_prefix/lib])
-fi
-if test "x$with_mpi_include" != x; then
-  AC_CHECK_FILE([$mpi_prefix/include64],
-    [mpiinc=-L$mpi_prefix/include64],
-    [mpiinc=-L$mpi_prefix/include])
-fi
-if test "x$with_mpi_lib" != x; then
-  mpilib="-L$with_mpi_lib"
+# Check if mpi.h header file exists and compiles
+AC_CHECK_HEADER([mpi.h], [mpi=yes],[mpi=no])
+
+# Look for MPI_Init function in libmpi.so library
+if test x$mpi == xyes; then
+  AC_CHECK_LIB([mpi],
+                 [MPI_Init],
+                 [mpi=yes],
+                 [mpi=no])
 fi
 
-# This is fulfilled even if $with_mpi="yes" 
-# This happens when user leaves --with-value alone
-if test x$with_mpi != xno; then
+mpilibs=$LIBS
 
-    #tests if provided headers and libraries are usable and correct
-    bak_CFLAGS="$CFLAGS"
-    bak_CPPFLAGS="$CPPFLAGS"
-    bak_LIBS="$LIBS"
-    bak_LDFLAGS="$LDFLAGS"
+CFLAGS="$bak_CFLAGS"
+CPPFLAGS="$bak_CPPFLAGS"
+LIBS="$bak_LIBS"
+LDFLAGS="$bak_LDFLAGS"
 
-    CFLAGS=
-    CPPFLAGS=$mpiinc
-    LIBS=
-    LDFLAGS=$mpilib
-
-    # Check if mpi.h header file exists and compiles
-    AC_CHECK_HEADER([mpi.h], [mpi=yes],[mpi=no])
-
-    # Look for MPI_Init function in libmpi.so library
-    if test x$mpi == xyes; then
-      AC_CHECK_LIB([mpi],
-                     [MPI_Init],
-                     [mpi=yes
-                      LIBS="$LIBS -lmpi"],
-                     [mpi=no])
-    fi
-
-    mpilibs=$LIBS
-
-    CFLAGS="$bak_CFLAGS"
-    CPPFLAGS="$bak_CPPFLAGS"
-    LIBS="$bak_LIBS"
-    LDFLAGS="$bak_LDFLAGS"
-
-    if test x$mpi != xyes; then
-        AC_MSG_ERROR([
+if test x$mpi != xyes; then
+    AC_MSG_ERROR([
 ------------------------------
 mpi path was not correctly specified. 
 Please, check that the provided directories are correct.
 ------------------------------])
-    fi
 fi
 
-AC_LANG_POP()
-
-AC_SUBST([mpi])
-AC_SUBST([mpi_prefix])
-AC_SUBST([mpiinc])
-AC_SUBST([mpilib])
-AC_SUBST([mpilibs])
+AC_LANG_POP([C])
 
 ])dnl AX_CHECK_MPI
 

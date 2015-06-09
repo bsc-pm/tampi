@@ -160,7 +160,7 @@ int MPI_Waitall(int count, MPI_Request array_of_requests[],
 {
     int flag = 0;
     int ierror = MPI_Testall( count, array_of_requests, &flag, array_of_statuses );
-    if( ierror = MPI_SUCCESS && flag != 1 ) {
+    if( ierror == MPI_SUCCESS && flag != 1 ) {
        shared_pointer<MPI_MultipleTest> waitCond;
        waitCond.setPointer( new MPI_MultipleTest(count, array_of_requests, array_of_statuses) );
        nanos_polling_cond_wait( waitCond.getPointer() );

@@ -78,21 +78,12 @@ if test x$extraelib != x; then
     # Looking for MPI_Isend function in libnanosmpitrace library
     # is complex due to the variable number of dependencies it has,
     # so we just check for the existence of the 
-    AC_MSG_CHECKING([extrae libraries (C)])
+    AC_MSG_CHECKING([extrae libraries])
     if [[ -e $extraelib/libnanosmpitrace.la ]]; then
        AC_MSG_RESULT([found])
        extrae=yes
 
        LIBS="$LIBS $extraelib/libnanosmpitrace.la"
-    else
-       AC_MSG_RESULT([not found])
-       extrae=no
-    fi
-
-    AC_MSG_CHECKING([extrae libraries (fortran)])
-    if [[ x$extrae = xyes -a -e $extraelib/libnanosmpitracef.la ]]; then
-       AC_MSG_RESULT([found])
-       LIBS="$LIBS $extraelib/libnanosmpitracef.la"
     else
        AC_MSG_RESULT([not found])
        extrae=no
