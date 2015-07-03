@@ -150,6 +150,8 @@ AC_DEFUN([AX_CXX_COMPILE_STDCXX_11], [dnl
     if test x$ac_success = xno; then
       AC_MSG_ERROR([*** A compiler with support for C++11 language features is required.])
     fi
+    AC_DEFINE(HAVE_CXX11,1,
+              [define if the compiler supports basic C++11 syntax])
   else
     if test x$ac_success = xno; then
       HAVE_CXX11=0
