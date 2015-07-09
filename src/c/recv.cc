@@ -1,4 +1,3 @@
-
 #include <mpi.h>
 
 #include "mpicommon.h"
@@ -14,13 +13,13 @@ extern "C" {
         nanos::mpi::recv( buf, count, datatype, source, tag, comm, status, &err );
         return err;
     }
-}
+} // extern C
 
 namespace nanos {
 namespace mpi {
-    typedef C::Ticket<1>::type ticket;
+    typedef typename TicketTraits<MPI_Comm,1>::ticket_type ticket;
 
-    shared_pointer< ticket > irecv( void *buf, int count, MPI_Datatype datatype, int source, int tag,
+    shared_pointer<ticket> irecv( void *buf, int count, MPI_Datatype datatype, int source, int tag,
             MPI_Comm comm )
     {
         // TODO do not forget to assign MPI function return value to ticket error
@@ -29,5 +28,5 @@ namespace mpi {
         return shared_pointer<ticket>(result);
     }
     
-}
-}
+} // namespace mpi
+} // namespace nanos

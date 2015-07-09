@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstring>
+#include <iterator>
 #include <vector>
 
 #include "mpicommon.h"
@@ -70,7 +71,7 @@ public:
     {
         assert( nelems <= values.size() );
         if( !ignore_all( array_of_statuses, nelems ) )
-            std::copy( values.end()-nelems, values.end(), std::begin(array_of_statuses) );
+            std::copy( values.end()-nelems, values.end(), std::begin(*array_of_statuses) );
     }
 };
 
@@ -102,7 +103,7 @@ public:
     {
         if( !ignore( array_of_statuses, nelems ) ) {
             assert( nelems <= values.size() );
-            std::copy( values.end()-nelems, values.end(), std::begin(array_of_statuses) );
+            std::copy( values.end()-nelems, values.end(), std::begin(*array_of_statuses) );
         }
     }
 };

@@ -54,4 +54,4 @@ int MPI_Sendrecv_replace( void *buf, int count, MPI_Datatype datatype,
     }
 }
 
-}
+} // extern C

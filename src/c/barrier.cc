@@ -18,7 +18,7 @@ extern "C" {
 
 namespace nanos {
 namespace mpi {
-    typedef C::Ticket<1>::type ticket;
+    typedef typename TicketTraits<MPI_Comm,1>::ticket_type ticket;
 
     shared_pointer< ticket_t > ibarrier( MPI_Comm comm )
     {

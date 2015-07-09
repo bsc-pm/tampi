@@ -3,10 +3,18 @@
 
 #include "print.h"
 #include "mpicommon.h"
+#include "ticket.h"
+#include <nanox-dev/smartpointer.hpp>
 
-#if MPI_VERSION >=3
 namespace nanos {
 namespace mpi {
+
+template< typename IntType, typename DataType, 
+	  typename OpType, typename CommType >
+shared_pointer< typename TicketTraits<CommType,1>::ticket_type >
+ireduce( const void *sendbuf, void *recvbuf, IntType count,
+            DataType datatype, OpType op, IntType root,
+            CommType comm );
 
 template< typename IntType, typename DataType, typename OpType, 
         typename CommType, typename ErrType >
@@ -23,7 +31,5 @@ void reduce( const void *sendbuf, void *recvbuf, IntType count,
 
 } // namespace mpi
 } // namespace nanos
-
-#endif // MPI_VERSION
 
 #endif // REDUCE_H

@@ -10,11 +10,10 @@ extern "C" {
 void mpi_wait_( MPI_Fint *request, MPI_Fint *status, MPI_Fint *err )
 {
     using namespace nanos::mpi;
-    using namespace nanos::mpi::Fortran;
-    print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Wait" );
+    typedef Fortran::TicketTraits<1>::ticket_type ticket;
+    typedef ticket::checker_type ticket_checker;
 
-    typedef TicketChecker<request_type,status_type,int_type,1> ticket_checker;
-    typedef nanos::mpi::Ticket< ticket_checker > ticket;
+    print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Wait" );
 
     auto waitCond = shared_pointer<ticket>( 
                            new ticket( ticket_checker( 1, request ) )
@@ -22,5 +21,4 @@ void mpi_wait_( MPI_Fint *request, MPI_Fint *status, MPI_Fint *err )
     waitCond->wait( status, err );
 }
 
-}
-
+} // extern C

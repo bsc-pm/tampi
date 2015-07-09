@@ -15,7 +15,7 @@ void mpi_pack_size_( MPI_Fint *incount, MPI_Fint *datatype, MPI_Fint *comm, MPI_
 void mpi_unpack_( MPI3CONST void *inbuf, MPI_Fint *insize, MPI_Fint *position, 
                   void *outbuf, MPI_Fint *outcount, MPI_Fint *datatype, MPI_Fint *comm, MPI_Fint *err );
 
-void mpi_alloc_mem_( MPI_Fint *size, MPI_Info *info, void *baseptr, MPI_Fint *err );
+void mpi_alloc_mem_( MPI_Fint *size, MPI_Fint *info, void *baseptr, MPI_Fint *err );
 void mpi_free_mem_( void *base, MPI_Fint *err );
 
 

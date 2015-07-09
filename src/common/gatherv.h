@@ -3,10 +3,17 @@
 
 #include "print.h"
 #include "mpicommon.h"
+#include "ticket.h"
+#include <nanox-dev/smartpointer.hpp>
 
-#if MPI_VERSION >=3
 namespace nanos {
 namespace mpi {
+
+template< typename IntType, typename DataType, typename CommType >
+shared_pointer< typename TicketTraits<CommType,1>::ticket_type >
+igatherv( const void *sendbuf, IntType sendcount, DataType sendtype,
+        void *recvbuf, const IntType recvcounts[], const IntType displs[],
+	DataType recvtype, IntType root, CommType comm );
 
 template< typename IntType, typename DataType, typename CommType, typename ErrType >
 void gatherv( const void *sendbuf, IntType sendcount, DataType sendtype,
@@ -16,7 +23,7 @@ void gatherv( const void *sendbuf, IntType sendcount, DataType sendtype,
 {
     print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Gatherv" );
 
-    auto wait_cond =
+    auto waitCond =
             igatherv( sendbuf, sendcount, sendtype,
                     recvbuf, recvcounts, displs, recvtype,
                     root, comm );
@@ -25,7 +32,5 @@ void gatherv( const void *sendbuf, IntType sendcount, DataType sendtype,
 
 } // namespace mpi
 } // namespace nanos
-
-#endif // MPI_VERSION
 
 #endif // BARRIER_H

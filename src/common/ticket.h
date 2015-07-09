@@ -4,11 +4,13 @@
 #include <mpi.h>
 #include <iterator>
 #include <utility>
-
 #include <cassert>
+
+#include <nanox/nanos.h>
 
 #include "flag.h"
 #include "pollingchecker.h"
+#include "mpicommon.h"
 #include "mpi_impl.h"
 #include "status.h"
 
@@ -67,6 +69,8 @@ public:
 template <class TicketChecker>
 class Ticket : public SinglePollingCond<TicketChecker> {
 public:
+    typedef TicketChecker checker_type;
+
     Ticket() : SinglePollingCond< TicketChecker >() {}
 
     Ticket( Ticket const& t ) : SinglePollingCond< TicketChecker > (t) {}
@@ -98,38 +102,27 @@ public:
     }
 };
 
-namespace C {
+template < typename comm_type, size_t count >
+struct TicketTraits {
+	typedef typename MPITraits<comm_type>::request_type request_type;
+	typedef typename MPITraits<comm_type>::status_type status_type;
+	typedef typename MPITraits<comm_type>::int_type int_type;
 
-typedef MPI_Request request_type;
-typedef MPI_Status  status_type;
-typedef int         int_type;
-
-// Ticket type 
-// Count: fixed number of requests
-// Count=0 (default) variable (dynamic) number of requests
-template<size_t count=0>
-struct Ticket {
-  typedef TicketChecker<request_type, status_type, int_type, count> checker_type;
-  typedef nanos::mpi::Ticket< checker_type > type;
+	typedef Ticket< TicketChecker<request_type, status_type, int_type, count> > ticket_type;
 };
 
+namespace C {
+  template< size_t count = 0 >
+  struct TicketTraits {
+    typedef typename nanos::mpi::Ticket< TicketChecker<request_type,status_type,int_type,count> > ticket_type;
+  };
 } // namespace C
 
 namespace Fortran {
-
-typedef MPI_Fint request_type;
-typedef MPI_Fint status_type[SIZEOF_MPI_STATUS];
-typedef MPI_Fint int_type;
-
-// Ticket type 
-// Count: fixed number of requests
-// Count=0 (default) variable (dynamic) number of requests
-template<size_t count=0>
-struct Ticket {
-  typedef TicketChecker<request_type, status_type, int_type, count> checker_type;
-  typedef nanos::mpi::Ticket< checker_type > type;
-};
-
+  template< size_t count = 0 >
+  struct TicketTraits {
+    typedef typename nanos::mpi::Ticket< TicketChecker<request_type,status_type,int_type,count> > ticket_type;
+  };
 } // namespace Fortran
 
 } // namespace mpi

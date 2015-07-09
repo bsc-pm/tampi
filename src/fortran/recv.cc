@@ -19,7 +19,7 @@ extern "C" {
 
 namespace nanos {
 namespace mpi {
-    typedef Fortran::Ticket<1>::type ticket;
+    typedef typename TicketTraits<MPI_Fint*,1>::ticket_type ticket;
 
     shared_pointer< ticket > irecv( void *buf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *source, MPI_Fint *tag,
             MPI_Fint *comm )

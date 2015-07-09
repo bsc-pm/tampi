@@ -1,11 +1,12 @@
 #include <mpi.h>
 
+#if MPI_VERSION >=3
+
 #include "mpicommon.h"
 #include "ticket.h"
 #include "reduce.h"
 #include <nanox-dev/smartpointer.hpp>
 
-#if MPI_VERSION >=3
 extern "C" {
     int MPI_Reduce( const void *sendbuf, void *recvbuf, int count,
                    MPI_Datatype datatype, MPI_Op op, int root,
@@ -15,13 +16,13 @@ extern "C" {
         nanos::mpi::reduce( sendbuf, recvbuf, count, datatype, op, root, comm, &err );
         return err;
     }
-}
+} // extern C
 
 namespace nanos {
 namespace mpi {
-    typedef C::Ticket<1>::type ticket;
+    typedef typename TicketTraits<MPI_Comm,1>::ticket_type ticket;
 
-    shared_pointer< Ticket > ireduce( const void *sendbuf, void *recvbuf, int count,
+    shared_pointer< ticket > ireduce( const void *sendbuf, void *recvbuf, int count,
                 MPI_Datatype datatype, MPI_Op op, int root,
                 MPI_Comm comm )
     {
@@ -31,6 +32,7 @@ namespace mpi {
         return shared_pointer<ticket>(result);
     }
 
-}
-}
-#endif
+} // namespace mpi
+} // namespace nanos
+
+#endif // MPI_VERSION

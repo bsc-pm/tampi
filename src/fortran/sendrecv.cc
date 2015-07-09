@@ -28,7 +28,7 @@ void mpi_irecv_( void *recvbuf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *s
 
 namespace nanos {
 namespace mpi {
-    typedef typename Fortran::Ticket<2>::type ticket;
+    typedef typename TicketTraits<MPI_Fint*,1>::ticket_type ticket;
 
     shared_pointer<ticket> isendrecv( MPI3CONST void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
                     MPI_Fint *dest, MPI_Fint *sendtag,
