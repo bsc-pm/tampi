@@ -8,8 +8,7 @@ AM_CXXFLAGS=$(CXXFLAGS)
 
 pkginclude_HEADERS=
 
-lib_LTLIBRARIES=libmpiompss-interop.la
-#libmpiompss-interop-f.la
+lib_LTLIBRARIES=libmpiompss-interop.la libmpiompss-interop-fort.la
 
 libmpiompss_interop_la_SOURCES=\
 src/c/barrier.cc \
@@ -23,8 +22,19 @@ src/c/sendrecvreplace.cc \
 src/c/waitall.cc \
 src/c/wait.cc
 
+libmpiompss_interop_fort_la_SOURCES=\
+src/fortran/barrier.cc \
+src/fortran/bcast.cc \
+src/fortran/gatherv.cc \
+src/fortran/recv.cc \
+src/fortran/reduce.cc \
+src/fortran/send.cc \
+src/fortran/sendrecv.cc \
+src/fortran/sendrecvreplace.cc \
+src/fortran/waitall.cc \
+src/fortran/wait.cc
+
 libmpiompss_interop_la_LIBADD=@extraelibs@ @ompsslibs@
 
-#libmpiompss_interop_f_la_SOURCES=src/mpioverload_fortran.cc
-#libmpiompss_interop_f_la_LIBADD=libmpiompss-interop.la @extraelibs@ @ompsslibs@
+libmpiompss_interop_fort_la_LIBADD=@extraelibs@ @ompsslibs@
 

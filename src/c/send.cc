@@ -19,7 +19,7 @@ namespace nanos {
 namespace mpi {
     typedef C::Ticket<1>::type ticket;
 
-    shared_pointer< ticket > &&isend( MPI3CONST void *buf, int count, MPI_Datatype datatype,
+    shared_pointer< ticket > isend( MPI3CONST void *buf, int count, MPI_Datatype datatype,
         int dest, int tag, MPI_Comm comm )
     {
         // TODO do not forget to assign MPI function return value to ticket error

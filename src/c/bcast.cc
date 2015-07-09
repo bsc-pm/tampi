@@ -21,7 +21,7 @@ namespace mpi {
 
     typedef C::Ticket<1>::type ticket;
 
-    shared_pointer< Ticket > &&ibcast( void *buf, int count, MPI_Datatype datatype,
+    shared_pointer< Ticket > ibcast( void *buf, int count, MPI_Datatype datatype,
             int root, MPI_Comm comm )
     {
         // TODO do not forget to assign MPI function return value to ticket error

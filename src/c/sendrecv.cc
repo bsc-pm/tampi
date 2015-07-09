@@ -20,11 +20,13 @@ int MPI_Sendrecv( MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
     return err;
 }
 
+}
+
 namespace nanos {
 namespace mpi {
     typedef C::Ticket<2>::type ticket;
 
-    shared_pointer<ticket> &&isendrecv( MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
+    shared_pointer<ticket> isendrecv( MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
                     int dest, int sendtag,
                     void *recvbuf, int recvcount, MPI_Datatype recvtype,
                     int source, int recvtag,
@@ -39,6 +41,4 @@ namespace mpi {
         return shared_pointer<ticket>(result);
     }
 }
-}
-
 }

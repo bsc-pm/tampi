@@ -2,8 +2,6 @@
 #define TICKET_H
 
 #include <mpi.h>
-#include <array>
-#include <vector>
 #include <iterator>
 #include <utility>
 
@@ -11,7 +9,8 @@
 
 #include "flag.h"
 #include "pollingchecker.h"
-#include "test_impl.h"
+#include "mpi_impl.h"
+#include "status.h"
 
 namespace nanos {
 namespace mpi {
@@ -23,23 +22,23 @@ template <
     typename RequestType, 
     typename StatusType, 
     typename IntType,
-    int count = -1 // Fixed number of items. -1 : use dynamic container
+    size_t count = 0 // Fixed number of items. 0 : use dynamic container
 >
 class TicketChecker : public PollingChecker {
     typedef RequestType request_type;
     typedef StatusType  status_type;
     typedef IntType     int_type;
-    friend class Ticket< TicketChecker<RequestType,StatusType,IntType,count> >;
 
-    std::array<RequestType, count> _requests;
-    std::array<StatusType,  count> _statuses;
+protected:
+    Requests<RequestType, count> _requests;
+    Statuses<StatusType,  count> _statuses;
     IntType _error;
 public:
     TicketChecker() : _requests(), _statuses(), _error() {}
 
-    TicketChecker( IntType len, RequestType r[] ) : _requests(), _statuses(), _error()
+    TicketChecker( IntType len, RequestType r[] ) : _requests( static_cast<size_t>(len) ), _statuses( static_cast<size_t>(len) ), _error()
     {
-        assert( len <= _requests.size() );
+        assert( len <= _requests.capacity() );
         std::copy( r, r+len, _requests.begin() );
     }
 
@@ -48,131 +47,87 @@ public:
     virtual ~TicketChecker() {}
 
     virtual bool test() {
-            return test_impl<count>::test( _requests.size(), _requests.data(), _statuses.data(), _error );
+        return test_impl<count>::test( _requests.size(), _requests.data(), _statuses.data(), &_error );
     }
 
-    IntType const& getError()     const { return error; }
-
-    template < int position >
-    RequestType &getRequest()
-    {
-        return _requests[position];
-    }
-};
-
-template <
-    typename RequestType, 
-    typename StatusType, 
-    typename IntType
-    //-1 : Dont care about number of items. Will use dynamic storage
->
-class TicketChecker<RequestType,StatusType,IntType,-1> : public PollingChecker {
-    typedef RequestType request_type;
-    typedef StatusType  status_type;
-    typedef IntType     int_type;
-    friend class Ticket< TicketChecker<RequestType,StatusType,IntType,-1> >;
-
-    std::vector<RequestType> _requests;
-    std::vector<StatusType>  _statuses;
-    IntType _error;
-public:
-    TicketChecker() : _requests(), _statuses(), _error() {}
-
-    TicketChecker( IntType len, RequestType *r )
-        : _requests( r, r+len ),
-          _statuses(len), _error()
-    {
-        assert( len <= _requests.size() );
-    }
-
-    TicketChecker( TicketChecker const& t ) : _requests( t._requests ), _statuses( t._statuses ), _error( t._error ) {}
-
-    TicketChecker( TicketChecker &&t ) :
-        _requests( std::forward(t._requests) ), 
-        _statuses( std::forward(t._statuses) ), 
-        _error( std::forward(t._error) )
-    {}
-
-    virtual ~TicketChecker() {}
-
-    virtual bool test() {
-        return test_impl<-1>::test( _requests.size(), _requests.data(), _statuses.data(), _error );
-    }
-
+    IntType&       getError()       { return _error; }
     IntType const& getError() const { return _error; }
 
     template < int position >
-    RequestType &getRequest()
-    {
-        return _requests[position];
-    }
-};
+    RequestType &getRequest() { return _requests[position]; }
 
+    Requests<RequestType,count> &getRequests() { return _requests; }
+
+    template < int position >
+    StatusType &getStatus() { return _statuses[position]; }
+
+    Statuses<StatusType, count> &getStatuses() { return _statuses; }
+};
 
 template <class TicketChecker>
 class Ticket : public SinglePollingCond<TicketChecker> {
-    typedef typename TicketChecker::int_type     int_type;
-    typedef typename TicketChecker::request_type request_type;
-    typedef typename TicketChecker::status_type  status_type;
-
 public:
     Ticket() : SinglePollingCond< TicketChecker >() {}
 
-    Ticket( TicketChecker const& t ) : SinglePollingCond< TicketChecker > (t) {}
+    Ticket( Ticket const& t ) : SinglePollingCond< TicketChecker > (t) {}
 
-    //Ticket( TicketChecker &&t ) : SinglePollingCond< TicketChecker > ( std::forward(t) ) {}
+    Ticket( TicketChecker const& tc ) : SinglePollingCond< TicketChecker > (tc) {}
 
     virtual ~Ticket() {}
 
     TicketChecker &getData() { return this->_conditionChecker; }
 
+    template < typename int_type >
     void wait( int_type *err ) {
-        if( MPI_SUCCESS == getData()._error )
+        if( MPI_SUCCESS == getData().getError() )
             this->waitForPollCompletion();
-
         if( err )
-            *err = getData()._error;
+            *err = getData().getError();
     }
 
+    template < typename status_type, typename int_type >
     void wait( status_type *status, int_type *err ) {
         wait( err );
-        if( status ) {
-            // Copy only the last element
-            std::copy( getData()._statuses.end()-1, getData()._statuses.end(), status );
-        }
+        getData().getStatuses().copy( status );
     }
 
-    void wait( int_type nelem,status_type array_of_statuses[], int_type *err ) {
-        assert( nelem < _statuses.size() );
+    template < typename status_type, typename int_type >
+    void wait( int_type nelem, status_type array_of_statuses/*[]*/, int_type *err ) {
         wait( err );
-        if( statuses ) {
-            std::copy( getData()._statuses.begin(),
-                       getData()._statuses.end(),
-                       std::begin(array_of_statuses)
-                      );
-        }
+        //getData().getStatuses().copy( static_cast<size_t>(nelem), array_of_statuses );
     }
 };
 
 namespace C {
+
+typedef MPI_Request request_type;
+typedef MPI_Status  status_type;
+typedef int         int_type;
+
 // Ticket type 
 // Count: fixed number of requests
-// Count=-1 (default) variable (dynamic) number of requests
-template<int count=-1>
+// Count=0 (default) variable (dynamic) number of requests
+template<size_t count=0>
 struct Ticket {
-  typedef nanos::mpi::Ticket< TicketChecker<MPI_Request,MPI_Status,int,count> > type;
+  typedef TicketChecker<request_type, status_type, int_type, count> checker_type;
+  typedef nanos::mpi::Ticket< checker_type > type;
 };
-
 
 } // namespace C
 
 namespace Fortran {
+
+typedef MPI_Fint request_type;
+typedef MPI_Fint status_type[SIZEOF_MPI_STATUS];
+typedef MPI_Fint int_type;
+
 // Ticket type 
 // Count: fixed number of requests
-// Count=-1 (default) variable (dynamic) number of requests
-template<int count=-1>
+// Count=0 (default) variable (dynamic) number of requests
+template<size_t count=0>
 struct Ticket {
-  typedef nanos::mpi::Ticket< TicketChecker<MPI_Fint,MPI_Fint,MPI_Fint,count> > type;
+  typedef TicketChecker<request_type, status_type, int_type, count> checker_type;
+  typedef nanos::mpi::Ticket< checker_type > type;
 };
 
 } // namespace Fortran

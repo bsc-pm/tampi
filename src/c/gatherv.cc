@@ -24,7 +24,7 @@ namespace nanos {
 namespace mpi {
     typedef C::Ticket<1>::type ticket;
 
-    shared_pointer< Ticket> &&igatherv( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+    shared_pointer< Ticket> igatherv( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
         void *recvbuf, const int recvcounts[], const int displs[], MPI_Datatype
     recvtype,
         int root, MPI_Comm comm )

@@ -9,7 +9,6 @@
 namespace nanos {
 namespace mpi {
 
-
 template< typename IntType, typename ReqType, typename StatusType, typename ErrType>
 void waitall( IntType count, ReqType array_of_requests[], 
             StatusType array_of_statuses[], ErrType *ierror )
@@ -22,7 +21,7 @@ void waitall( IntType count, ReqType array_of_requests[],
     auto waitCond = shared_pointer<ticket>( 
                            new ticket( ticket_checker( count, array_of_requests ) )
                         );
-    waitCond->wait( array_of_statuses, ierror );
+    waitCond->wait( count, array_of_statuses, ierror );
 }
 
 } // namespace mpi

@@ -1,6 +1,8 @@
 #ifndef SENDRECV_H
 #define SENDRECV_H
 
+#include <utility>
+
 #include "print.h"
 #include "mpicommon.h"
 
@@ -17,7 +19,7 @@ void sendrecv( MPI3CONST void *sendbuf, IntType sendcount, DataType sendtype,
 {
     print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Sendrecv" );
 
-    auto waitCond = 
+    auto waitCond =
         isendrecv( sendbuf, sendcount, sendtype, dest, sendtag, 
                     recvbuf, recvcount, recvtype, source, recvtag, comm );
     waitCond->wait( status, ierror );

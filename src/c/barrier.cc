@@ -20,7 +20,7 @@ namespace nanos {
 namespace mpi {
     typedef C::Ticket<1>::type ticket;
 
-    shared_pointer< ticket_t > &&ibarrier( MPI_Comm comm )
+    shared_pointer< ticket_t > ibarrier( MPI_Comm comm )
     {
         // TODO do not forget to assign MPI function return value to ticket error
         ticket *result = new ticket();

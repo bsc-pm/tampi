@@ -20,7 +20,7 @@ namespace nanos {
 namespace mpi {
     typedef C::Ticket<1>::type ticket;
 
-    shared_pointer< ticket > &&irecv( void *buf, int count, MPI_Datatype datatype, int source, int tag,
+    shared_pointer< ticket > irecv( void *buf, int count, MPI_Datatype datatype, int source, int tag,
             MPI_Comm comm )
     {
         // TODO do not forget to assign MPI function return value to ticket error
