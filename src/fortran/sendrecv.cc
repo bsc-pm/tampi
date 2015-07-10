@@ -30,6 +30,7 @@ namespace nanos {
 namespace mpi {
     typedef typename TicketTraits<MPI_Fint*,1>::ticket_type ticket;
 
+    template<>
     shared_pointer<ticket> isendrecv( MPI3CONST void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
                     MPI_Fint *dest, MPI_Fint *sendtag,
                     void *recvbuf, MPI_Fint *recvcount, MPI_Fint *recvtype,

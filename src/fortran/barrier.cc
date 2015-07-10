@@ -20,6 +20,7 @@ namespace nanos {
 namespace mpi {
     typedef Fortran::Ticket<1>::type ticket;
 
+    template<>
     shared_pointer< ticket_t > ibarrier( MPI_Fint *comm )
     {
         ticket *result = new ticket();

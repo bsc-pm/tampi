@@ -23,6 +23,7 @@ namespace nanos {
 namespace mpi {
     typedef Fortran::Ticket<1>::type ticket;
 
+    template<>
     shared_pointer< Ticket > ireduce( const void *sendbuf, void *recvbuf, MPI_Fint *count,
                 MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
                 MPI_Fint *comm )

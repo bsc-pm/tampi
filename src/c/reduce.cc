@@ -22,6 +22,7 @@ namespace nanos {
 namespace mpi {
     typedef typename TicketTraits<MPI_Comm,1>::ticket_type ticket;
 
+    template<>
     shared_pointer< ticket > ireduce( const void *sendbuf, void *recvbuf, int count,
                 MPI_Datatype datatype, MPI_Op op, int root,
                 MPI_Comm comm )

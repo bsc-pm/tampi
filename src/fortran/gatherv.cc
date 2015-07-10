@@ -25,6 +25,7 @@ namespace nanos {
 namespace mpi {
     typedef Fortran::Ticket<1>::type ticket;
 
+    template<>
     shared_pointer< Ticket> igatherv( const void *sendbuf, MPI_Fint *sendcount, MPI_MPI_Fint *sendtype,
         void *recvbuf, MP_Fint recvcounts[], MPI_Fint displs[], MPI_Fint *recvtype,
         MPI_Fint *root, MPI_Fint *comm )

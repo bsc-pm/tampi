@@ -1,6 +1,5 @@
 #include <mpi.h>
 
-#include "mpicommon.h"
 #include "print.h"
 
 extern "C" {

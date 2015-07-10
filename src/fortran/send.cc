@@ -20,6 +20,7 @@ namespace nanos {
 namespace mpi {
     typedef typename TicketTraits<MPI_Fint*,1>::ticket_type ticket;
 
+    template<>
     shared_pointer< ticket > isend( MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
         MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm )
     {
@@ -33,6 +34,4 @@ namespace mpi {
 
 }
 }
-
-
 

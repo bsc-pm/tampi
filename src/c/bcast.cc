@@ -21,6 +21,7 @@ namespace nanos {
 namespace mpi {
     typedef typename TicketTraits<MPI_Comm,1>::ticket_type ticket;
 
+    template<>
     shared_pointer< ticket > ibcast( void *buf, int count, MPI_Datatype datatype,
             int root, MPI_Comm comm )
     {

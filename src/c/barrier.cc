@@ -20,6 +20,7 @@ namespace nanos {
 namespace mpi {
     typedef typename TicketTraits<MPI_Comm,1>::ticket_type ticket;
 
+    template<>
     shared_pointer< ticket_t > ibarrier( MPI_Comm comm )
     {
         // TODO do not forget to assign MPI function return value to ticket error

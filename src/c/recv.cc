@@ -19,6 +19,7 @@ namespace nanos {
 namespace mpi {
     typedef typename TicketTraits<MPI_Comm,1>::ticket_type ticket;
 
+    template<>
     shared_pointer<ticket> irecv( void *buf, int count, MPI_Datatype datatype, int source, int tag,
             MPI_Comm comm )
     {
