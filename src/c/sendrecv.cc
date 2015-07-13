@@ -32,11 +32,19 @@ namespace mpi {
     {
         // TODO do not forget to assign MPI function return value to ticket error
         ticket *result = new ticket();
-        MPI_Isend( sendbuf, sendcount, sendtype, dest, sendtag,
+        int err = MPI_Isend( sendbuf, sendcount, sendtype, dest, sendtag,
                     comm, &result->getData().getRequest<0>() );
-        MPI_Irecv( recvbuf, recvcount, recvtype, source, recvtag,
+        // Currently the following line  would be redundant as 
+        // the second communication is always issued:
+        // result->getData().setError( err );
+        
+        err = MPI_Irecv( recvbuf, recvcount, recvtype, source, recvtag,
                     comm, &result->getData().getRequest<1>() );
+        result->getData().setError( err );
+
         return shared_pointer<ticket>(result);
     }
+
 } // namespace mpi
 } // namespace nanos
+

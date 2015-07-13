@@ -21,14 +21,13 @@ extern "C" {
 
 namespace nanos {
 namespace mpi {
-    typedef Fortran::Ticket<1>::type ticket;
+    typedef TicketTraits<MPI_Fint*,1>::ticket_type ticket;
 
     template<>
-    shared_pointer< Ticket > ireduce( const void *sendbuf, void *recvbuf, MPI_Fint *count,
+    shared_pointer< ticket > ireduce( const void *sendbuf, void *recvbuf, MPI_Fint *count,
                 MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
                 MPI_Fint *comm )
     {
-        // TODO do not forget to assign MPI function return value to ticket error
         ticket *result = new ticket();
         mpi_ireduce_( sendbuf, recvbuf, count, datatype, op, root, comm,
             &result->getData().getRequest<0>(), // Store output request into ticket

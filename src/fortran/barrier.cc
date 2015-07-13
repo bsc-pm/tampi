@@ -18,15 +18,15 @@ extern "C" {
 
 namespace nanos {
 namespace mpi {
-    typedef Fortran::Ticket<1>::type ticket;
+    typedef typename TicketTraits<MPI_Fint*,1>::ticket_type ticket;
 
     template<>
-    shared_pointer< ticket_t > ibarrier( MPI_Fint *comm )
+    shared_pointer< ticket > ibarrier( MPI_Fint *comm )
     {
         ticket *result = new ticket();
         mpi_ibarrier_( comm, 
                 &result->getData().getRequest<0>(),  // Store output request into ticket
-                &result->getError() );               // Store output error   into ticket
+                &result->getData().getError() );               // Store output error   into ticket
         return shared_pointer<ticket>(result);
     }
 

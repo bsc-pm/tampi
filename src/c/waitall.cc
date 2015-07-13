@@ -20,8 +20,10 @@ int MPI_Waitall(int count, MPI_Request array_of_requests[],
     auto waitCond = shared_pointer<ticket>( 
                            new ticket( ticket_checker( count, array_of_requests ) )
                         );
-     waitCond->wait( count, array_of_statuses, &err );
+
+    waitCond->wait( count, array_of_statuses, &err );
     return err;
 }
 
 } // extern C
+

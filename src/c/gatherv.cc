@@ -1,4 +1,4 @@
-#include <mpi.h>
+#include <mpi.h> // defines MPI_VERSION
 
 #if MPI_VERSION >=3
 
@@ -19,7 +19,7 @@ extern "C" {
                         root, comm, &err );
         return err;
     }
-}
+} // extern C
 
 namespace nanos {
 namespace mpi {
@@ -32,12 +32,16 @@ namespace mpi {
     {
         // TODO do not forget to assign MPI function return value to ticket error
         ticket *result = new ticket();
-        MPI_Igatherv( sendbuf, sendcount, sendtype, 
-                recvbuf, recvcounts, displs, recvtype, 
-                root, comm, &result->getData().getRequest<0>() );
+        int err = MPI_Igatherv( sendbuf, sendcount, sendtype, 
+                    recvbuf, recvcounts, displs, recvtype, 
+                    root, comm, &result->getData().getRequest<0>() );
+        result->getData().setError( err );
+
         return shared_pointer<ticket>(result);
     }
 
-}
-}
-#endif
+} // namespace mpi
+} // namespace nanos
+
+#endif // MPI_VERSION
+

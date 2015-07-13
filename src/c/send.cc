@@ -13,7 +13,7 @@ extern "C" {
         nanos::mpi::send( buf, count, datatype, dest, tag, comm, &err );
         return err;
     }
-}
+} // extern C
 
 namespace nanos {
 namespace mpi {
@@ -25,11 +25,12 @@ namespace mpi {
     {
         // TODO do not forget to assign MPI function return value to ticket error
         ticket *result = new ticket();
-        MPI_Isend( buf, count, datatype, dest, tag, comm, &result->getData().getRequest<0>() );
+        int err = MPI_Isend( buf, count, datatype, dest, tag, comm, &result->getData().getRequest<0>() );
+        result->getData().setError( err );
+
         return shared_pointer<ticket>(result);
     }
 
-}
-}
-
+} // namespace mpi
+} // namespace nanos
 

@@ -9,16 +9,16 @@
 namespace nanos {
 namespace mpi {
 
-template< typename IntType, typename DataType, typename CommType >
+template< typename IntType, typename IntArrayType, typename DataType, typename CommType >
 shared_pointer< typename TicketTraits<CommType,1>::ticket_type >
 igatherv( const void *sendbuf, IntType sendcount, DataType sendtype,
-        void *recvbuf, const IntType recvcounts[], const IntType displs[],
+        void *recvbuf, IntArrayType recvcounts, IntArrayType displs,
 	DataType recvtype, IntType root, CommType comm );
 
-template< typename IntType, typename DataType, typename CommType, typename ErrType >
+template< typename IntType, typename IntArrayType, typename DataType, typename CommType, typename ErrType >
 void gatherv( const void *sendbuf, IntType sendcount, DataType sendtype,
-            void *recvbuf, const IntType recvcounts[], 
-            const IntType displs[], DataType recvtype,
+            void *recvbuf, IntArrayType recvcounts, 
+            IntArrayType displs, DataType recvtype,
             IntType root, CommType comm, ErrType *ierror )
 {
     print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Gatherv" );
@@ -34,3 +34,4 @@ void gatherv( const void *sendbuf, IntType sendcount, DataType sendtype,
 } // namespace nanos
 
 #endif // BARRIER_H
+

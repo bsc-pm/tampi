@@ -27,7 +27,9 @@ namespace mpi {
     {
         // TODO do not forget to assign MPI function return value to ticket error
         ticket *result = new ticket();
-        MPI_Ibcast( buf, count, datatype, root, comm, &result->getData().getRequest<0>() );
+        int err = MPI_Ibcast( buf, count, datatype, root, comm, &result->getData().getRequest<0>() );
+        result->getData().setError( err );
+
         return shared_pointer<ticket>(result);
     }
 

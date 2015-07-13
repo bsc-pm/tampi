@@ -21,17 +21,16 @@ void mpi_ibcast_(void *buffer, MPI_Fint *count, MPI_Fint *datatype,
 
 namespace nanos {
 namespace mpi {
-
-    typedef Fortran::Ticket<1>::type ticket;
+    typedef typename TicketTraits<MPI_Fint*,1>::ticket_type ticket;
 
     template<>
-    shared_pointer< Ticket > ibcast( void *buf, MPI_Fint *count, MPI_Fint *datatype,
+    shared_pointer< ticket > ibcast( void *buf, MPI_Fint *count, MPI_Fint *datatype,
             MPI_Fint *root, MPI_Fint *comm )
     {
         ticket *result = new ticket();
         mpi_ibcast_( buf, count, datatype, root, comm,
             &result->getData().getRequest<0>(),  // Store output request into ticket
-            &result->getError() );               // Store output error   into ticket
+            &result->getData().getError() );     // Store output error   into ticket
         return shared_pointer<ticket>(result);
     }
 

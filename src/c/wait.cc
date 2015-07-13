@@ -19,8 +19,10 @@ int MPI_Wait( MPI_Request *request, MPI_Status *status )
     auto waitCond = shared_pointer<ticket>( 
                            new ticket( ticket_checker( 1, request ) )
                         );
+
     waitCond->wait( status, &err );
     return err;
 }
 
 } // extern C
+

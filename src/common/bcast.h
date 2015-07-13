@@ -17,8 +17,7 @@ shared_pointer< typename TicketTraits<CommType,1>::ticket_type >
 ibcast( void *buf, IntType count, DataType datatype,
             IntType root, CommType comm );
 
-template< typename IntType, typename DataType, typename CommType, 
-        typename StatusType, typename ErrType>
+template< typename IntType, typename DataType, typename CommType, typename ErrType>
 void bcast( void *buf, IntType count, DataType datatype, IntType root, 
             CommType comm, ErrType *ierror )
 {

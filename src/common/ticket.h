@@ -53,7 +53,10 @@ public:
     }
 
     IntType&       getError()       { return _error; }
+
     IntType const& getError() const { return _error; }
+
+    void setError( IntType const& value ) { _error = value; }
 
     template < int position >
     RequestType &getRequest() { return _requests[position]; }
