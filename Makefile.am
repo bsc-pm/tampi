@@ -18,9 +18,9 @@ src/c/recv.cc \
 src/c/reduce.cc \
 src/c/send.cc \
 src/c/sendrecv.cc \
-src/c/sendrecvreplace.cc \
 src/c/waitall.cc \
-src/c/wait.cc
+src/c/wait.cc \
+src/c/sendrecvreplace.cc
 
 libmpiompss_interop_fort_la_SOURCES=\
 src/fortran/barrier.cc \
@@ -30,9 +30,9 @@ src/fortran/recv.cc \
 src/fortran/reduce.cc \
 src/fortran/send.cc \
 src/fortran/sendrecv.cc \
-src/fortran/sendrecvreplace.cc \
 src/fortran/waitall.cc \
-src/fortran/wait.cc
+src/fortran/wait.cc \
+src/fortran/sendrecvreplace.cc
 
 libmpiompss_interop_la_LIBADD=@extraelibs@ @ompsslibs@
 

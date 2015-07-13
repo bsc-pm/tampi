@@ -1,6 +1,7 @@
 #include <mpi.h>
 
 #include "print.h"
+#include "mpicommon.h" // Defines MPI3CONST macro
 
 extern "C" {
 
