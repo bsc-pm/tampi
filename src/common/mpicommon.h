@@ -3,8 +3,26 @@
 
 #include <mpi.h>
 
+/*! \file mpicommon.h
+  Specifies which datatypes are used for each kind of data in each
+  language.
+  Examples: requests.
+    - C:       MPI_Request
+    - Fortran: MPI_Fint
+ */
+
+//! Determines the number of elements that define an status
+/*!
+  Statuses in MPI are composed by few integers that can either
+  represent counters or error codes.
+  In C, they are defined in a struct. However, in Fortran they are
+  defined as an integer array, so we need to know how many integers
+  an status is composed of to create the correct representation of
+  Fortran MPI statuses in C/C++ structures.
+ */
 #define SIZEOF_MPI_STATUS sizeof(MPI_Status)/sizeof(int)
 
+//! Read only buffers must be defined as const in versions MPI 3.0 and later.
 #if MPI_VERSION >= 3
     #define MPI3CONST const
 #else
@@ -32,6 +50,10 @@ typedef MPI_Fint    int_type;
 
 } // namespace Fortran
 
+//! Type trait that helps to define sets of datatypes for each language.
+/*!
+  \param comm_type Communicator data type (MPI_Comm/MPI_Fint) that is being used.
+ */
 template < typename comm_type >
 struct MPITraits;
 

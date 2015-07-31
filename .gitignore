@@ -10,6 +10,8 @@ config.h.in~
 config.sub
 configure
 depcomp
+doc/html
+doc/latex
 install-sh
 ltmain.sh
 m4/libtool.m4

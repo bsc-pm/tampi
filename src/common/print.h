@@ -3,6 +3,12 @@
 #include <sstream>
 #include <nanox/nanos.h>
 
+/*! \file print.h
+  Implements several functions that print debug information such as
+  human readable description of MPI errors and runtime debug message
+  printing helpers.
+ */
+
 namespace print {
     template <typename OStreamType>
     static inline OStreamType &join( OStreamType &&os )
@@ -26,8 +32,9 @@ namespace print {
        nanos_debug( ss.str().c_str() );
     }
 
-    // FIXME: try to detect at configure time which nanos version is being used (nanos_get_mode api call)
-    // and enable define preprocessor flags acordingly.
+    /* TODO: try to detect at configure time which nanos version is being used 
+       (nanos_get_mode api call) and enable define preprocessor flags acordingly.
+     */
 }
 
 namespace mpi {
