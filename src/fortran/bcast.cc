@@ -40,7 +40,7 @@ void mpi_ibcast_(void *buffer, MPI_Fint *count, MPI_Fint *datatype,
 
 namespace nanos {
 namespace mpi {
-    typedef typename TicketTraits<MPI_Fint*,1>::ticket_type ticket;
+    using ticket = TicketTraits<MPI_Fint*,1>::ticket_type;
 
     template<>
     shared_pointer< ticket > ibcast( void *buf, MPI_Fint *count, MPI_Fint *datatype,

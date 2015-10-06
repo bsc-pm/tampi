@@ -34,8 +34,8 @@ void waitall( IntType count, ReqType array_of_requests[],
 {
     print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Wait" );
 
-    typedef TicketChecker<ReqType,StatusType,ErrType> ticket_checker;
-    typedef Ticket< ticket_checker > ticket;
+    using ticket_checker = TicketChecker<ReqType,StatusType,ErrType>;
+    using ticket = Ticket< ticket_checker >;
 
     auto waitCond = shared_pointer<ticket>( 
                            new ticket( ticket_checker( count, array_of_requests ) )

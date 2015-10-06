@@ -30,8 +30,8 @@ void mpi_waitall_( MPI_Fint *count, MPI_Fint array_of_requests[],
                       MPI_Fint array_of_statuses[], MPI_Fint *err )
 {
     using namespace nanos::mpi;
-    typedef Fortran::TicketTraits<0>::ticket_type ticket;
-    typedef ticket::checker_type ticket_checker;
+    using ticket = Fortran::TicketTraits<0>::ticket_type;
+    using ticket_checker = ticket::checker_type;
 
     print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Waitall" );
 

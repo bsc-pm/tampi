@@ -36,7 +36,7 @@ extern "C" {
 
 namespace nanos {
 namespace mpi {
-    typedef typename TicketTraits<MPI_Comm,1>::ticket_type ticket;
+    using ticket = TicketTraits<MPI_Comm,1>::ticket_type;
 
     template<>
     shared_pointer< ticket > isend( MPI3CONST void *buf, int count, MPI_Datatype datatype,

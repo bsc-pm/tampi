@@ -42,7 +42,7 @@ extern "C" {
 
 namespace nanos {
 namespace mpi {
-    typedef typename TicketTraits<MPI_Comm,1>::ticket_type ticket;
+    using ticket = TicketTraits<MPI_Comm,1>::ticket_type;
 
     template<>
     shared_pointer<ticket> igatherv( const void *sendbuf, int sendcount, MPI_Datatype sendtype,

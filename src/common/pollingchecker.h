@@ -39,7 +39,7 @@ namespace mpi {
 class PollingChecker : public ConditionChecker
 {
     private:
-        typedef ConditionChecker super;
+        using super = ConditionChecker ;
         //! Provides thread safety for concurrent checks.
         Lock           _lock;
         //! Holds the result of the last check.

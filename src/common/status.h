@@ -95,7 +95,7 @@ public:
  */
 template < typename T >
 class Container<T,0> : public std::vector<T> {
-    typedef typename std::vector<T> super;
+    using std::vector<T> = super;
 public:
     //! Default constructor.
     Container() : super() {}
@@ -155,7 +155,7 @@ public:
  */
 template < size_t fixed_size >
 class Statuses< Fortran::status_type, fixed_size > {
-    typedef Fortran::status_type status_type;
+    using Fortran::status_type = status_type;
 
     Container<status_type,fixed_size> values;
 public:

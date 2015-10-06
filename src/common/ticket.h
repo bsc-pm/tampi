@@ -55,9 +55,9 @@ template <
     size_t count = 0 // Fixed number of items. 0 : use dynamic container
 >
 class TicketChecker : public PollingChecker {
-    typedef RequestType request_type;
-    typedef StatusType  status_type;
-    typedef IntType     int_type;
+    using request_type = RequestType;
+    using status_type = StatusType;
+    using int_type = IntType;
 
 protected:
     //! Contains all the requests that must be checked.
@@ -138,7 +138,7 @@ public:
 template <class TicketChecker>
 class Ticket : public SinglePollingCond<TicketChecker> {
 public:
-    typedef TicketChecker checker_type;
+    using checker_type = TicketChecker ;
 
     //! Default constructor.
     Ticket() : SinglePollingCond< TicketChecker >() {}
@@ -185,24 +185,24 @@ public:
 
 template < typename comm_type, size_t count >
 struct TicketTraits {
-	typedef typename MPITraits<comm_type>::request_type request_type;
-	typedef typename MPITraits<comm_type>::status_type status_type;
-	typedef typename MPITraits<comm_type>::int_type int_type;
+	using request_type = MPITraits<comm_type>::request_type;
+	using status_type  = MPITraits<comm_type>::status_type;
+	using int_type     = MPITraits<comm_type>::int_type;
 
-	typedef Ticket< TicketChecker<request_type, status_type, int_type, count> > ticket_type;
+	using ticket_type = Ticket< TicketChecker<request_type, status_type, int_type, count> >;
 };
 
 namespace C {
   template< size_t count = 0 >
   struct TicketTraits {
-    typedef typename nanos::mpi::Ticket< TicketChecker<request_type,status_type,int_type,count> > ticket_type;
+    using ticket_type = nanos::mpi::Ticket< TicketChecker<request_type,status_type,int_type,count> >;
   };
 } // namespace C
 
 namespace Fortran {
   template< size_t count = 0 >
   struct TicketTraits {
-    typedef typename nanos::mpi::Ticket< TicketChecker<request_type,status_type,int_type,count> > ticket_type;
+    using ticket_type = nanos::mpi::Ticket< TicketChecker<request_type,status_type,int_type,count> >;
   };
 } // namespace Fortran
 

@@ -40,7 +40,7 @@ extern "C" {
 
 namespace nanos {
 namespace mpi {
-    typedef TicketTraits<MPI_Fint*,1>::ticket_type ticket;
+    using ticket = TicketTraits<MPI_Fint*,1>::ticket_type;
 
     template<>
     shared_pointer< ticket > ireduce( const void *sendbuf, void *recvbuf, MPI_Fint *count,

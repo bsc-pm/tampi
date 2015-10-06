@@ -1,7 +1,7 @@
 #
 # SYNOPSIS
 #
-#   AX_CHECK_MPI_CC
+#   AX_CHECK_MPI
 #
 # DESCRIPTION
 #
@@ -38,7 +38,6 @@
 #   exception to the GPL to apply to your modified version as well.
 
 AC_DEFUN([AX_CHECK_MPI],[
-AC_REQUIRE([AC_PROG_CXX])
 
 CFLAGS=
 CPPFLAGS=

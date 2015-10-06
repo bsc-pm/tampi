@@ -30,8 +30,8 @@ int MPI_Waitall(int count, MPI_Request array_of_requests[],
                       MPI_Status array_of_statuses[])
 {
     using namespace nanos::mpi;
-    typedef C::TicketTraits<>::ticket_type ticket;
-    typedef ticket::checker_type ticket_checker;
+    using C::TicketTraits<>::ticket_type ticket;
+    using ticket::checker_type ticket_checker;
 
     int err;
     print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Wait" );

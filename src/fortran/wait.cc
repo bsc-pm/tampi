@@ -29,8 +29,8 @@ extern "C" {
 void mpi_wait_( MPI_Fint *request, MPI_Fint *status, MPI_Fint *err )
 {
     using namespace nanos::mpi;
-    typedef Fortran::TicketTraits<1>::ticket_type ticket;
-    typedef ticket::checker_type ticket_checker;
+    using ticket = Fortran::TicketTraits<1>::ticket_type;
+    using ticket_checker = ticket::checker_type;
 
     print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Wait" );
 

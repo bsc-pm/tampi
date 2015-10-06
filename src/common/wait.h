@@ -33,8 +33,8 @@ void wait( ReqType *request, StatusType *status, ErrType *ierror )
 {
     print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Wait" );
 
-    typedef TicketChecker<ReqType,StatusType,ErrType,1> ticket_checker;
-    typedef Ticket<ticket_checker> ticket;
+    using ticket_checker = TicketChecker<ReqType,StatusType,ErrType,1>;
+    using ticket = Ticket<ticket_checker>;
 
     auto waitCond = shared_pointer<ticket>(
                             new ticket( ticket_checker( 1,request ) )
