@@ -25,8 +25,6 @@
 #include <utility>
 #include <cassert>
 
-#include <nanox/nanos.h>
-
 #include "flag.h"
 #include "pollingchecker.h"
 #include "mpicommon.h"
