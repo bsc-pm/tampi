@@ -21,32 +21,36 @@
 
 #if MPI_VERSION >=3
 
-#include "mpicommon.h"
+#include "mpi/status.h"
+#include "smartpointer.hpp"
 #include "ticket.h"
+
+using ticket = nanos::mpi::Ticket<MPI_Request,MPI_Status,nanos::mpi::StatusKind::ignore,int,1>;
+
+shared_pointer<ticket> ibarrier( MPI_Comm comm );
+
 #include "barrier.h"
-#include <nanox-dev/smartpointer.hpp>
+
 
 extern "C" {
     int MPI_Barrier( MPI_Comm comm )
     {
         int err;
-        nanos::mpi::barrier( comm, &err );
+        nanos::mpi::barrier<ticket>( comm, &err );
         return err;
     }
 } // extern C
 
 namespace nanos {
 namespace mpi {
-    using ticket = TicketTraits<MPI_Comm,1>::ticket_type;
 
-    template<>
-    shared_pointer< ticket > ibarrier( MPI_Comm comm )
+    shared_pointer<ticket> ibarrier( MPI_Comm comm )
     {
-        ticket *result = new ticket();
-        int err = MPI_Ibarrier( comm, &result->getData().getRequest<0>() );
+        shared_pointer<ticket> result( new ticket() );
+        int err = MPI_Ibarrier( comm, result->getRequestSet().at(0) );
         result->getData().setError( err );
 
-        return shared_pointer<ticket>(result);
+        return result;
     }
 
 } // namespace mpi

@@ -3,6 +3,7 @@
 #define POLLING_CONDITION_H
 
 #include "common/pollingchecker.h"
+#include "synccondition.h"
 
 namespace abt {
 
@@ -15,13 +16,21 @@ template < class PollingChecker >
 class SinglePollingCond : public SynchronizedCondition< PollingChecker > {
 public:
     //! Default constructor.
-    SinglePollingCond() : SingleSyncCond<PollingChecker>() {}
+    SinglePollingCond()
+    {
+    }
 
     //! Constructs the condition variable with a reference of PollingChecker.
-    SinglePollingCond( PollingChecker const& c ) : SingleSyncCond<PollingChecker>(c) {}
+    SinglePollingCond( PollingChecker const& c ) :
+        SynchronizedCondition<PollingChecker>(c)
+    {
+    }
 
     //! Constructs the condition variable with a rvalue reference of PollingChecker.
-    SinglePollingCond( PollingChecker && c ) : SingleSyncCond<PollingChecker>(c) {}
+    SinglePollingCond( PollingChecker && c ) :
+        SynchronizedCondition<PollingChecker>(c)
+    {
+    }
 
     //! Default destructor.
     virtual ~SinglePollingCond() {}
@@ -32,6 +41,6 @@ public:
     }
 };
 
-} // namespace nanos
+} // namespace abt
 
 #endif // POLLING_CONDITION_H

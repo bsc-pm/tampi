@@ -20,7 +20,10 @@
 #include <mpi.h>
 #include <iostream>
 #include <sstream>
-#include <nanox/nanos.h>
+
+#ifdef HAVE_NANOX_NANOS_H
+   #include <nanox/nanos.h>
+#endif
 
 /*! \file print.h
   Implements several functions that print debug information such as
@@ -29,6 +32,18 @@
  */
 
 namespace print {
+
+#ifdef HAVE_NANOX_NANOS_H
+    void nanos_debug( const char *message )
+    {
+        ::nanos_debug( message );
+    }
+#else
+    void nanos_debug( const char *message )
+    {
+    }
+#endif
+
     template <typename OStreamType>
     static inline OStreamType &join( OStreamType &&os )
     {

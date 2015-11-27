@@ -20,112 +20,23 @@
 #ifndef TICKET_H
 #define TICKET_H
 
-#include <mpi.h>
-#include <iterator>
-#include <utility>
-#include <cassert>
+#ifdef HAVE_ABT_H
+    #include "argobots/pollingcondition.h"
+    using namespace abt;
+#endif
 
-#include "flag.h"
+#include "mpi/requestset.h"
+#include "mpi/statusset.h"
 #include "pollingchecker.h"
-#include "mpicommon.h"
-#include "mpi_impl.h"
-#include "status.h"
+#include "ticketchecker.h"
+
+//#include <mpi.h>
+//#include <iterator>
+//#include <utility>
+//#include <cassert>
 
 namespace nanos {
 namespace mpi {
-
-template < typename Checker >
-class Ticket;
-
-//! Polling ConditionChecker for MPI requests.
-/*!
-  TicketChecker contains the necessary data to perform tests over
-  one or many MPI requests and store the status output value.
-  \param RequestType Data type used to represent a request
-  \param StatusType Data type used to represent a status
-  \param IntType Data type used to represent integer values (lengths, error codes...)
-  \param count Number of request that this ticket will contain. If 0 or not specified, the number of requests is not fixed (dynamic storage is used in this case).
- */
-template <
-    typename RequestType, 
-    typename StatusType, 
-    typename IntType,
-    size_t count = 0 // Fixed number of items. 0 : use dynamic container
->
-class TicketChecker : public PollingChecker {
-    using request_type = RequestType;
-    using status_type = StatusType;
-    using int_type = IntType;
-
-protected:
-    //! Contains all the requests that must be checked.
-    Requests<RequestType, count> _requests;
-
-    //! Contain the result of the checks for each request.-
-    Statuses<StatusType,  count> _statuses;
-
-    //! Holds the return value of the last check.
-    IntType _error;
-public:
-    //! Default constructor. 
-    /*!
-      Creates an empty ticket with uninitialized requests.
-      Requests may be initialized later on.
-     */
-    TicketChecker() : _requests(), _statuses(), _error() {}
-
-    //! Request array constructor
-    /*!
-      Creates a ticket that will check for the completion of
-      a given set of requests.
-      \warning The request capacity of the ticket must be enough to hold
-      all of them. Using fixed size is not recommended in this case
-      for this reason.
-     */
-    TicketChecker( IntType len, RequestType r[] ) : _requests( static_cast<size_t>(len) ), _statuses( static_cast<size_t>(len) ), _error()
-    {
-        assert( len <= _requests.capacity() );
-        std::copy( r, r+len, _requests.begin() );
-    }
-
-    //! Copy constructor.
-    TicketChecker( TicketChecker const& t ) : _requests( t._requests ), _statuses( t._statuses ), _error( t._error ) {}
-
-    //! Destructor
-    virtual ~TicketChecker() {}
-
-    //! Calls MPI test.
-    /*!
-      Calls the specific mpi_test implementation depending on the data types 
-      that are being used.
-     */
-    virtual bool test() {
-        return test_impl<count>::test( _requests.size(), _requests.data(), _statuses.data(), &_error );
-    }
-
-    //! \return last check's error code. Non const-reference version.
-    IntType&       getError()       { return _error; }
-
-    //! \return last check's error code. Non const-reference version.
-    IntType const& getError() const { return _error; }
-
-    //! Sets lasts check's error code.
-    void setError( IntType const& value ) { _error = value; }
-
-    //! \return the ticket's Nth request.
-    template < int position >
-    RequestType &getRequest() { return _requests[position]; }
-
-    //! \return a reference to the request container.
-    Requests<RequestType,count> &getRequests() { return _requests; }
-
-    //! \return the ticket's Nth requests status.
-    template < int position >
-    StatusType &getStatus() { return _statuses[position]; }
-
-    //! \return a reference to the status container.
-    Statuses<StatusType, count> &getStatuses() { return _statuses; }
-};
 
 //! Polling conditional variable for MPI conditional checkers
 /*!
@@ -133,76 +44,86 @@ public:
   with TicketChecker in order to test the compleness of MPI requests.
   \param TicketChecker MPI checker that will be used.
  */
-template <class TicketChecker>
-class Ticket : public SinglePollingCond<TicketChecker> {
+template<
+    typename RequestType, 
+    typename StatusType, 
+    StatusKind ignoreStatus,
+    typename ErrorType,
+    size_t count = 0 // Fixed number of items. 0 : use dynamic container
+>
+class Ticket : public SinglePollingCond<TicketChecker<RequestType,StatusType,ignoreStatus,ErrorType,count> > {
 public:
-    using checker_type = TicketChecker ;
+    using checker_type = TicketChecker<RequestType,StatusType,ignoreStatus,ErrorType,count>;
+    using super = SinglePollingCond<checker_type>;
 
     //! Default constructor.
-    Ticket() : SinglePollingCond< TicketChecker >() {}
+    Ticket()
+    {
+    }
 
     //! Copy constructor.
-    Ticket( Ticket const& t ) : SinglePollingCond< TicketChecker > (t) {}
+    Ticket( Ticket const& t ) :
+        super(t)
+    {
+    }
 
     //! ConditionChecker constructor.
     /*!
       Passes a ConditionChecker's reference to its superclass.
      */
-    Ticket( TicketChecker const& tc ) : SinglePollingCond< TicketChecker > (tc) {}
+    Ticket( checker_type const& tc ) :
+        super(tc)
+    {
+    }
 
     //! Destructor.
-    virtual ~Ticket() {}
+    virtual ~Ticket()
+    {
+    }
 
     //! Returns a reference to MPI request values.
-    TicketChecker &getData() { return this->_conditionChecker; }
+    RequestSet<RequestType,count> &getRequestSet()
+    {
+        return this->_conditionChecker.getRequestSet();
+    }
+
+    StatusSet<StatusType,ignoreStatus,count> &getStatusSet()
+    {
+        return this->_conditionChecker.getRequestSet();
+    }
+
+    ErrorType &getError()
+    {
+        return this->_conditionChecker.getError();
+    }
 
     //! Stops the task until the requests are completed.
     /*!
       \param err output error code.
      */
     template < typename int_type >
-    void wait( int_type *err ) {
-        if( MPI_SUCCESS == getData().getError() )
-            this->waitForPollCompletion();
+    void wait( int_type *err )
+    {
+        if( getError().success() )
+            super::waitForPollCompletion();
         if( err )
-            *err = getData().getError();
+            *err = getError();
     }
 
-    template < typename status_type, typename int_type >
-    void wait( status_type *status, int_type *err ) {
+    template < typename int_type >
+    void wait( StatusType *status, int_type *err )
+    {
         wait( err );
-        getData().getStatuses().copy( status );
+        getStatusSet().copy( status );
     }
 
-    template < typename status_type, typename int_type >
-    void wait( int_type nelem, status_type array_of_statuses/*[]*/, int_type *err ) {
+    template < typename int_type >
+    void wait( size_t nelem, StatusType* array_of_statuses, int_type *err )
+    {
         wait( err );
-        //getData().getStatuses().copy( static_cast<size_t>(nelem), array_of_statuses );
+        getStatusSet().copy( nelem, array_of_statuses );
     }
 };
-
-template < typename comm_type, size_t count >
-struct TicketTraits {
-	using request_type = MPITraits<comm_type>::request_type;
-	using status_type  = MPITraits<comm_type>::status_type;
-	using int_type     = MPITraits<comm_type>::int_type;
-
-	using ticket_type = Ticket< TicketChecker<request_type, status_type, int_type, count> >;
-};
-
-namespace C {
-  template< size_t count = 0 >
-  struct TicketTraits {
-    using ticket_type = nanos::mpi::Ticket< TicketChecker<request_type,status_type,int_type,count> >;
-  };
-} // namespace C
-
-namespace Fortran {
-  template< size_t count = 0 >
-  struct TicketTraits {
-    using ticket_type = nanos::mpi::Ticket< TicketChecker<request_type,status_type,int_type,count> >;
-  };
-} // namespace Fortran
 
 } // namespace mpi
 } // namespace nanos

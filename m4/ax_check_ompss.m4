@@ -38,7 +38,6 @@
 #   exception to the GPL to apply to your modified version as well.
 
 AC_DEFUN([AX_CHECK_OMPSS],[
-AC_PREREQ(2.59)dnl for _AC_LANG_PREFIX
 
 #Check if an ompss implementation is installed.
 AC_ARG_WITH(ompss,
@@ -52,64 +51,56 @@ AC_ARG_WITH(ompss-lib,
                 [specify directory for the installed ompss library])])
 
 # Search for ompss by default
-if test "x$with_ompss" != xno; then
-  ompss_prefix=$with_ompss
-  ompssinc="$ompss_prefix/include"
-  ompsslib=$ompss_prefix/lib
-fi
-if test "x$with_ompss_include" != x; then
-  ompssinc="$with_ompss_include"
-fi
-if test "x$with_ompss_lib" != x; then
-  ompsslib="$with_ompss_lib"
-fi
+AS_IF([test "$with_ompss" != yes],[
+  ompssinc="-I$with_ompss/include"
+  ompsslib="-L$with_ompss/lib -Wl,-rpath,$with_ompss/lib"
+])
 
-# This is fulfilled even if $with_ompss="yes" 
-# This happens when user leaves --with-value alone
-if test x$with_ompss != xno; then
+AS_IF([test "x$with_ompss_include" != x],[
+  ompssinc="-I$with_ompss_include"
+])
+AS_IF([test "x$with_ompss_lib" != x],[
+  ompsslib="-L$with_ompss_lib -Wl,-rpath,$with_ompss_lib"
+])
 
-    #tests if provided headers and libraries are usable and correct
-    bak_CFLAGS="$CFLAGS"
-    bak_CPPFLAGS="$CPPFLAGS"
-    bak_LIBS="$LIBS"
-    bak_LDFLAGS="$LDFLAGS"
+# Tests if provided headers and libraries are usable and correct
+AX_VAR_PUSHVALUE([CPPFLAGS],[$CPPFLAGS $ompssinc])
+AX_VAR_PUSHVALUE([CXXFLAGS])
+AX_VAR_PUSHVALUE([LDFLAGS],[$LDFLAGS $ompsslib])
+AX_VAR_PUSHVALUE([LIBS],[])
 
-    CFLAGS=
-    CPPFLAGS=-I$ompssinc
-    LIBS=
-    LDFLAGS=-L$ompsslib
+# Check if nanos runtime header file exists and compiles
+AC_CHECK_HEADERS([nanos/nanos.h nanos6/nanos6_rt_interface.h], 
+                 [ompss=yes; break],
+                 [ompss=no])
 
-    # Check if nanos.h header file exists and compiles
-    AC_CHECK_HEADER([nanox/nanos.h], [ompss=yes],[ompss=no])
+AS_IF([test "$ac_cv_header_nanos_nanos_h" == yes],
+        [runtime_version=5],
+      [test "$ac_cv_header_nanos6_nanos6_rt_interface_h" == yes],
+        [runtime_version=6])
 
-    # Look for nanox_polling_cond_wait function in libnanox-c.so library
-    if test x$ompss == xyes; then
-      AC_CHECK_LIB([nanox-c],
-                     [nanos_polling_cond_wait],
-                     [ompss=yes
-                      LIBS="$LIBS $ompsslib/libnanox-c.la"],
-                     [ompss=no])
-    fi
+# Look for nanox_polling_cond_wait function in OmpSs runtime libraries
+AC_SEARCH_LIBS([nanos_polling_cond_wait],
+  [nanox-c nanos6-argobots nanos6],
+  [ompss=yes],
+  [ompss=no])
 
-    ompssinc=-I$ompssinc
-    ompsslibs=$LIBS
+ompsslibs=$LIBS
 
-    CFLAGS="$bak_CFLAGS"
-    CPPFLAGS="$bak_CPPFLAGS"
-    LIBS="$bak_LIBS"
-    LDFLAGS="$bak_LDFLAGS"
+AX_VAR_POPVALUE([CPPFLAGS])
+AX_VAR_POPVALUE([CXXFLAGS])
+AX_VAR_POPVALUE([LDFLAGS])
+AX_VAR_POPVALUE([LIBS])
 
-    if test x$ompss != xyes; then
-        AC_MSG_ERROR([
+AS_IF([test "$ompss" != "yes"],[
+    AC_MSG_ERROR([
 ------------------------------
-ompss path was not correctly specified. 
+OmpSs path was not correctly specified. 
 Please, check that the provided directories are correct.
 ------------------------------])
-    fi
-fi
+])
 
 AC_SUBST([ompss])
-AC_SUBST([ompss_prefix])
 AC_SUBST([ompssinc])
 AC_SUBST([ompsslib])
 AC_SUBST([ompsslibs])

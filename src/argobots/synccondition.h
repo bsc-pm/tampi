@@ -39,6 +39,7 @@ class SynchronizedCondition : public GenericSyncCond
       */
       SynchronizedCondition ( T const& cc ) :
 			_conditionChecker(cc),
+			_synchronizationProvider()
 		{
 		}
 

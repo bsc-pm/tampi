@@ -69,13 +69,28 @@ using int_type = MPI_Fint;
 
 } // namespace Fortran
 
-using request_type<C::comm_type> = C::request_type;
-using status_type<C::comm_type> = C::status_type;
-using int_type<C::comm_type> = C::int_type;
+/*
+template < typename T >
+struct type_traits;
 
-using request_type<Fortran::comm_type> = Fortran::request_type;
-using status_type<Fortran::comm_type> = Fortran::status_type;
-using int_type<Fortran::comm_type> = Fortran::int_type;
+template <>
+struct type_traits<C::comm_type>
+{
+	using comm_type = C::comm_type;
+	using int_type = C::int_type;
+	using request_type = C::request_type;
+	using status_type = C::status_type;
+};
+
+template <>
+struct type_traits<Fortran::comm_type>
+{
+	using comm_type = Fortran::comm_type;
+	using int_type = Fortran::int_type;
+	using request_type = Fortran::request_type;
+	using status_type = Fortran::status_type;
+};
+*/
 
 } // namespace mpi
 } // namespace nanos

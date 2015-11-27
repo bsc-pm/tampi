@@ -52,20 +52,6 @@
 #   exception to the GPL to apply to your modified version as well.
 #
 
-# Main macros
-AC_DEFUN([AX_VAR_PUSHVALUE],[
-  increment([$1_counter])
-
-  AS_VAR_PUSHDEF([variable],[$1]) dnl
-  AS_VAR_PUSHDEF([backup],[save_$1_]$1_counter) dnl
-
-  AS_VAR_SET(backup,$variable) dnl
-  AS_VAR_SET(variable,["]m4_default($2,$variable)["]) dnl
-
-  AS_VAR_POPDEF([variable]) dnl
-  AS_VAR_POPDEF([backup]) dnl
-])dnl AX_PUSH_VAR
-
 AC_DEFUN([AX_VAR_POPVALUE],[
   AS_VAR_PUSHDEF([variable],[$1]) dnl
   AS_VAR_PUSHDEF([backup],[save_$1_]$1_counter) dnl
@@ -75,7 +61,7 @@ AC_DEFUN([AX_VAR_POPVALUE],[
   decrement([$1_counter])
   AS_VAR_POPDEF([variable]) dnl
   AS_VAR_POPDEF([backup]) dnl
-])dnl AX_POP_VAR
+])dnl AX_VAR_PUSHVALUE
 
 # -------------------------
 # Auxiliary macro

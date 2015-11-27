@@ -21,7 +21,23 @@
 #ifndef POLLINGCHECKER_H
 #define POLLINGCHECKER_H
 
-#include "common/conditionchecker.h"
+#include "conditionchecker.h"
+
+#ifdef HAVE_NANOS_NANOS_H
+	#include<nanox-dev/atomic.hpp>
+	#include<nanox-dev/lock.hpp>
+#endif
+
+#ifdef HAVE_ABT_H
+	#include <atomic>
+	#include "argobots/mutex.hpp"
+	#include "argobots/lockblock.hpp"
+	template < class T >
+	using Atomic = std::atomic<T>;
+	using Lock = abt::Mutex;
+	using LockBlock = abt::LockBlock;
+#endif
+
 
 /*! \file pollingchecker.h
   Specializes SynchronizedCondition and ConditionChecker classes for
@@ -51,19 +67,14 @@ class PollingChecker : public ConditionChecker
             super(), _lock(), _completed( false )
         {}
 
-        //! Copy constructor.
-    	  PollingChecker ( PollingChecker const& other ) :
-	        super( other ), _lock(), _completed( other._completed )
-        {}
+        //! Copy constructor: disabled
+    	  PollingChecker ( PollingChecker const& other ) = delete;
 
         //! Destructor.
         virtual ~PollingChecker() {}
 
-        //! Copy assignment operator.
-	     PollingChecker const& operator=( PollingChecker const& other ) {
-            _completed = other._completed;
-            return *this;
-        }
+        //! Copy assignment operator: disabled
+	     PollingChecker const& operator=( PollingChecker const& other ) = delete;
 
         //! Performs the periodic check. To be implemented by each specialization.
         virtual bool test() = 0;
@@ -77,14 +88,13 @@ class PollingChecker : public ConditionChecker
             // We need to store the poll result because it may not be safe
             // to poll again if the task has already finished
             // (e.g. when the condition was satisfied before blocking the task)
-            if( !_completed.value() ) {
-                _lock.acquire();
-                if( !_completed.value() ) {
+            if( !_completed ) {
+                LockBlock block( _lock );
+                if( !_completed ) {
                     _completed = test();
                 }
-                _lock.release();
             }
-            return _completed.value();
+            return _completed;
         }
 };
 

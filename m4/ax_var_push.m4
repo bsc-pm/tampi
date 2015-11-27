@@ -66,17 +66,6 @@ AC_DEFUN([AX_VAR_PUSHVALUE],[
   AS_VAR_POPDEF([backup]) dnl
 ])dnl AX_PUSH_VAR
 
-AC_DEFUN([AX_VAR_POPVALUE],[
-  AS_VAR_PUSHDEF([variable],[$1]) dnl
-  AS_VAR_PUSHDEF([backup],[save_$1_]$1_counter) dnl
-
-  AS_VAR_SET(variable,$backup) dnl
-
-  decrement([$1_counter])
-  AS_VAR_POPDEF([variable]) dnl
-  AS_VAR_POPDEF([backup]) dnl
-])dnl AX_POP_VAR
-
 # -------------------------
 # Auxiliary macro
 # -------------------------

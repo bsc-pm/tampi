@@ -45,9 +45,10 @@ AC_ARG_WITH(argobots,
                 [search in system directories or specify prefix directory for installed argobots package])])
 
 # Search for argobots by default
-AS_IF([test "$with_argobots" != no],
-  [argobotsinc="-I$with_argobots/include"],
-  [argobotslib="-L$with_argobots/lib -Wl,-rpath,$with_argobots/lib"])
+AS_IF([test "$with_argobots" != yes],[
+  argobotsinc="-I$with_argobots/include"
+  argobotslib="-L$with_argobots/lib -Wl,-rpath,$with_argobots/lib"
+])
 
 # This is fulfilled even if $with_argobots="yes" 
 # This happens when user leaves --with-value alone
@@ -59,14 +60,14 @@ AS_IF([test "$with_argobots" != no],[
     AX_VAR_PUSHVALUE(LIBS,[])
 
     # Check if nanos.h header file exists and compiles
-    AC_CHECK_HEADER([abt.h], [argobots=yes],[argobots=no])
+    AC_CHECK_HEADERS([abt.h], [argobots=yes],[argobots=no])
 
     # Look for nanox_polling_cond_wait function in libnanox-c.so library
     AS_IF([test "$argobots" == yes],[
-      AC_CHECK_LIB([libabt.so],
-                     [ABT_eventual_create],
-                     [argobots=yes],
-                     [argobots=no])
+      AC_SEARCH_LIBS([ABT_eventual_create],
+                   [abt],
+                   [argobots=yes],
+                   [argobots=no])
     ])
 
     argobotslibs=$LIBS

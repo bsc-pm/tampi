@@ -12,7 +12,7 @@ namespace abt {
 			ABT_eventual _eventual;
 		public:
 			Eventual() :
-				_eventual
+				_eventual()
 			{
 				ABT_eventual_create( sizeof(T), &_eventual );
 			}
@@ -29,7 +29,7 @@ namespace abt {
 			T const& wait()
 			{
 				T *buffer;
-				int err = ABT_eventual_wait( _eventual, &buffer );
+				int err = ABT_eventual_wait( _eventual, reinterpret_cast<void**>(&buffer) );
 				if ( err != ABT_SUCCESS ) {
 					// error: print something, throw exception, abort...
 				}

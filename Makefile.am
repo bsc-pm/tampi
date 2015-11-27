@@ -1,9 +1,13 @@
-MCC_HOME=$(HOME)/ompss/mcxx-nonblock-mpi
-NANOS_HOME=$(HOME)/ompss/nanox-nonblock-mpi
-
 ACLOCAL_AMFLAGS=-I m4
 
-AM_CPPFLAGS=@ompssinc@ -I@top_srcdir@/src/common -include "config.h" $(CPPFLAGS)
+AM_CPPFLAGS=\
+ @ompssinc@ \
+ @argobotsinc@ \
+ -I@top_srcdir@/src \
+ -I@top_srcdir@/src/common \
+ -include "config.h" \
+ $(CPPFLAGS)
+
 AM_CXXFLAGS=$(CXXFLAGS)
 
 pkginclude_HEADERS=
@@ -34,7 +38,7 @@ src/fortran/waitall.cc \
 src/fortran/wait.cc \
 src/fortran/sendrecvreplace.cc
 
-libmpiompss_interop_la_LIBADD=@extraelibs@ @ompsslibs@
+libmpiompss_interop_la_LIBADD=@extraelibs@ @ompsslibs@ @argobotslibs@
 
-libmpiompss_interop_fort_la_LIBADD=@extraelibs@ @ompsslibs@
+libmpiompss_interop_fort_la_LIBADD=@extraelibs@ @ompsslibs@ @argobotslibs@
 

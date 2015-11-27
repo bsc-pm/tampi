@@ -11,7 +11,7 @@ namespace abt {
 class GenericSyncCond
 {
    protected:
-      std::atomic<int> _refcount; /**< References counter for waits that need to make sure there are no pending signals */
+      std::atomic<int> _refcount; /**< Reference counter for waits that need to make sure there are no pending signals */
 
    public:
       /*! \brief GenericSyncCond default constructor
