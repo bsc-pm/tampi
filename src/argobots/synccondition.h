@@ -69,7 +69,7 @@ class SynchronizedCondition : public GenericSyncCond
       */
       virtual void signal()
 		{
-			_synchronizationProvider.set( _conditionChecker );
+			_synchronizationProvider.set( &_conditionChecker );
 		}
 
      /*! \brief Change the condition checker associated to the synchronizedConditon object.

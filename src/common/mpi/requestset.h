@@ -49,6 +49,11 @@ class RequestSet {
 		{
 			return _requests.at(pos);
 		}
+
+		auto at( size_t pos ) -> typename std::add_lvalue_reference<decltype(_requests.at(pos))>::type
+		{
+			return _requests.at(pos);
+		}
 };
 
 template < typename RequestType >
@@ -90,6 +95,11 @@ class RequestSet<RequestType, 0> {
 		{
 			return _requests.at(pos);
 		}
+
+		auto at( size_t pos ) -> typename std::add_lvalue_reference<decltype(_requests.at(pos))>::type
+		{
+			return _requests.at(pos);
+		}
 };
 
 template < class RequestType, class StatusType, StatusKind kind, size_t length >
@@ -99,15 +109,17 @@ template < size_t length, StatusKind kind >
 bool testall_impl( RequestSet<MPI_Request,length> &requests, StatusSet<MPI_Status,kind,length> &statuses )
 {
 	int flag;
-	MPI_Testall( requests.size(), reinterpret_cast<MPI_Request*>(requests), &flag, reinterpret_cast<MPI_Status*>(statuses) );
+	MPI_Testall( requests.size(), static_cast<MPI_Request*>(requests), &flag, static_cast<MPI_Status*>(statuses) );
 	return flag == 1;
 }
 
 template < size_t length >
 bool testall_impl( RequestSet<MPI_Fint,length> &requests, StatusSet<MPI_Fint,StatusKind::attend,length> &statuses )
 {
-	int flag;
-	mpi_testall_( requests.size(), reinterpret_cast<MPI_Fint*>(requests), &flag, reinterpret_cast<MPI_Fint*>(statuses) );
+	int flag, error;
+   MPI_Fint size = requests.size();
+	auto statuses_array = static_cast<fortran_status*>(statuses);
+	mpi_testall_( &size, static_cast<MPI_Fint*>(requests), &flag, reinterpret_cast<MPI_Fint(*)[SIZEOF_MPI_STATUS]>(statuses_array), &error );
 	return flag == 1;
 }
 

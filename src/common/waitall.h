@@ -22,24 +22,20 @@
 
 #include "print.h"
 #include "ticket.h"
-#include "mpicommon.h"
-#include <nanox-dev/smartpointer.hpp>
+#include "ticketchecker.h"
+#include "smartpointer.h"
 
 namespace nanos {
 namespace mpi {
 
-template< typename IntType, typename ReqType, typename StatusType, typename ErrType>
+template< typename TicketType, typename IntType, typename ReqType, typename StatusType, typename ErrType>
 void waitall( IntType count, ReqType array_of_requests[], 
             StatusType array_of_statuses[], ErrType *ierror )
 {
     print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Wait" );
 
-    using ticket_checker = TicketChecker<ReqType,StatusType,ErrType>;
-    using ticket = Ticket< ticket_checker >;
-
-    auto waitCond = shared_pointer<ticket>( 
-                           new ticket( ticket_checker( count, array_of_requests ) )
-                        );
+    shared_pointer<TicketType> waitCond =  
+                           new TicketType( TicketType::checker( count, array_of_requests ) );
     waitCond->wait( count, array_of_statuses, ierror );
 }
 

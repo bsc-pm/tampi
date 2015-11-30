@@ -19,8 +19,11 @@
  */
 #include <mpi.h>
 
+#include "mpi/error.h"
+#include "mpi/status.h"
+#include "smartpointer.h"
+#include "ticket.h"
 #include "print.h"
-#include "mpicommon.h" // Defines MPI3CONST macro
 
 extern "C" {
 

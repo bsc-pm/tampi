@@ -19,38 +19,44 @@
  */
 #include <mpi.h>
 
-#include "mpicommon.h"
+#include "mpi/common.h"
+#include "mpi/error.h"
+#include "mpi/status.h"
+#include "smartpointer.h"
 #include "ticket.h"
+
+using ticket = nanos::mpi::Ticket<MPI_Fint,MPI_Fint,nanos::mpi::StatusKind::ignore,MPI_Fint,1>;
+
+shared_pointer<ticket> isend( MPI3CONST void *buf, MPI_Fint *count, 
+                              MPI_Fint *datatype, MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm );
+
 #include "send.h"
-#include <nanox-dev/smartpointer.hpp>
 
 extern "C" {
     void mpi_send_( MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
-        MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *err )
+                    MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *err )
     {
-        nanos::mpi::send( buf, count, datatype, dest, tag, comm, err );
+        nanos::mpi::send<ticket>( buf, count, datatype, dest, tag, comm, err );
     }
 
     void mpi_isend_( MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
-        MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
+                     MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm, 
+                     MPI_Fint *request, MPI_Fint *err );
 }
 
 namespace nanos {
 namespace mpi {
-    using ticket = TicketTraits<MPI_Fint*,1>::ticket_type;
-
-    template<>
-    shared_pointer< ticket > isend( MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
-        MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm )
+    
+    shared_pointer< ticket > isend( MPI3CONST void *buf, MPI_Fint *count,
+                                    MPI_Fint *datatype, MPI_Fint *dest, 
+                                    MPI_Fint *tag, MPI_Fint *comm )
     {
-        // TODO do not forget to assign MPI function return value to ticket error
-        ticket *result = new ticket();
+        shared_pointer<ticket> result( new ticket() );
         mpi_isend_( buf, count, datatype, dest, tag, comm, 
-            &result->getData().getRequest<0>(), // Store output request into ticket
-            &result->getData().getError() );    // Store output error   into ticket
-        return shared_pointer<ticket>(result);
+            result->getRequestSet().at(0),
+            &result->getError().value() );
+        return result;
     }
 
-}
-}
-
+} // namespace mpi
+} // namespace nanos

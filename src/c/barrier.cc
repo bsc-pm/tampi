@@ -21,8 +21,9 @@
 
 #if MPI_VERSION >=3
 
+#include "mpi/error.h"
 #include "mpi/status.h"
-#include "smartpointer.hpp"
+#include "smartpointer.h"
 #include "ticket.h"
 
 using ticket = nanos::mpi::Ticket<MPI_Request,MPI_Status,nanos::mpi::StatusKind::ignore,int,1>;
@@ -30,7 +31,6 @@ using ticket = nanos::mpi::Ticket<MPI_Request,MPI_Status,nanos::mpi::StatusKind:
 shared_pointer<ticket> ibarrier( MPI_Comm comm );
 
 #include "barrier.h"
-
 
 extern "C" {
     int MPI_Barrier( MPI_Comm comm )
@@ -48,7 +48,7 @@ namespace mpi {
     {
         shared_pointer<ticket> result( new ticket() );
         int err = MPI_Ibarrier( comm, result->getRequestSet().at(0) );
-        result->getData().setError( err );
+        result->setError( err );
 
         return result;
     }

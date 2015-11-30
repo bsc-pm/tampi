@@ -19,28 +19,43 @@
  */
 #include <mpi.h>
 
-#include "print.h"
+#include "mpi/status.h"
+#include "smartpointer.h"
 #include "ticket.h"
-#include "mpicommon.h"
-#include <nanox-dev/smartpointer.hpp>
+#include "print.h"
+
+template < nanos::mpi::StatusKind kind >
+using ticket = nanos::mpi::Ticket<MPI_Request,MPI_Status,kind,int,0>;
+
+template < nanos::mpi::StatusKind kind >
+using checker = nanos::mpi::TicketChecker<MPI_Request,MPI_Status,kind,int,0>;
 
 extern "C" {
 
 int MPI_Waitall(int count, MPI_Request array_of_requests[],
                       MPI_Status array_of_statuses[])
 {
-    using namespace nanos::mpi;
-    using C::TicketTraits<>::ticket_type ticket;
-    using ticket::checker_type ticket_checker;
-
-    int err;
+    
     print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Wait" );
 
-    auto waitCond = shared_pointer<ticket>( 
-                           new ticket( ticket_checker( count, array_of_requests ) )
-                        );
+    int err;
+    if( array_of_statuses == MPI_STATUSES_IGNORE ) {
+        using ticket = ticket<nanos::mpi::StatusKind::ignore>;
+        using checker = checker<nanos::mpi::StatusKind::ignore>;
 
-    waitCond->wait( count, array_of_statuses, &err );
+        auto waitCond = shared_pointer<ticket>( 
+                    new ticket( checker( count, array_of_requests, array_of_statuses ) ) );
+
+        waitCond->wait( count, array_of_statuses, &err );
+    } else {
+        using ticket = ticket<nanos::mpi::StatusKind::attend>;
+        using checker = checker<nanos::mpi::StatusKind::attend>;
+
+        auto waitCond = shared_pointer<ticket>( 
+                    new ticket( checker( count, array_of_requests, array_of_statuses ) ) );
+
+        waitCond->wait( count, array_of_statuses, &err );
+    }
     return err;
 }
 

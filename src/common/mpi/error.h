@@ -4,6 +4,8 @@
 
 #include <mpi.h>
 
+#include <string>
+
 namespace nanos {
 namespace mpi {
 
@@ -66,11 +68,47 @@ class Error {
 		{
 		}
 
+		Error( T const& value ) :
+			_value( value )
+		{
+		}
+
+		Error( Error const& other ) = default;
+
+		Error& operator=( Error const& other ) = default;
+
+		Error& operator=( T const& other )
+		{
+			_value = other;
+		}
+
 		bool success() const
 		{
 			return _value == MPI_SUCCESS;
+		}
+
+		std::string toString() const
+		{
+			std::string description( MPI_MAX_ERROR_STRING, '\0' );
+			int len;
+			int err = MPI_Error_string( _value, description.data(), &len );
+			description.resize(len);
+			return description;
+		}
+
+		T& value()
+		{
+			return _value;
+		}
+
+		T const& value() const
+		{
+			return _value;
 		}
 };
 
 } // namespace mpi
 } // namespace nanos
+
+#endif // ERROR_H
+

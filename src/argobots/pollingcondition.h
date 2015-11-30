@@ -5,6 +5,8 @@
 #include "common/pollingchecker.h"
 #include "synccondition.h"
 
+#include <nanos6/nanos6_rt_interface.h>
+
 namespace abt {
 
 //! Conditional variable used for periodic checks.

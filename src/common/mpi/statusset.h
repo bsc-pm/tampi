@@ -46,6 +46,17 @@ class StatusSet<MPI_Status, StatusKind::attend, length>
 		{
 			return _statuses.data();
 		}
+
+		void copy( MPI_Status* status )
+		{
+			*status = _statuses.front();
+		}
+
+		void copy( MPI_Status array_of_statuses[], size_t size )
+		{
+			//assert( size >= _statuses.size() );
+			std::copy( _statuses.begin(), _statuses.end(), array_of_statuses );
+		}
 };
 
 template <>
@@ -77,6 +88,21 @@ class StatusSet<MPI_Status, StatusKind::attend, 0>
 		{
 			_statuses.data();
 		}
+
+		void copy( MPI_Status* status )
+		{
+			auto begin = _statuses.begin();
+			auto end = _statuses.begin() +1;
+			std::copy( begin, end, status );
+		}
+
+		void copy( MPI_Status array_of_statuses[], size_t size )
+		{
+			//assert( size >= _statuses.size() );
+			auto begin = _statuses.begin();
+			auto end = _statuses.end();
+			std::copy( begin, end, array_of_statuses );
+		}
 };
 
 template <size_t length>
@@ -101,8 +127,8 @@ class StatusSet<MPI_Fint, StatusKind::attend, length>
 			_statuses()
 		{
 			//assert( statuses != MPI_F_STATUSES_IGNORE )
-			auto begin = statuses;
-			auto end = statuses + (SIZEOF_MPI_STATUS*size);
+			auto begin = reinterpret_cast<const fortran_status*>(statuses);
+			auto end = begin + size;
 			std::copy( begin, end, _statuses.begin() );
 		}
 
@@ -115,13 +141,27 @@ class StatusSet<MPI_Fint, StatusKind::attend, length>
 		{
 			return _statuses.data();
 		}
+
+		void copy( MPI_Fint *status )
+		{
+			auto begin = _statuses.begin();
+			auto end = _statuses.begin() +1;
+			std::copy( begin, end, reinterpret_cast<fortran_status*>(status) );
+		}
+
+		void copy( MPI_Fint array_of_statuses[], size_t size )
+		{
+			auto begin = _statuses.begin();
+			auto end = _statuses.end();
+			std::copy( begin, end, reinterpret_cast<fortran_status*>(array_of_statuses) );
+		}
 };
 
 template <>
 class StatusSet<MPI_Fint, StatusKind::attend, 0>
 {
 	private:
-		std::vector<status<MPI_Fint> > _statuses;
+		std::vector<status<MPI_Fint,StatusKind::attend> > _statuses;
 
 	public:
 		StatusSet() :
@@ -134,19 +174,33 @@ class StatusSet<MPI_Fint, StatusKind::attend, 0>
 		{
 		}
 
-		StatusSet( MPI_Fint const* statuses, size_t size ) :
+		StatusSet( MPI_Fint const* array_of_statuses, size_t size ) :
 			_statuses()
 		{
 			//assert( statuses != MPI_F_STATUSES_IGNORE )
 			_statuses.reserve(size);
-			auto begin = statuses;
-			auto end = statuses + ( size * SIZEOF_MPI_STATUS );
+			auto begin = reinterpret_cast<const fortran_statuses_array &>(*array_of_statuses);
+			auto end = begin + size;
 			std::copy( begin, end, _statuses.begin() );
 		}
 
-		operator MPI_Fint* ()
+		operator fortran_status* ()
 		{
 			_statuses.data();
+		}
+
+		void copy( MPI_Fint *status )
+		{
+			auto begin = _statuses.begin();
+			auto end = _statuses.begin() +1;
+			std::copy( begin, end, reinterpret_cast<fortran_status*>(status) );
+		}
+
+		void copy( MPI_Fint array_of_statuses[], size_t size )
+		{
+			auto begin = _statuses.begin();
+			auto end = _statuses.end();
+			std::copy( begin, end, reinterpret_cast<fortran_status*>(array_of_statuses) );
 		}
 };
 
@@ -154,24 +208,49 @@ template < size_t length >
 class StatusSet<MPI_Status, StatusKind::ignore, length>
 {
 	public:
+		StatusSet() = default;
+
+		StatusSet( MPI_Status array_of_statuses[], size_t size )
+		{
+			//assert( value = MPI_STATUSES_IGNORE );
+		}
+
 		operator MPI_Status* ()
 		{
 			return MPI_STATUSES_IGNORE;
+		}
+
+		void copy( MPI_Status *status )
+		{
+		}
+
+		void copy( MPI_Status array_of_statuses[], size_t size )
+		{
 		}
 };
 
 template < size_t length >
 class StatusSet<MPI_Fint, StatusKind::ignore, length> {
 	public:
+		StatusSet() = default;
+
+		StatusSet( MPI_Fint *value, size_t size )
+		{
+			//assert( vaule == MPI_F_STATUSES_IGNORE );
+		}
+
 		operator MPI_Status* ()
 		{
 			return MPI_F_STATUSES_IGNORE;
 		}
-};
 
-template < typename UnderlyingType >
-class StatusSet<UnderlyingType, StatusKind::attend, 1> : status<UnderlyingType,StatusKind::attend>
-{
+		void copy( MPI_Fint *status )
+		{
+		}
+
+		void copy( MPI_Fint array_of_statuses[], size_t size )
+		{
+		}
 };
 
 } // namespace mpi

@@ -17,24 +17,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef BARRIER_H
-#define BARRIER_H
+#ifndef GATHERV_H
+#define GATHERV_H
 
 #include "print.h"
-#include "mpicommon.h"
 #include "ticket.h"
-#include <nanox-dev/smartpointer.hpp>
+#include "smartpointer.h"
 
 namespace nanos {
 namespace mpi {
 
-template< typename IntType, typename IntArrayType, typename DataType, typename CommType >
-shared_pointer< typename TicketTraits<CommType,1>::ticket_type >
-igatherv( const void *sendbuf, IntType sendcount, DataType sendtype,
-        void *recvbuf, IntArrayType recvcounts, IntArrayType displs,
-	DataType recvtype, IntType root, CommType comm );
-
-template< typename IntType, typename IntArrayType, typename DataType, typename CommType, typename ErrType >
+template< typename TicketType, typename IntType, typename IntArrayType, typename DataType, typename CommType, typename ErrType >
 void gatherv( const void *sendbuf, IntType sendcount, DataType sendtype,
             void *recvbuf, IntArrayType recvcounts, 
             IntArrayType displs, DataType recvtype,
@@ -42,7 +35,7 @@ void gatherv( const void *sendbuf, IntType sendcount, DataType sendtype,
 {
     print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Gatherv" );
 
-    auto waitCond =
+    shared_pointer<TicketType> waitCond =
             igatherv( sendbuf, sendcount, sendtype,
                     recvbuf, recvcounts, displs, recvtype,
                     root, comm );
@@ -52,5 +45,5 @@ void gatherv( const void *sendbuf, IntType sendcount, DataType sendtype,
 } // namespace mpi
 } // namespace nanos
 
-#endif // BARRIER_H
+#endif // GATHERV_H
 

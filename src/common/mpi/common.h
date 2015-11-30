@@ -22,14 +22,6 @@
 
 #include <mpi.h>
 
-/*! \file mpicommon.h
-  Specifies which datatypes are used for each kind of data in each
-  language.
-  Examples: requests.
-    - C:       MPI_Request
-    - Fortran: MPI_Fint
- */
-
 //! Determines the number of elements that define an status
 /*!
   Statuses in MPI are composed by few integers that can either
@@ -47,52 +39,5 @@
 #else
     #define MPI3CONST
 #endif
-
-namespace nanos {
-namespace mpi {
-
-namespace C {
-
-using request_type = MPI_Request;
-using status_type = MPI_Status;
-using comm_type = MPI_Comm;
-using int_type = int;
-
-} // namespace C
-
-namespace Fortran {
-
-using request_type = MPI_Fint;
-using status_type = MPI_Fint[SIZEOF_MPI_STATUS];
-using comm_type = MPI_Fint;
-using int_type = MPI_Fint;
-
-} // namespace Fortran
-
-/*
-template < typename T >
-struct type_traits;
-
-template <>
-struct type_traits<C::comm_type>
-{
-	using comm_type = C::comm_type;
-	using int_type = C::int_type;
-	using request_type = C::request_type;
-	using status_type = C::status_type;
-};
-
-template <>
-struct type_traits<Fortran::comm_type>
-{
-	using comm_type = Fortran::comm_type;
-	using int_type = Fortran::int_type;
-	using request_type = Fortran::request_type;
-	using status_type = Fortran::status_type;
-};
-*/
-
-} // namespace mpi
-} // namespace nanos
 
 #endif // COMMON_H

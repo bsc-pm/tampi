@@ -19,10 +19,24 @@
  */
 #include <mpi.h>
 
-#include "mpicommon.h"
+#include "mpi/common.h"
+#include "mpi/error.h"
+#include "mpi/status.h"
+#include "smartpointer.h"
 #include "ticket.h"
+
+template < nanos::mpi::StatusKind kind >
+using ticket = nanos::mpi::Ticket<MPI_Fint,MPI_Fint,kind,MPI_Fint,2>;
+
+template < typename TicketType >
+shared_pointer<TicketType> isendrecv( MPI3CONST void *sendbuf, MPI_Fint *sendcount, 
+                                      MPI_Fint *sendtype, MPI_Fint *dest, 
+                                      MPI_Fint *sendtag,
+                                      void *recvbuf, MPI_Fint *recvcount, 
+                                      MPI_Fint *recvtype, MPI_Fint *source, 
+                                      MPI_Fint *recvtag, MPI_Fint *comm );
+
 #include "sendrecv.h"
-#include <nanox-dev/smartpointer.hpp>
 
 extern "C" {
 
@@ -32,9 +46,19 @@ void mpi_sendrecv_( MPI3CONST void *sendbuf, MPI_Fint *sendcount, MPI_Fint *send
                        MPI_Fint *source, MPI_Fint *recvtag,
                        MPI_Fint *comm, MPI_Fint *status, MPI_Fint *err )
 {
-    nanos::mpi::sendrecv( sendbuf, sendcount, sendtype, dest, sendtag,
-                        recvbuf, recvcount, recvtype, source, recvtag,
-                        comm, status, err );
+    if( status == MPI_F_STATUS_IGNORE ) {
+        using ticket = ticket<nanos::mpi::StatusKind::ignore>;
+        nanos::mpi::sendrecv<ticket>( sendbuf, sendcount, sendtype,
+                                      dest, sendtag, recvbuf, recvcount,
+                                      recvtype, source, recvtag,
+                                      comm, status, err );
+    } else {
+        using ticket = ticket<nanos::mpi::StatusKind::attend>;
+        nanos::mpi::sendrecv<ticket>( sendbuf, sendcount, sendtype,
+                                      dest, sendtag, recvbuf, recvcount,
+                                      recvtype, source, recvtag,
+                                      comm, status, err );
+    }
 }
 
 void mpi_isend_( MPI3CONST void *sendbuf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *dest,
@@ -47,22 +71,26 @@ void mpi_irecv_( void *recvbuf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *s
 
 namespace nanos {
 namespace mpi {
-    using ticket = TicketTraits<MPI_Fint*,1>::ticket_type;
-
-    template<>
-    shared_pointer<ticket> isendrecv( MPI3CONST void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
-                    MPI_Fint *dest, MPI_Fint *sendtag,
-                    void *recvbuf, MPI_Fint *recvcount, MPI_Fint *recvtype,
-                    MPI_Fint *source, MPI_Fint *recvtag,
-                    MPI_Fint *comm )
+    
+    template < typename TicketType >
+    shared_pointer<TicketType> isendrecv( MPI3CONST void *sendbuf, MPI_Fint *sendcount,
+                                      MPI_Fint *sendtype, MPI_Fint *dest, 
+                                      MPI_Fint *sendtag,
+                                      void *recvbuf, MPI_Fint *recvcount, 
+                                      MPI_Fint *recvtype, MPI_Fint *source, 
+                                      MPI_Fint *recvtag, MPI_Fint *comm )
     {
-        ticket *result = new ticket();
-        mpi_isend_( sendbuf, sendcount, sendtype, dest, sendtag, comm,
-                &result->getData().getRequest<0>(), // Store output request into ticket
-                &result->getData().getError() );    // Store output error   into ticket
+        
+        using ticket = TicketType;
+        
+        shared_pointer<ticket> result( new ticket() );mpi_isend_( sendbuf, sendcount, sendtype, dest, sendtag, comm,
+                result->getRequestSet().at(0),
+                &result->getError().value() );
+        
         mpi_irecv_( recvbuf, recvcount, recvtype, source, recvtag, comm,
-                &result->getData().getRequest<1>(), // Store output request into ticket
-                &result->getData().getError() );    // Store output error   into ticket
+                result->getRequestSet().at(1),
+                &result->getError().value() ); 
+        
         return shared_pointer<ticket>(result);
     }
 }

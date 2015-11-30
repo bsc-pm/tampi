@@ -22,7 +22,7 @@
 
 #include "print.h"
 #include "ticket.h"
-#include "smartpointer.hpp"
+#include "smartpointer.h"
 
 namespace nanos {
 namespace mpi {

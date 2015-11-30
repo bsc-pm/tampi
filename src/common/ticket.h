@@ -25,10 +25,13 @@
     using namespace abt;
 #endif
 
+#include "mpi/error.h"
 #include "mpi/requestset.h"
 #include "mpi/statusset.h"
 #include "pollingchecker.h"
 #include "ticketchecker.h"
+
+#include <type_traits>
 
 //#include <mpi.h>
 //#include <iterator>
@@ -89,40 +92,47 @@ public:
 
     StatusSet<StatusType,ignoreStatus,count> &getStatusSet()
     {
-        return this->_conditionChecker.getRequestSet();
+        return this->_conditionChecker.getStatusSet();
     }
 
-    ErrorType &getError()
+    Error<ErrorType> const& getError() const
     {
         return this->_conditionChecker.getError();
+    }
+
+    Error<ErrorType>& getError()
+    {
+        return this->_conditionChecker.getError();
+    }
+
+    void setError( Error<ErrorType> const& error )
+    {
+        return this->_conditionChecker.setError( error );
     }
 
     //! Stops the task until the requests are completed.
     /*!
       \param err output error code.
      */
-    template < typename int_type >
-    void wait( int_type *err )
+    void wait( ErrorType *err )
     {
         if( getError().success() )
             super::waitForPollCompletion();
         if( err )
-            *err = getError();
+            *err = getError().value();
     }
 
-    template < typename int_type >
-    void wait( StatusType *status, int_type *err )
+    void wait( StatusType* status, ErrorType *err )
     {
         wait( err );
         getStatusSet().copy( status );
     }
 
-    template < typename int_type >
-    void wait( size_t nelem, StatusType* array_of_statuses, int_type *err )
-    {
-        wait( err );
-        getStatusSet().copy( nelem, array_of_statuses );
-    }
+	void wait( size_t nelem, StatusType array_of_statuses[], ErrorType *err )
+	{
+	    wait( err );
+	    getStatusSet().copy( array_of_statuses, nelem );
+	}
 };
 
 } // namespace mpi

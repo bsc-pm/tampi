@@ -27,14 +27,20 @@ private:
 	MPI_Request _value;
 
 public:
-	request() :
-		_value()
+	request() = default;
+
+	request( MPI_Request const& value ) :
+		_value( value )
 	{
 	}
 
-	request( request const& other ) :
-		_value( other._value )
+	request( request const& other ) = default;
+
+	request& operator=( request const& other ) = default;
+
+	request& operator=( MPI_Request other )
 	{
+		_value = other;
 	}
 
 	bool test()

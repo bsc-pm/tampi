@@ -19,6 +19,10 @@
  */
 #include <mpi.h>
 
+#include "mpi/error.h"
+#include "mpi/status.h"
+#include "smartpointer.h"
+#include "ticket.h"
 #include "print.h"
 
 extern "C" {

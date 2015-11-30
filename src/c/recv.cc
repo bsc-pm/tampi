@@ -19,35 +19,51 @@
  */
 #include <mpi.h>
 
-#include "mpicommon.h"
+#include "mpi/error.h"
+#include "mpi/status.h"
+#include "smartpointer.h"
 #include "ticket.h"
+
+template < nanos::mpi::StatusKind kind >
+using ticket = nanos::mpi::Ticket<MPI_Request,MPI_Status,kind,int,1>;
+
+template < typename TicketType >
+shared_pointer<TicketType> irecv( void *buf, int count, MPI_Datatype datatype, 
+                                  int source, int tag, MPI_Comm comm );
+
 #include "recv.h"
-#include <nanox-dev/smartpointer.hpp>
 
 extern "C" {
     int MPI_Recv( void *buf, int count, MPI_Datatype datatype,
         int source, int tag, MPI_Comm comm, MPI_Status *status )
     {
+        using ticket_ignore_status = ticket<nanos::mpi::StatusKind::ignore>;
+        using ticket_attend_status = ticket<nanos::mpi::StatusKind::attend>;
+
         int err;
-        nanos::mpi::recv( buf, count, datatype, source, tag, comm, status, &err );
+        if( status == MPI_STATUS_IGNORE ) {
+	        nanos::mpi::recv<ticket_ignore_status>( buf, count, datatype, source, tag, comm, status, &err );
+        } else {
+	        nanos::mpi::recv<ticket_attend_status>( buf, count, datatype, source, tag, comm, status, &err );
+        }
         return err;
     }
 } // extern C
 
 namespace nanos {
 namespace mpi {
-    using ticket = TicketTraits<MPI_Comm,1>::ticket_type;
 
-    template<>
-    shared_pointer<ticket> irecv( void *buf, int count, MPI_Datatype datatype, int source, int tag,
+    template < typename TicketType >
+    shared_pointer<TicketType> irecv( void *buf, int count, MPI_Datatype datatype, int source, int tag,
             MPI_Comm comm )
     {
-        // TODO do not forget to assign MPI function return value to ticket error
-        ticket *result = new ticket();
-        int err = MPI_Irecv( buf, count, datatype, source, tag, comm, &result->getData().getRequest<0>() );
-        result->getData().setError( err );
+        using ticket = TicketType;
+        
+        shared_pointer<ticket> result( new ticket() );
+        int err = MPI_Irecv( buf, count, datatype, source, tag, comm, result->getRequestSet().at(0) );
+        result->setError( err );
 
-        return shared_pointer<ticket>(result);
+        return result;
     }
     
 } // namespace mpi

@@ -19,37 +19,43 @@
  */
 #include <mpi.h>
 
-#include "mpicommon.h"
+#include "mpi/common.h"
+#include "mpi/error.h"
+#include "mpi/status.h"
+#include "smartpointer.h"
 #include "ticket.h"
+
+using ticket = nanos::mpi::Ticket<MPI_Request,MPI_Status,nanos::mpi::StatusKind::ignore,int,1>;
+
+shared_pointer<ticket> isend( MPI3CONST void *buf, int count, MPI_Datatype datatype,
+                              int dest, int tag, MPI_Comm comm );
+
 #include "send.h"
-#include <nanox-dev/smartpointer.hpp>
 
 extern "C" {
     int MPI_Send( MPI3CONST void *buf, int count, MPI_Datatype datatype,
         int dest, int tag, MPI_Comm comm )
     {
         int err;
-        nanos::mpi::send( buf, count, datatype, dest, tag, comm, &err );
+        nanos::mpi::send<ticket>( buf, count, datatype, dest, tag, comm, &err );
         return err;
     }
 } // extern C
 
 namespace nanos {
 namespace mpi {
-    using ticket = TicketTraits<MPI_Comm,1>::ticket_type;
 
-    template<>
-    shared_pointer< ticket > isend( MPI3CONST void *buf, int count, MPI_Datatype datatype,
-        int dest, int tag, MPI_Comm comm )
+    shared_pointer<ticket> isend( MPI3CONST void *buf, int count, 
+                                  MPI_Datatype datatype, int dest, int tag, 
+                                  MPI_Comm comm )
     {
-        // TODO do not forget to assign MPI function return value to ticket error
-        ticket *result = new ticket();
-        int err = MPI_Isend( buf, count, datatype, dest, tag, comm, &result->getData().getRequest<0>() );
-        result->getData().setError( err );
+        shared_pointer<ticket> result( new ticket() );
+        int err = MPI_Isend( buf, count, datatype, dest, tag, comm, 
+                             result->getRequestSet().at(0) );
+        result->setError( err );
 
-        return shared_pointer<ticket>(result);
+        return result;
     }
 
 } // namespace mpi
 } // namespace nanos
-

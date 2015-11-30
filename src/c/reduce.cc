@@ -21,10 +21,18 @@
 
 #if MPI_VERSION >=3
 
-#include "mpicommon.h"
+#include "mpi/error.h"
+#include "mpi/status.h"
+#include "smartpointer.h"
 #include "ticket.h"
+
+using ticket = nanos::mpi::Ticket<MPI_Request,MPI_Status,nanos::mpi::StatusKind::ignore,int,1>;
+
+shared_pointer<ticket> ireduce( const void *sendbuf, void *recvbuf, int count,
+                MPI_Datatype datatype, MPI_Op op, int root,
+                MPI_Comm comm );
+
 #include "reduce.h"
-#include <nanox-dev/smartpointer.hpp>
 
 extern "C" {
     int MPI_Reduce( const void *sendbuf, void *recvbuf, int count,
@@ -32,26 +40,23 @@ extern "C" {
                    MPI_Comm comm )
     {
         int err;
-        nanos::mpi::reduce( sendbuf, recvbuf, count, datatype, op, root, comm, &err );
+        nanos::mpi::reduce<ticket>( sendbuf, recvbuf, count, datatype, op, root, comm, &err );
         return err;
     }
 } // extern C
 
 namespace nanos {
 namespace mpi {
-    using ticket = TicketTraits<MPI_Comm,1>::ticket_type;
 
-    template<>
-    shared_pointer< ticket > ireduce( const void *sendbuf, void *recvbuf, int count,
+    shared_pointer<ticket> ireduce( const void *sendbuf, void *recvbuf, int count,
                 MPI_Datatype datatype, MPI_Op op, int root,
                 MPI_Comm comm )
     {
-        // TODO do not forget to assign MPI function return value to ticket error
-        ticket *result = new ticket();
-        int err = MPI_Ireduce( sendbuf, recvbuf, count, datatype, op, root, comm, &result->getData().getRequest<0>() );
-        result->getData().setError( err );
+        shared_pointer<ticket> result( new ticket() );
+        int err = MPI_Ireduce( sendbuf, recvbuf, count, datatype, op, root, comm, result->getRequestSet().at(0) );
+        result->setError( err );
 
-        return shared_pointer<ticket>(result);
+        return result;
     }
 
 } // namespace mpi

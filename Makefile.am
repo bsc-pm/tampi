@@ -9,6 +9,8 @@ AM_CPPFLAGS=\
  $(CPPFLAGS)
 
 AM_CXXFLAGS=$(CXXFLAGS)
+AM_LDFLAGS=@extraelib@ @ompsslib@ @argobotslib@ $(LDFLAGS)
+LIBS=@extraelibs@ @ompsslibs@ @argobotslibs@
 
 pkginclude_HEADERS=
 
@@ -37,8 +39,4 @@ src/fortran/sendrecv.cc \
 src/fortran/waitall.cc \
 src/fortran/wait.cc \
 src/fortran/sendrecvreplace.cc
-
-libmpiompss_interop_la_LIBADD=@extraelibs@ @ompsslibs@ @argobotslibs@
-
-libmpiompss_interop_fort_la_LIBADD=@extraelibs@ @ompsslibs@ @argobotslibs@
 

@@ -26,14 +26,12 @@
 #endif
 
 #include "mpi/requestset.h"
+#include "mpi/status.h"
 #include "mpi/statusset.h"
 #include "pollingchecker.h"
 #include "ticket.h"
 
-//#include <mpi.h>
-//#include <iterator>
-//#include <utility>
-//#include <cassert>
+#include <type_traits>
 
 namespace nanos {
 namespace mpi {
@@ -64,7 +62,7 @@ protected:
     StatusSet<StatusType, ignoreStatus, count> _statuses;
 
     //! Holds the return value of the last check.
-    ErrorType _error;
+    Error<ErrorType> _error;
 public:
     //! Default constructor. 
     /*!
@@ -118,19 +116,19 @@ public:
     }
 
     //! \return last check's error code. Non const-reference version.
-    ErrorType& getError()
+    Error<ErrorType>& getError()
     {
         return _error;
     }
 
     //! \return last check's error code. Non const-reference version.
-    ErrorType const& getError() const
+    Error<ErrorType> const& getError() const
     {
         return _error;
     }
 
     //! Sets lasts check's error code.
-    void setError( ErrorType const& value )
+    void setError( Error<ErrorType> const& value )
     {
         _error = value;
     }
