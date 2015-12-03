@@ -44,7 +44,7 @@ CPPFLAGS=
 LIBS=
 LDFLAGS=
 
-AC_LANG_PUSH([C])
+AC_LANG_PUSH([C++])
 
 # Check if mpi.h header file exists and compiles
 AC_CHECK_HEADER([mpi.h], [mpi=yes],[mpi=no])
@@ -72,7 +72,7 @@ Please, check that the provided directories are correct.
 ------------------------------])
 fi
 
-AC_LANG_POP([C])
+AC_LANG_POP([C++])
 
 ])dnl AX_CHECK_MPI
 

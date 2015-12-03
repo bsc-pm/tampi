@@ -22,13 +22,20 @@
 #include "mpi/common.h"
 #include "mpi/error.h"
 #include "mpi/status.h"
+#include "mpi/request.h"
 #include "smartpointer.h"
 #include "ticket.h"
 
-using ticket = nanos::mpi::Ticket<MPI_Request,MPI_Status,nanos::mpi::StatusKind::ignore,int,1>;
+namespace nanos {
+namespace mpi {
+
+using ticket = Ticket<C::request,C::status<StatusKind::ignore>,1>;
 
 shared_pointer<ticket> isend( MPI3CONST void *buf, int count, MPI_Datatype datatype,
                               int dest, int tag, MPI_Comm comm );
+
+} // namespace mpi
+} // namespace nanos
 
 #include "send.h"
 
@@ -37,7 +44,7 @@ extern "C" {
         int dest, int tag, MPI_Comm comm )
     {
         int err;
-        nanos::mpi::send<ticket>( buf, count, datatype, dest, tag, comm, &err );
+        nanos::mpi::send<nanos::mpi::ticket>( buf, count, datatype, dest, tag, comm, &err );
         return err;
     }
 } // extern C
@@ -51,8 +58,8 @@ namespace mpi {
     {
         shared_pointer<ticket> result( new ticket() );
         int err = MPI_Isend( buf, count, datatype, dest, tag, comm, 
-                             result->getRequestSet().at(0) );
-        result->setError( err );
+                             result->getChecker().getRequest() );
+        result->getChecker().setError( err );
 
         return result;
     }

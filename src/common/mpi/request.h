@@ -5,93 +5,84 @@
 #include <mpi.h>
 
 #include "status.h"
-
-extern "C" {
-//! MPI_Test Fortran API declaration
-void mpi_test_( MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint* );
-
-//! MIP_Testall Fortran API declaration
-void mpi_testall_( MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[][SIZEOF_MPI_STATUS], MPI_Fint* );
-}
+#include "test_decl.h"
 
 namespace nanos {
 namespace mpi {
 
-template < typename UnderlyingType >
-class request;
+namespace C {
 
-template <>
-class request<MPI_Request>
+class request
 {
-private:
-	MPI_Request _value;
+	private:
+		MPI_Request _value;
+	
+	public:
+		using value_type = MPI_Request;
+	
+		request() :
+			_value( MPI_REQUEST_NULL )
+		{
+		}
+	
+		request( MPI_Request value ) :
+			_value( value )
+		{
+		}
+	
+		request( request const& other ) = default;
+	
+		request& operator=( request const& other ) = default;
+	
+		request& operator=( value_type other )
+		{
+			_value = other;
+		}
+	
+		bool test()
+		{
+			return test_impl( *this );
+		}
+	
+		template < StatusKind kind >
+		bool test( status<kind> &st )
+		{
+			return test_impl( *this, st );
+		}
+	
+		value_type* data()
+		{
+			return &_value;
+		}
+	
+		operator value_type& ()
+		{
+			return _value;
+		}
 
-public:
-	request() = default;
-
-	request( MPI_Request const& value ) :
-		_value( value )
-	{
-	}
-
-	request( request const& other ) = default;
-
-	request& operator=( request const& other ) = default;
-
-	request& operator=( MPI_Request other )
-	{
-		_value = other;
-	}
-
-	bool test()
-	{
-		using status_t = status<MPI_Status,StatusKind::ignore>;
-		int flag;
-		MPI_Test(
-				&_value, 
-				&flag, 
-				static_cast<MPI_Status*>( status_t() )
-			);
-		return flag == 1;
-	}
-
-	template < StatusKind kind >
-	bool test( status<MPI_Status,kind> &st )
-	{
-		int flag;
-		MPI_Test( &_value, &flag, static_cast<MPI_Status*>(st) );
-		return flag == 1;
-	}
-
-	operator MPI_Request ()
-	{
-		return _value;
-	}
-
-	operator MPI_Request* ()
-	{
-		return &_value;
-	}
-
-	MPI_Request* data()
-	{
-		return &_value;
-	}
+		operator value_type* ()
+		{
+			return &_value;
+		}
 };
 
-/*
-template <>
-class request<MPI_Fint>
+}// namespace C
+
+namespace Fortran {
+
+class request
 {
 	private:
 		MPI_Fint _value;
 	public:
+		using value_type = MPI_Fint;
+
 		request() :
-			_value()
+			_value( MPI_REQUEST_NULL )
 		{
 		}
 
-		request( MPI_Fint v )
+		request( MPI_Fint v ) :
 			_value( v )
 		{
 		}
@@ -103,30 +94,84 @@ class request<MPI_Fint>
 
 		bool test()
 		{
-			int flag;
-			mpi_test_( &_value, &flag, status<MPI_Status,ignore>().data() );
-			return flag == 1;
+			return test_impl( *this );
 		}
 
 		template< StatusKind kind >
-		bool test( status<MPI_Fint,kind> &status )
+		bool test( status<kind> &st )
 		{
-			int flag;
-			mpi_test_( &_value, &flag, status.data() );
-			return flag == 1;
+			return test_impl( *this, st );
 		}
 
-		operator MPI_Fint ()
+		value_type* data()
+		{
+			return &_value;
+		}
+
+		operator value_type& ()
 		{
 			return _value;
 		}
 
-		operator MPI_Fint* ()
+		operator value_type* ()
 		{
 			return &_value;
 		}
 };
-*/
+
+} // namespace Fortran
+
+namespace C {
+	inline bool test_impl( request &req )
+	{
+		int flag;
+		MPI_Test(
+					req.data(),
+					&flag,
+					MPI_STATUS_IGNORE
+				);
+		return flag;
+	}
+
+	template < StatusKind kind >
+	inline bool test_impl( request &req, status<kind> &st )
+	{
+		int flag;
+		MPI_Test(
+					req.data(),
+					&flag,
+					static_cast<typename status<kind>::value_type*>(st)
+				);
+		return flag;
+	}
+} // namespace C
+
+namespace Fortran {
+	inline bool test_impl( request &req )
+	{
+		MPI_Fint flag, error;
+		mpi_test_(
+					req.data(),
+					&flag,
+					MPI_F_STATUS_IGNORE,
+					&error
+				);
+		return flag == 1;
+	}
+
+	template < StatusKind kind >
+	inline bool test_impl( request &req, status<kind> &st )
+	{
+		MPI_Fint flag, error;
+		mpi_test_(
+					req.data(),
+					&flag,
+					static_cast<typename status<kind>::value_type*>(st),
+					&error
+				);
+		return flag == 1;
+	}
+} // namespace Fortran
 
 } // namespace mpi
 } // namespace nanos

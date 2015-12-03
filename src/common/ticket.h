@@ -33,11 +33,6 @@
 
 #include <type_traits>
 
-//#include <mpi.h>
-//#include <iterator>
-//#include <utility>
-//#include <cassert>
-
 namespace nanos {
 namespace mpi {
 
@@ -48,21 +43,67 @@ namespace mpi {
   \param TicketChecker MPI checker that will be used.
  */
 template<
-    typename RequestType, 
-    typename StatusType, 
-    StatusKind ignoreStatus,
-    typename ErrorType,
+    typename Request, 
+    typename Status, 
     size_t count = 0 // Fixed number of items. 0 : use dynamic container
 >
-class Ticket : public SinglePollingCond<TicketChecker<RequestType,StatusType,ignoreStatus,ErrorType,count> > {
+class TicketBase : public SinglePollingCond<TicketChecker<Request,Status,count> > {
 public:
-    using checker_type = TicketChecker<RequestType,StatusType,ignoreStatus,ErrorType,count>;
+    using checker_type = TicketChecker<Request,Status,count>;
     using super = SinglePollingCond<checker_type>;
 
     //! Default constructor.
-    Ticket()
+    TicketBase()
     {
     }
+
+    //! Copy constructor.
+    TicketBase( TicketBase const& t ) :
+        super(t)
+    {
+    }
+
+    //! ConditionChecker constructor.
+    /*!
+      Passes a ConditionChecker's reference to its superclass.
+     */
+    TicketBase( checker_type const& tc ) :
+        super(tc)
+    {
+    }
+
+    //! Destructor.
+    virtual ~TicketBase()
+    {
+    }
+
+    //! Returns a reference to MPI request values.
+    auto getChecker() -> typename std::add_lvalue_reference<decltype(super::_conditionChecker)>::type
+    {
+        return this->_conditionChecker;
+    }
+
+    //! Stops the task until the requests are completed.
+    /*!
+      \param err output error code.
+     */
+    void wait( int *err )
+    {
+        if( getChecker().getError().success() )
+            super::waitForPollCompletion();
+        if( err )
+            *err = getChecker().getError().value();
+    }
+};
+
+template < class Request, class Status, size_t length = 0 >
+class Ticket : public TicketBase<Request,Status,length> {
+public:
+    using checker_type = TicketChecker<Request,Status,length>;
+    using super = TicketBase<Request,Status,1>;
+
+    //! Default constructor.
+    Ticket() = default;
 
     //! Copy constructor.
     Ticket( Ticket const& t ) :
@@ -80,59 +121,64 @@ public:
     }
 
     //! Destructor.
-    virtual ~Ticket()
-    {
-    }
+    virtual ~Ticket() = default;
 
-    //! Returns a reference to MPI request values.
-    RequestSet<RequestType,count> &getRequestSet()
-    {
-        return this->_conditionChecker.getRequestSet();
-    }
+    using super::getChecker;
 
-    StatusSet<StatusType,ignoreStatus,count> &getStatusSet()
-    {
-        return this->_conditionChecker.getStatusSet();
-    }
+    using super::wait;
 
-    Error<ErrorType> const& getError() const
-    {
-        return this->_conditionChecker.getError();
-    }
-
-    Error<ErrorType>& getError()
-    {
-        return this->_conditionChecker.getError();
-    }
-
-    void setError( Error<ErrorType> const& error )
-    {
-        return this->_conditionChecker.setError( error );
-    }
-
-    //! Stops the task until the requests are completed.
-    /*!
-      \param err output error code.
-     */
-    void wait( ErrorType *err )
-    {
-        if( getError().success() )
-            super::waitForPollCompletion();
-        if( err )
-            *err = getError().value();
-    }
-
-    void wait( StatusType* status, ErrorType *err )
+    void wait( typename Status::value_type* status, int *err )
     {
         wait( err );
-        getStatusSet().copy( status );
+        super::getChecker().getStatusSet().copy( status );
     }
 
-	void wait( size_t nelem, StatusType array_of_statuses[], ErrorType *err )
+	void wait( size_t nelem, typename Status::value_type array_of_statuses[], int *err )
 	{
 	    wait( err );
-	    getStatusSet().copy( array_of_statuses, nelem );
+	    super::getChecker().getStatusSet().copy( array_of_statuses, nelem );
 	}
+};
+
+template<
+    typename Request, 
+    typename Status 
+>
+class Ticket<Request,Status,1> : public TicketBase<Request,Status,1> {
+public:
+    using checker_type = TicketChecker<Request,Status,1>;
+    using super = TicketBase<Request,Status,1>;
+
+    //! Default constructor.
+    Ticket() = default;
+
+    //! Copy constructor.
+    Ticket( Ticket const& t ) :
+        super(t)
+    {
+    }
+
+    //! ConditionChecker constructor.
+    /*!
+      Passes a ConditionChecker's reference to its superclass.
+     */
+    Ticket( checker_type const& tc ) :
+        super(tc)
+    {
+    }
+
+    //! Destructor.
+    virtual ~Ticket() = default;
+
+    using super::getChecker;
+
+    using super::wait;
+
+    void wait( typename Status::value_type* status, int *err )
+    {
+        wait( err );
+        getChecker().getStatus().copy( status );
+    }
 };
 
 } // namespace mpi

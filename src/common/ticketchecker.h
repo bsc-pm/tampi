@@ -31,6 +31,8 @@
 #include "pollingchecker.h"
 #include "ticket.h"
 
+#include <cassert>
+
 #include <type_traits>
 
 namespace nanos {
@@ -40,29 +42,26 @@ namespace mpi {
 /*!
   TicketChecker contains the necessary data to perform tests over
   one or many MPI requests and store the status output value.
-  \param RequestType Data type used to represent a request
-  \param StatusType Data type used to represent a status
-  \param kind Specifies whether the status should be ignored or not {StatusKind::attend, StatusKind::ignore}
+  \param Request Data type used to represent a request
+  \param Status Data type used to represent a status
   \param ErrorType Data type used to represent error codes
   \param count Number of request that this ticket will contain. If 0 or not specified, the number of requests is not fixed (dynamic storage is used in this case).
  */
 template <
-    typename RequestType, 
-    typename StatusType, 
-    StatusKind ignoreStatus,
-    typename ErrorType,
+    typename Request, 
+    typename Status, 
     size_t count = 0 // Fixed number of items. 0 : use dynamic container
 >
 class TicketChecker : public PollingChecker {
 protected:
     //! Contains all the requests that must be checked.
-    RequestSet<RequestType, count> _requests;
+    RequestSet<Request, count> _requests;
 
     //! Contain the result of the checks for each request.-
-    StatusSet<StatusType, ignoreStatus, count> _statuses;
+    StatusSetBase<Status, count> _statuses;
 
     //! Holds the return value of the last check.
-    Error<ErrorType> _error;
+    Error _error;
 public:
     //! Default constructor. 
     /*!
@@ -84,12 +83,12 @@ public:
       all of them. Using fixed size is not recommended in this case
       for this reason.
      */
-    TicketChecker( size_t len, RequestType *r, StatusType *s ) :
+    TicketChecker( size_t len, Request *r, Status *s ) :
         _requests( r, static_cast<size_t>(len) ),
         _statuses( s, static_cast<size_t>(len) ),
         _error()
     {
-        //assert( len <= _requests.capacity() );
+        assert( len <= _requests.capacity() );
     }
 
     //! Copy constructor.
@@ -116,19 +115,19 @@ public:
     }
 
     //! \return last check's error code. Non const-reference version.
-    Error<ErrorType>& getError()
+    Error& getError()
     {
         return _error;
     }
 
     //! \return last check's error code. Non const-reference version.
-    Error<ErrorType> const& getError() const
+    Error const& getError() const
     {
         return _error;
     }
 
     //! Sets lasts check's error code.
-    void setError( Error<ErrorType> const& value )
+    void setError( Error const& value )
     {
         _error = value;
     }
@@ -143,6 +142,103 @@ public:
     auto getStatusSet() -> typename std::add_lvalue_reference<decltype(_statuses)>::type
     {
         return _statuses;
+    }
+};
+
+template <
+    typename Request,
+    typename Status
+>
+class TicketChecker<Request,Status,1> : public PollingChecker {
+protected:
+    //! Contains a single request that must be checked.
+    Request _request;
+
+    //! Contain the result of the check for the request.
+    Status _status;
+
+    //! Holds the return value of the last check.
+    Error _error;
+public:
+    //! Default constructor. 
+    /*!
+      Creates an empty ticket with uninitialized requests.
+      Requests may be initialized later on.
+     */
+    TicketChecker() :
+        _request(),
+        _status(),
+        _error()
+    {
+    }
+
+    //! Request array constructor
+    /*!
+      Creates a ticket that will check for the completion of
+      a given set of requests.
+      \warning The request capacity of the ticket must be enough to hold
+      all of them. Using fixed size is not recommended in this case
+      for this reason.
+     */
+    TicketChecker( size_t len, Request *r, Status *s ) :
+        _request( r, static_cast<size_t>(len) ),
+        _status( s, static_cast<size_t>(len) ),
+        _error()
+    {
+        assert( len == 1 );
+    }
+
+    //! Copy constructor.
+    TicketChecker( TicketChecker const& t ) :
+        _request( t._request ),
+        _status( t._status ),
+         _error( t._error )
+    {
+    }
+
+    //! Destructor
+    virtual ~TicketChecker()
+    {
+    }
+
+    //! Calls MPI test.
+    /*!
+      Calls the specific mpi_test implementation depending on the data types 
+      that are being used.
+     */
+    virtual bool test()
+    {
+        return _request.test( _status );
+    }
+
+    //! \return last check's error code. Non const-reference version.
+    Error& getError()
+    {
+        return _error;
+    }
+
+    //! \return last check's error code. Non const-reference version.
+    Error const& getError() const
+    {
+        return _error;
+    }
+
+    //! Sets lasts check's error code.
+    void setError( Error const& value )
+    {
+        _error = value;
+    }
+
+    //! \return the ticket's Nth request.
+    auto getRequest() -> typename std::add_lvalue_reference<decltype(_request)>::type
+    {
+        return _request;
+    }
+
+    //! \return the ticket's Nth requests status.
+    auto getStatus() -> typename std::add_lvalue_reference<decltype(_status)>::type
+    {
+        return _status;
     }
 };
 

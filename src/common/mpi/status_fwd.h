@@ -1,6 +1,6 @@
 
-#ifndef MPI_STATUS_FWD_H
-#define MPI_STATUS_FWD_H
+#ifndef STATUS_FWD_H
+#define STATUS_FWD_H
 
 #include <mpi.h>
 #include <algorithm>
@@ -9,19 +9,46 @@
 namespace nanos {
 namespace mpi {
 
-using fortran_status = std::array<MPI_Fint,SIZEOF_MPI_STATUS>;
-using fortran_statuses_array = fortran_status[];
-
+#ifdef DEBUG_MODE
 enum class StatusKind
 {
-	ignore,
-	attend
+	ignore = 1,
+	attend = 1
+};
+#else
+enum class StatusKind
+{
+	ignore = 1,
+	attend = 0
+};
+#endif
+
+namespace Fortran {
+	template < StatusKind kind = StatusKind::attend >
+	class status;
+}
+
+namespace C {
+	template < StatusKind kind = StatusKind::attend >
+	class status;
+}
+
+template < typename T >
+struct ignore : public std::false_type
+{
 };
 
-template < typename UnderlyingType, StatusKind kind = StatusKind::attend >
-class status;
+template <>
+struct ignore<C::status<StatusKind::ignore> > : public std::true_type
+{
+};
+
+template <>
+struct ignore<Fortran::status<StatusKind::ignore> > : public std::true_type
+{
+};
 
 }// namespace nanos
 }// namespace mpi
 
-#endif // MPI_STATUS_FWD_H
+#endif // STATUS_FWD_H

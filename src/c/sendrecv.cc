@@ -81,10 +81,28 @@ namespace mpi {
         
         err = MPI_Irecv( recvbuf, recvcount, recvtype, source, recvtag,
                     comm, result->getRequestSet().at(1) );
-        result->getData().setError( err );
+        result->setError( err );
 
         return result;
     }
+
+    template
+    shared_pointer<ticket<nanos::mpi::StatusKind::ignore> > isendrecv( MPI3CONST void *sendbuf, int sendcount,
+                                          MPI_Datatype sendtype,
+                                          int dest, int sendtag,
+                                          void *recvbuf, int recvcount,
+                                          MPI_Datatype recvtype,
+                                          int source, int recvtag,
+                                          MPI_Comm comm );
+
+    template
+    shared_pointer<ticket<nanos::mpi::StatusKind::attend> > isendrecv( MPI3CONST void *sendbuf, int sendcount,
+                                          MPI_Datatype sendtype,
+                                          int dest, int sendtag,
+                                          void *recvbuf, int recvcount,
+                                          MPI_Datatype recvtype,
+                                          int source, int recvtag,
+                                          MPI_Comm comm );
 
 } // namespace mpi
 } // namespace nanos

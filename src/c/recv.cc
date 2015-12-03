@@ -20,16 +20,23 @@
 #include <mpi.h>
 
 #include "mpi/error.h"
+#include "mpi/request.h"
 #include "mpi/status.h"
 #include "smartpointer.h"
 #include "ticket.h"
 
-template < nanos::mpi::StatusKind kind >
-using ticket = nanos::mpi::Ticket<MPI_Request,MPI_Status,kind,int,1>;
+namespace nanos {
+namespace mpi {
+
+template < StatusKind kind >
+using ticket = Ticket<C::request,C::status<kind>,1>;
 
 template < typename TicketType >
 shared_pointer<TicketType> irecv( void *buf, int count, MPI_Datatype datatype, 
                                   int source, int tag, MPI_Comm comm );
+
+} // namespace mpi
+} // namespace nanos
 
 #include "recv.h"
 
@@ -37,14 +44,15 @@ extern "C" {
     int MPI_Recv( void *buf, int count, MPI_Datatype datatype,
         int source, int tag, MPI_Comm comm, MPI_Status *status )
     {
-        using ticket_ignore_status = ticket<nanos::mpi::StatusKind::ignore>;
-        using ticket_attend_status = ticket<nanos::mpi::StatusKind::attend>;
+        using namespace nanos::mpi;
+        using ticket_ignore_status = ticket<StatusKind::ignore>;
+        using ticket_attend_status = ticket<StatusKind::attend>;
 
         int err;
         if( status == MPI_STATUS_IGNORE ) {
-	        nanos::mpi::recv<ticket_ignore_status>( buf, count, datatype, source, tag, comm, status, &err );
+	        recv<ticket_ignore_status>( buf, count, datatype, source, tag, comm, status, &err );
         } else {
-	        nanos::mpi::recv<ticket_attend_status>( buf, count, datatype, source, tag, comm, status, &err );
+	        recv<ticket_attend_status>( buf, count, datatype, source, tag, comm, status, &err );
         }
         return err;
     }
@@ -60,8 +68,8 @@ namespace mpi {
         using ticket = TicketType;
         
         shared_pointer<ticket> result( new ticket() );
-        int err = MPI_Irecv( buf, count, datatype, source, tag, comm, result->getRequestSet().at(0) );
-        result->setError( err );
+        int err = MPI_Irecv( buf, count, datatype, source, tag, comm, result->getChecker().getRequest() );
+        result->getChecker().setError( err );
 
         return result;
     }

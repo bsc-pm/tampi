@@ -1,22 +1,30 @@
 
-#ifndef MPI_STATUS_H
-#define MPI_STATUS_H
+#ifndef STATUS_H
+#define STATUS_H
 
 #include "common.h"
 #include "status_fwd.h"
 
+#include <cassert>
 #include <mpi.h>
+
 #include <algorithm>
 #include <array>
 
 namespace nanos {
 namespace mpi {
 
+namespace C {
+
 template <>
-class status<MPI_Status, StatusKind::attend>
+class status<StatusKind::attend>
 {
+	public:
+		using value_type = MPI_Status;
+		using base_type = MPI_Status;
+
 	private:
-		MPI_Status _value;
+		value_type _value;
 	
 	public:
 		status() :
@@ -24,128 +32,126 @@ class status<MPI_Status, StatusKind::attend>
 		{
 		}
 	
-		status( MPI_Status const& value ) :
+		status( value_type const& value ) :
 			_value(value)
 		{
 		}
 	
-		status( status const& other ) :
-			_value(other._value)
-		{
-		}
+		status( status const& other ) = default;
 
-		status& operator=( status const& other )
-		{
-			_value = other._value;
-			return *this;
-		}
-	
-		operator MPI_Status ()
-		{
-			return _value;
-		}
+		status& operator=( status const& other ) = default;
 
-		operator MPI_Status* ()
-		{
-			return reinterpret_cast<MPI_Status*>( &_value );
-		}
-};
-
-template <>
-class status<MPI_Fint, StatusKind::attend>
-{
-	private:
-		fortran_status _value;
-
-	public:
-		status() :
-			_value()
-		{
-		}
-
-		status( MPI_Fint const* value ) :
-			_value( reinterpret_cast<fortran_status const&>(*value) )
-		{
-			//assert( value != MPI_F_STATUS_IGNORE );
-		}
-
-		status( status const& other ) :
-			_value( other._value )
-		{
-		}
-
-		status& operator=( status const& other )
-		{
-			auto begin = other._value.begin();
-			auto end = other._value.end();
-			std::copy( begin, end, _value.begin() );
-			return *this;
-		}
-
-		status& operator=( fortran_status const& other )
+		status& operator=( value_type const& other )
 		{
 			_value = other;
 			return *this;
 		}
 
-		operator MPI_Fint* ()
+		void copy( value_type *other ) const
 		{
-			return _value.data();
+			if( other != MPI_STATUS_IGNORE )
+				*other = _value;
 		}
-
-		operator fortran_status& ()
+	
+		operator value_type& ()
 		{
 			return _value;
 		}
 
-		friend auto std::copy<>( status *first, status *last, nanos::mpi::fortran_status *d_first ) -> decltype(d_first);
+		operator value_type* ()
+		{
+			return &_value;
+		}
 };
 
+#ifndef DEBUG_MODE
 template <>
-class status<MPI_Status, StatusKind::ignore>
+class status<StatusKind::ignore>
 {
 	public:
-		operator MPI_Status* ()
+		using value_type = MPI_Status;
+		using base_type = MPI_Status;
+
+		operator value_type* ()
 		{
 			return MPI_STATUS_IGNORE;
 		}
 };
+#endif
+
+} // namespace C
+
+namespace Fortran {
 
 template <>
-class status<MPI_Fint, StatusKind::ignore>
+class status<StatusKind::attend>
 {
-		operator MPI_Fint* ()
+	public:
+		using value_type = MPI_Fint;
+		using base_type = std::array<MPI_Fint,SIZEOF_MPI_STATUS>;
+
+	private:
+		base_type _value;
+
+	public:
+		status() :
+			_value()
+		{
+		}
+
+		status( status const& other ) = default;
+
+		status( value_type const* value ) :
+			_value( reinterpret_cast<base_type const&>(*value) )
+		{
+			assert( value != MPI_F_STATUS_IGNORE );
+		}
+
+		status& operator=( status const& other ) = default;
+
+		status& operator=( base_type const& other )
+		{
+			_value = other;
+			return *this;
+		}
+
+		void copy( value_type *other ) const
+		{
+			if( other != MPI_F_STATUS_IGNORE ) {
+				auto array = reinterpret_cast<base_type&>(*other);
+				array = _value;
+			}
+		}
+
+		operator value_type* ()
+		{
+			return _value.data();
+		}
+
+		operator base_type& ()
+		{
+			return _value;
+		}
+};
+
+#ifndef DEBUG_MODE
+template <>
+class status<StatusKind::ignore>
+{
+	public:
+		using value_type = MPI_Fint;
+		using base_type = std::array<MPI_Fint,SIZEOF_MPI_STATUS>;
+
+		operator value_type* ()
 		{
 			return MPI_F_STATUS_IGNORE;
 		}
 };
+#endif
 
-template < StatusKind kind >
-struct is_ignore : public std::false_type
-{
-};
-
-template <>
-struct is_ignore<StatusKind::ignore> : public std::true_type
-{
-};
+} // namespace Fortran
 
 } // namespace mpi
 } // namespace nanos
 
-namespace std {
-		template <>
-		inline nanos::mpi::fortran_status* copy( nanos::mpi::status<MPI_Fint,nanos::mpi::StatusKind::attend> *first, nanos::mpi::status<MPI_Fint,nanos::mpi::StatusKind::attend> *last, nanos::mpi::fortran_status *d_first )
-		{
-			while( first != last )
-			{
-				d_first = reinterpret_cast<nanos::mpi::fortran_status*>(
-										std::copy( first->_value.begin(), first->_value.end(), d_first->begin() )
-								);
-				first++;
-			}
-			return d_first;
-		}
-}
-
-#endif // MPI_STATUS_H
+#endif // STATUS_H

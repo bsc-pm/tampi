@@ -26,9 +26,15 @@
 #include "smartpointer.h"
 #include "ticket.h"
 
-using ticket = nanos::mpi::Ticket<MPI_Request,MPI_Status,nanos::mpi::StatusKind::ignore,int,1>;
+namespace nanos {
+namespace mpi {
+    
+using ticket = Ticket<MPI_Request,MPI_Status,StatusKind::ignore,int,1>;
 
 shared_pointer<ticket> ibarrier( MPI_Comm comm );
+
+}// namespace mpi
+}// namespace nanos
 
 #include "barrier.h"
 
@@ -36,7 +42,7 @@ extern "C" {
     int MPI_Barrier( MPI_Comm comm )
     {
         int err;
-        nanos::mpi::barrier<ticket>( comm, &err );
+        nanos::mpi::barrier<nanos::mpi::ticket>( comm, &err );
         return err;
     }
 } // extern C
