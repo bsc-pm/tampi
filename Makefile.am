@@ -16,6 +16,7 @@ pkginclude_HEADERS= # This library does not provide any additional header
 
 c_api_sources= \
  src/c/send.cc \
+ src/c/ssend.cc \
  src/c/recv.cc
 
 # src/c/barrier.cc \
@@ -25,6 +26,7 @@ c_api_sources= \
 # src/c/reduce.cc \
 # src/c/send.cc \
 # src/c/sendrecv.cc \
+# src/c/ssend.cc \
 # src/c/waitall.cc \
 # src/c/wait.cc \
 # src/c/sendrecvreplace.cc
