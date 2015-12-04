@@ -17,8 +17,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef SEND_H
-#define SEND_H
+#ifndef SSEND_H
+#define SSEND_H
 
 #include "print.h"
 #include "ticket.h"
@@ -28,10 +28,10 @@ namespace nanos {
 namespace mpi {
 
 template< typename TicketType, typename IntType, typename DataType, typename CommType, typename ErrType >
-void send( MPI3CONST void *buf, IntType count, DataType datatype, IntType dest,
+inline void ssend( MPI3CONST void *buf, IntType count, DataType datatype, IntType dest,
         IntType tag, CommType comm, ErrType *ierror )
 {
-    print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Send" );
+    print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Ssend" );
 
     shared_pointer<TicketType> waitCond = isend( buf, count, datatype, dest, tag, comm );
     waitCond->wait( ierror );
@@ -40,4 +40,4 @@ void send( MPI3CONST void *buf, IntType count, DataType datatype, IntType dest,
 } // namespace mpi
 } // namespace nanos
 
-#endif // SEND_H
+#endif // SSEND_H
