@@ -25,8 +25,11 @@
 #include "smartpointer.h"
 #include "ticket.h"
 
-template < nanos::mpi::StatusKind kind >
-using ticket = nanos::mpi::Ticket<MPI_Request,MPI_Status,kind,int,2>;
+namespace nanos {
+namespace mpi {
+
+template < StatusKind kind >
+using ticket = Ticket<C::request,C::status<kind>,2>;
 
 template < typename TicketType >
 shared_pointer<TicketType> isendrecv( MPI3CONST void *sendbuf, int sendcount, 
@@ -34,6 +37,9 @@ shared_pointer<TicketType> isendrecv( MPI3CONST void *sendbuf, int sendcount,
                                       void *recvbuf, int recvcount, 
                                       MPI_Datatype recvtype, int source, int recvtag,
                                       MPI_Comm comm );
+
+} // namespace mpi
+} // namespace nanos
 
 #include "sendrecv.h"
 
@@ -44,18 +50,21 @@ extern "C" {
                       int source, int recvtag, 
                       MPI_Comm comm, MPI_Status *status)
     {
+        using namespace nanos::mpi;
+        
         int err;
         if( status == MPI_STATUS_IGNORE ) {
-            using ticket = ticket<nanos::mpi::StatusKind::ignore>;
-            nanos::mpi::sendrecv<ticket>( sendbuf, sendcount, sendtype,
-                                          dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag,
-                                          comm, status, &err );
+            using ticket = ticket<StatusKind::ignore>;
+            sendrecv<ticket>( sendbuf, sendcount, sendtype,
+                              dest, sendtag, recvbuf, recvcount, recvtype, 
+                              source, recvtag,
+                              comm, status, &err );
         } else {
-            using ticket = ticket<nanos::mpi::StatusKind::attend>;
-            nanos::mpi::sendrecv<ticket>( sendbuf, sendcount, sendtype,
-                                          dest, sendtag, recvbuf, recvcount,
-                                          recvtype, source, recvtag,
-                                          comm, status, &err );
+            using ticket = ticket<StatusKind::attend>;
+            sendrecv<ticket>( sendbuf, sendcount, sendtype,
+                              dest, sendtag, recvbuf, recvcount,
+                              recvtype, source, recvtag,
+                              comm, status, &err );
         }
         return err;
     }
@@ -77,33 +86,31 @@ namespace mpi {
         
         shared_pointer<ticket> result( new ticket() );
         int err = MPI_Isend( sendbuf, sendcount, sendtype, dest, sendtag,
-                             comm, result->getRequestSet().at(0) );
+                             comm, result->getChecker().getRequestSet().at(0) );
         
         err = MPI_Irecv( recvbuf, recvcount, recvtype, source, recvtag,
-                    comm, result->getRequestSet().at(1) );
-        result->setError( err );
+                    comm, result->getChecker().getRequestSet().at(1) );
+        result->getChecker().setError( err );
 
         return result;
     }
+/*
+    template
+    shared_pointer<ticket<StatusKind::ignore> > 
+    isendrecv( MPI3CONST void *sendbuf, int sendcount,
+               MPI_Datatype sendtype, int dest, int sendtag,
+               void *recvbuf, int recvcount,
+               MPI_Datatype recvtype, int source, int recvtag,
+               MPI_Comm comm );
 
     template
-    shared_pointer<ticket<nanos::mpi::StatusKind::ignore> > isendrecv( MPI3CONST void *sendbuf, int sendcount,
-                                          MPI_Datatype sendtype,
-                                          int dest, int sendtag,
-                                          void *recvbuf, int recvcount,
-                                          MPI_Datatype recvtype,
-                                          int source, int recvtag,
-                                          MPI_Comm comm );
-
-    template
-    shared_pointer<ticket<nanos::mpi::StatusKind::attend> > isendrecv( MPI3CONST void *sendbuf, int sendcount,
-                                          MPI_Datatype sendtype,
-                                          int dest, int sendtag,
-                                          void *recvbuf, int recvcount,
-                                          MPI_Datatype recvtype,
-                                          int source, int recvtag,
-                                          MPI_Comm comm );
-
+    shared_pointer<ticket<StatusKind::attend> >
+    isendrecv( MPI3CONST void *sendbuf, int sendcount,
+               MPI_Datatype sendtype, int dest, int sendtag,
+               void *recvbuf, int recvcount,
+               MPI_Datatype recvtype, int source, int recvtag,
+               MPI_Comm comm );
+*/
 } // namespace mpi
 } // namespace nanos
 

@@ -73,7 +73,7 @@ class RequestSet<Request, 0> {
 
 		RequestSet( RequestSet const& other ) = default;
 
-		RequestSet( Request *requests, size_t size ) :
+		RequestSet( typename Request::value_type *requests, size_t size ) :
 			_requests()
 		{
 			_requests.reserve(size);

@@ -26,11 +26,17 @@
 #include "smartpointer.h"
 #include "ticket.h"
 
-using ticket = nanos::mpi::Ticket<MPI_Request,MPI_Status,nanos::mpi::StatusKind::ignore,int,1>;
+namespace nanos {
+namespace mpi {
+
+using ticket = Ticket<C::request,C::status<StatusKind::ignore>,1>;
 
 shared_pointer<ticket> ireduce( const void *sendbuf, void *recvbuf, int count,
                 MPI_Datatype datatype, MPI_Op op, int root,
                 MPI_Comm comm );
+
+} // namespace mpi
+} // namespace nanos
 
 #include "reduce.h"
 
@@ -40,7 +46,7 @@ extern "C" {
                    MPI_Comm comm )
     {
         int err;
-        nanos::mpi::reduce<ticket>( sendbuf, recvbuf, count, datatype, op, root, comm, &err );
+        nanos::mpi::reduce<nanos::mpi::ticket>( sendbuf, recvbuf, count, datatype, op, root, comm, &err );
         return err;
     }
 } // extern C
@@ -53,8 +59,8 @@ namespace mpi {
                 MPI_Comm comm )
     {
         shared_pointer<ticket> result( new ticket() );
-        int err = MPI_Ireduce( sendbuf, recvbuf, count, datatype, op, root, comm, result->getRequestSet().at(0) );
-        result->setError( err );
+        int err = MPI_Ireduce( sendbuf, recvbuf, count, datatype, op, root, comm, result->getChecker().getRequest() );
+        result->getChecker().setError( err );
 
         return result;
     }

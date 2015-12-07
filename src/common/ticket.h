@@ -100,7 +100,7 @@ template < class Request, class Status, size_t length = 0 >
 class Ticket : public TicketBase<Request,Status,length> {
 public:
     using checker_type = TicketChecker<Request,Status,length>;
-    using super = TicketBase<Request,Status,1>;
+    using super = TicketBase<Request,Status,length>;
 
     //! Default constructor.
     Ticket() = default;

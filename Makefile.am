@@ -15,21 +15,17 @@ LIBS=@extraelibs@ @ompsslibs@ @argobotslibs@
 pkginclude_HEADERS= # This library does not provide any additional header
 
 c_api_sources= \
+ src/c/barrier.cc \
+ src/c/bcast.cc \
+ src/c/gatherv.cc \
+ src/c/recv.cc \
+ src/c/reduce.cc \
  src/c/send.cc \
+ src/c/sendrecv.cc \
  src/c/ssend.cc \
- src/c/recv.cc
-
-# src/c/barrier.cc \
-# src/c/bcast.cc \
-# src/c/gatherv.cc \
-# src/c/recv.cc \
-# src/c/reduce.cc \
-# src/c/send.cc \
-# src/c/sendrecv.cc \
-# src/c/ssend.cc \
-# src/c/waitall.cc \
-# src/c/wait.cc \
-# src/c/sendrecvreplace.cc
+ src/c/waitall.cc \
+ src/c/wait.cc \
+ src/c/sendrecvreplace.cc
 
 # Additional debug mode files
 if debug_mode_enabled

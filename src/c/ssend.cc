@@ -52,7 +52,7 @@ extern "C" {
 namespace nanos {
 namespace mpi {
 
-    shared_pointer<ticket> isend( MPI3CONST void *buf, int count, 
+    inline shared_pointer<ticket> isend( MPI3CONST void *buf, int count, 
                                   MPI_Datatype datatype, int dest, int tag, 
                                   MPI_Comm comm )
     {

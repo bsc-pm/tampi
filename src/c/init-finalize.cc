@@ -21,7 +21,7 @@
 #include "debug/mpierrortranslator.hpp"
 
 /*!
- * \file WARNING This file is intended for debug purposes only.
+ * \file init-finalize.cc This file is intended for debug purposes only.
  * Do not use with profiling tools as it is not compatible with them.
  */
 

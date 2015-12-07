@@ -83,12 +83,11 @@ public:
       all of them. Using fixed size is not recommended in this case
       for this reason.
      */
-    TicketChecker( size_t len, Request *r, Status *s ) :
+    TicketChecker( size_t len, typename Request::value_type *r, typename Status::value_type *s ) :
         _requests( r, static_cast<size_t>(len) ),
         _statuses( s, static_cast<size_t>(len) ),
         _error()
     {
-        assert( len <= _requests.capacity() );
     }
 
     //! Copy constructor.
@@ -180,12 +179,11 @@ public:
       all of them. Using fixed size is not recommended in this case
       for this reason.
      */
-    TicketChecker( size_t len, Request *r, Status *s ) :
-        _request( r, static_cast<size_t>(len) ),
-        _status( s, static_cast<size_t>(len) ),
+    TicketChecker( typename Request::value_type *r ) :
+        _request(*r),
+        _status(),
         _error()
     {
-        assert( len == 1 );
     }
 
     //! Copy constructor.
