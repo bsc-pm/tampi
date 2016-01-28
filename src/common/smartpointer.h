@@ -20,7 +20,7 @@
 #ifndef SMARTPOINTER
 #define SMARTPOINTER
 
-namespace abt {
+namespace nanos {
 
 template < typename T >
 class shared_pointer {

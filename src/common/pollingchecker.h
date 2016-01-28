@@ -21,17 +21,18 @@
 #ifndef POLLINGCHECKER_H
 #define POLLINGCHECKER_H
 
-#include "conditionchecker.h"
 
-#ifdef HAVE_NANOS_NANOS_H
-	#include<nanox-dev/atomic.hpp>
-	#include<nanox-dev/lock.hpp>
+#ifdef HAVE_NANOX_NANOS_H
+	#include <atomic.hpp>
+	#include <lock.hpp>
+        #include <synchronizedcondition_decl.hpp>
 #endif
 
 #ifdef HAVE_ABT_H
 	#include <atomic>
-	#include "argobots/mutex.hpp"
+	#include "argobots/conditionchecker.hpp"
 	#include "argobots/lockblock.hpp"
+	#include "argobots/mutex.hpp"
 	template < class T >
 	using Atomic = std::atomic<T>;
 	using Lock = abt::Mutex;

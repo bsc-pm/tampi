@@ -23,6 +23,8 @@
 #ifdef HAVE_ABT_H
     #include "argobots/pollingcondition.h"
     using namespace abt;
+#else
+    #include "nanos/pollingcondition.h"
 #endif
 
 #include "mpi/error.h"

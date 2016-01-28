@@ -4,7 +4,7 @@
 
 #include "common/pollingchecker.h"
 
-#include <nanox-dev/synchronizedcondition.hpp>
+#include <synchronizedcondition.hpp>
 
 namespace nanos {
 

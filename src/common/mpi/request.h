@@ -37,6 +37,7 @@ class request
 		request& operator=( value_type other )
 		{
 			_value = other;
+			return *this;
 		}
 	
 		bool test()

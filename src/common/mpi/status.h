@@ -76,6 +76,10 @@ class status<StatusKind::ignore>
 		{
 			return MPI_STATUS_IGNORE;
 		}
+
+        void copy( value_type *other ) const
+        {
+        }
 };
 #endif
 
@@ -146,6 +150,10 @@ class status<StatusKind::ignore>
 		{
 			return MPI_F_STATUS_IGNORE;
 		}
+
+        void copy( value_type *other ) const
+        {
+        }
 };
 #endif
 

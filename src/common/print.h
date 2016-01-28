@@ -25,7 +25,7 @@
 #include <sstream>
 
 #ifdef HAVE_NANOX_NANOS_H
-   #include <nanox/nanos.h>
+   #include <nanos.h>
 #endif
 
 /*! \file print.h
