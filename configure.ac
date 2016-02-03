@@ -22,9 +22,6 @@ AC_PROG_CXX([$CXX $MPICXX mpiicpc mpicxx])
 # AM_PROG_AR must be called before LT_INIT or a warning ensues
 AM_PROG_AR
 
-# Turn off shared libraries.
-LT_INIT([shared static])
-
 # Automake initialization
 AM_INIT_AUTOMAKE([-Wall dist-bzip2 -Wno-portability subdir-objects])
 
@@ -49,7 +46,8 @@ AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
 AC_CHECK_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 
-# Checks for library functions.
+# Turn off shared libraries.
+LT_INIT([shared static])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
