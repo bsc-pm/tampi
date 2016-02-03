@@ -52,7 +52,7 @@ AS_IF([test "$with_argobots" != yes],[
 
 # This is fulfilled even if $with_argobots="yes" 
 # This happens when user leaves --with-value alone
-AS_IF([test "$runtime_version" -gt 5 -and "$with_argobots" != no],[
+AS_IF([test ${runtime_version-0} -gt 5 -a "$with_argobots" != no],[
     #tests if provided headers and libraries are usable and correct
     AX_VAR_PUSHVALUE(CPPFLAGS,[$CPPFLAGS $argobotsinc])
     AX_VAR_PUSHVALUE(CXXFLAGS)
