@@ -33,20 +33,19 @@ c_api_sources += \
  src/c/init-finalize.cc
 endif
 
-fortran_api_sources=
-# src/fortran/send.cc \
-# src/fortran/recv.cc
-
-# src/fortran/barrier.cc \
-# src/fortran/bcast.cc \
-# src/fortran/gatherv.cc \
-# src/fortran/recv.cc \
-# src/fortran/reduce.cc \
-# src/fortran/send.cc \
-# src/fortran/sendrecv.cc \
-# src/fortran/waitall.cc \
-# src/fortran/wait.cc \
-# src/fortran/sendrecvreplace.cc
+fortran_api_sources= \
+ src/fortran/send.cc \
+ src/fortran/recv.cc \
+ src/fortran/barrier.cc \
+ src/fortran/bcast.cc \
+ src/fortran/gatherv.cc \
+ src/fortran/recv.cc \
+ src/fortran/reduce.cc \
+ src/fortran/send.cc \
+ src/fortran/sendrecv.cc \
+ src/fortran/waitall.cc \
+ src/fortran/wait.cc \
+ src/fortran/sendrecvreplace.cc
 
 lib_LTLIBRARIES=libmpiompss-interop.la libmpiompss-interop-fort.la
 libmpiompss_interop_la_SOURCES=$(c_api_sources)

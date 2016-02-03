@@ -212,8 +212,6 @@ Maximun multithread level supported: $ac_cv_mpi_mt
   AC_DEFINE_UNQUOTED([MPI_IMPLEMENTATION],[$mpi_implementation],
     [Identifies which MPI implementation is being used. Supported values: intel, mpich, openmpi])
 
-  mpiflags=$CXXFLAGS
-  echo "mpiflags: $mpiflags"
   AC_SUBST([mpiflags])
 
   # Restore variables to its original state except CXXFLAGS
