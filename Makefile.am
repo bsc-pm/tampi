@@ -34,8 +34,6 @@ c_api_sources += \
 endif
 
 fortran_api_sources= \
- src/fortran/send.cc \
- src/fortran/recv.cc \
  src/fortran/barrier.cc \
  src/fortran/bcast.cc \
  src/fortran/gatherv.cc \

@@ -26,7 +26,10 @@
 #include "smartpointer.h"
 #include "ticket.h"
 
-using ticket = nanos::mpi::Ticket<MPI_Fint,MPI_Fint,nanos::mpi::StatusKind::ignore,MPI_Fint,1>;
+namespace nanos {
+namespace mpi {
+
+using ticket = Ticket<Fortran::request,Fortran::status<StatusKind::ignore>,1>;
 
 shared_pointer<ticket> igatherv( const void *sendbuf, MPI_Fint *sendcount,
                                  MPI_Fint *sendtype,
@@ -34,7 +37,13 @@ shared_pointer<ticket> igatherv( const void *sendbuf, MPI_Fint *sendcount,
                                  const MPI_Fint displs[], MPI_Fint *recvtype, 
                                  MPI_Fint *root, MPI_Fint *comm );
 
+} // namespace mpi
+} // namespace nanos
+
 #include "gatherv.h"
+
+namespace nanos {
+namespace mpi {
 
 extern "C" {
     void mpi_gatherv_( const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
@@ -42,7 +51,7 @@ extern "C" {
                        const MPI_Fint displs[], MPI_Fint *recvtype,
                        MPI_Fint *root, MPI_Fint *comm, MPI_Fint *err )
     {
-        nanos::mpi::gatherv<ticket>( sendbuf, sendcount, sendtype,
+        gatherv<ticket>( sendbuf, sendcount, sendtype,
                         recvbuf, recvcounts, displs, recvtype,
                         root, comm, err );
     }
@@ -53,22 +62,20 @@ extern "C" {
 
 } // extern C
 
-namespace nanos {
-namespace mpi {
+shared_pointer<ticket> igatherv( const void *sendbuf, MPI_Fint *sendcount,
+                                 MPI_Fint *sendtype,
+                                 void *recvbuf, const MPI_Fint recvcounts[], const MPI_Fint displs[], MPI_Fint *recvtype,
+                                MPI_Fint *root, MPI_Fint *comm )
+{
+    shared_pointer<ticket> result( new ticket() );
+    mpi_igatherv_( sendbuf, sendcount, sendtype,
+            recvbuf, recvcounts, displs, recvtype,
+            root, comm,
+            result->getChecker().getRequest(),
+            result->getChecker().getError() );
 
-    shared_pointer<ticket> igatherv( const void *sendbuf, MPI_Fint *sendcount,
-                                     MPI_Fint *sendtype, 
-                                     void *recvbuf, const MPI_Fint recvcounts[], const MPI_Fint displs[], MPI_Fint *recvtype,        MPI_Fint *root, MPI_Fint *comm )
-    {
-        shared_pointer<ticket> result( new ticket() );
-        mpi_igatherv_( sendbuf, sendcount, sendtype, 
-                recvbuf, recvcounts, displs, recvtype, 
-                root, comm, 
-                result->getRequestSet().at(0),
-                &result->getError().value() );
-        
-        return result;
-    }
+    return result;
+}
 
 } // namespace mpi
 } // namespace nanos

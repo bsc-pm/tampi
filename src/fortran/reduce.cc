@@ -26,20 +26,29 @@
 #include "smartpointer.h"
 #include "ticket.h"
 
-using ticket = nanos::mpi::Ticket<MPI_Fint,MPI_Fint,nanos::mpi::StatusKind::ignore,MPI_Fint,1>;
+namespace nanos {
+namespace mpi {
+
+using ticket = Ticket<Fortran::request,Fortran::status<StatusKind::ignore>,1>;
 
 shared_pointer<ticket> ireduce( const void *sendbuf, void *recvbuf, MPI_Fint *count,
                                 MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
                                 MPI_Fint *comm );
 
+} // namespace mpi
+} // namespace nanos
+
 #include "reduce.h"
+
+namespace nanos {
+namespace mpi {
 
 extern "C" {
     void mpi_reduce_( const void *sendbuf, void *recvbuf, MPI_Fint *count,
                       MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
                       MPI_Fint *comm, MPI_Fint *err )
     {
-        nanos::mpi::reduce<ticket>( sendbuf, recvbuf, count, datatype, op, root, comm, err );
+        reduce<ticket>( sendbuf, recvbuf, count, datatype, op, root, comm, err );
     }
 
     void mpi_ireduce_( const void *sendbuf, void *recvbuf, MPI_Fint *count,
@@ -47,20 +56,17 @@ extern "C" {
                        MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
 }
 
-namespace nanos {
-namespace mpi {
+shared_pointer<ticket> ireduce( const void *sendbuf, void *recvbuf, 
+                                  MPI_Fint *count, MPI_Fint *datatype, 
+                                  MPI_Fint *op, MPI_Fint *root, MPI_Fint *comm )
+{
+    shared_pointer<ticket> result( new ticket() );
+    mpi_ireduce_( sendbuf, recvbuf, count, datatype, op, root, comm,
+        result->getChecker().getRequest(),
+        result->getChecker().getError() );
 
-    shared_pointer<ticket> ireduce( const void *sendbuf, void *recvbuf, 
-                                      MPI_Fint *count, MPI_Fint *datatype, 
-                                      MPI_Fint *op, MPI_Fint *root, MPI_Fint *comm )
-    {
-        shared_pointer<ticket> result( new ticket() );
-        mpi_ireduce_( sendbuf, recvbuf, count, datatype, op, root, comm,
-            result->getRequestSet().at(0),
-            &result->getError().value() );
-
-        return result;
-    }
+    return result;
+}
 
 } // namespace mpi
 } // namespace nanos

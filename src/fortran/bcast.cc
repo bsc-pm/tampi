@@ -26,7 +26,10 @@
 #include "smartpointer.h"
 #include "ticket.h"
 
-using ticket = nanos::mpi::Ticket<MPI_Fint,MPI_Fint,nanos::mpi::StatusKind::ignore,MPI_Fint,1>;
+namespace nanos {
+namespace mpi {
+
+using ticket = nanos::mpi::Ticket<Fortran::request,Fortran::status<StatusKind::ignore>,1>;
 
 shared_pointer<ticket> ibcast( void *buf, MPI_Fint *count, MPI_Fint *datatype,
                                MPI_Fint *root, MPI_Fint *comm );
@@ -46,16 +49,13 @@ void mpi_ibcast_(void *buffer, MPI_Fint *count, MPI_Fint *datatype,
 
 } // extern C
 
-namespace nanos {
-namespace mpi {
-
     shared_pointer<ticket> ibcast( void *buf, MPI_Fint *count, MPI_Fint *datatype,
                                      MPI_Fint *root, MPI_Fint *comm )
     {
         shared_pointer<ticket> result( new ticket() );
         mpi_ibcast_( buf, count, datatype, root, comm,
-            result->getRequestSet().at(0),
-            &result->getError().value() );
+            result->getChecker().getRequest(),
+            result->getChecker().getError() );
         return result;
     }
 

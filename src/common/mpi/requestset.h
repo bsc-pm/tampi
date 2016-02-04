@@ -44,9 +44,14 @@ class RequestSet {
 			return _requests.size();
 		}
 
-		operator typename Request::value_type* ()
+		typename Request::value_type* data()
 		{
 			return reinterpret_cast<typename Request::value_type*>(_requests.data());
+		}
+
+		operator typename Request::value_type* ()
+		{
+			return data();
 		}
 
 		auto at( size_t pos ) const -> typename std::add_lvalue_reference<decltype(_requests.at(pos))>::type
@@ -91,9 +96,14 @@ class RequestSet<Request, 0> {
 			return _requests.size();
 		}
 
-		operator typename Request::value_type* ()
+		typename Request::value_type* data()
 		{
 			return reinterpret_cast<typename Request::value_type*>(_requests.data());
+		}
+
+		operator typename Request::value_type* ()
+		{
+			return data();
 		}
 
 		auto at( size_t pos ) const -> typename std::add_lvalue_reference<decltype(_requests.at(pos))>::type

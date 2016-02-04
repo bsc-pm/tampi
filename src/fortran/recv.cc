@@ -24,14 +24,23 @@
 #include "smartpointer.h"
 #include "ticket.h"
 
-template < nanos::mpi::StatusKind kind >
-using ticket = nanos::mpi::Ticket<MPI_Fint,MPI_Fint,kind,MPI_Fint,1>;
+namespace nanos {
+namespace mpi {
 
-template < typename TicketType >
-shared_pointer<TicketType> irecv( void *buf, MPI_Fint *count, MPI_Fint *datatype, 
+template< StatusKind kind >
+using ticket = Ticket<Fortran::request,Fortran::status<kind>,1>;
+
+template< typename ticket >
+shared_pointer<ticket> irecv( void *buf, MPI_Fint *count, MPI_Fint *datatype, 
                                   MPI_Fint *source, MPI_Fint *tag, MPI_Fint *comm );
 
+} // namespace nanos
+} // namespace mpi
+
 #include "recv.h"
+
+namespace nanos {
+namespace mpi {
 
 extern "C" {
     void mpi_recv_( void *buf, MPI_Fint *count, MPI_Fint *datatype,
@@ -39,11 +48,11 @@ extern "C" {
     {
 
         if( status == MPI_F_STATUS_IGNORE ) {
-           using ticket = ticket<nanos::mpi::StatusKind::ignore>;
-	        nanos::mpi::recv<ticket>( buf, count, datatype, source, tag, comm, status, err );
+           using ticket = ticket<StatusKind::ignore>;
+	        recv<ticket>( buf, count, datatype, source, tag, comm, status, err );
         } else {
-           using ticket = ticket<nanos::mpi::StatusKind::attend>;
-	        nanos::mpi::recv<ticket>( buf, count, datatype, source, tag, comm, status, err );
+           using ticket = ticket<StatusKind::attend>;
+	        recv<ticket>( buf, count, datatype, source, tag, comm, status, err );
         }
     }
 
@@ -51,19 +60,14 @@ extern "C" {
         MPI_Fint *source, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
 }
 
-namespace nanos {
-namespace mpi {
-
-    template< typename TicketType >
-    shared_pointer<TicketType> irecv( void *buf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *source, MPI_Fint *tag,
+    template< typename ticket >
+    shared_pointer<ticket> irecv( void *buf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *source, MPI_Fint *tag,
             MPI_Fint *comm )
     {
-        using ticket = TicketType;
-        
         shared_pointer<ticket> result( new ticket() );
         mpi_irecv_( buf, count, datatype, source, tag, comm,
-            result->getRequestSet().at(0),
-            &result->getError().value() );
+            result->getChecker().getRequest(),
+            result->getChecker().getError() );
         return shared_pointer<ticket>(result);
     }
     

@@ -36,7 +36,7 @@ class StatusSetBase< C::status<StatusKind::attend>, length>
 		StatusSetBase( status::value_type const* statuses, size_t size ) :
 			_statuses()
 		{
-			assert( statuses != MPI_STATUSES_IGNORE )
+			assert( statuses != MPI_STATUSES_IGNORE );
 			assert( size <= length );
 			auto begin = statuses;
 			auto end = statuses + size;

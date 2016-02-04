@@ -54,6 +54,16 @@ class Error {
 			return _value;
 		}
 
+		operator int() const
+		{
+			return value();
+		}
+
+		operator int*()
+		{
+			return &_value;
+		}
+
 		static std::string toString( int code )
 		{
 			int len;

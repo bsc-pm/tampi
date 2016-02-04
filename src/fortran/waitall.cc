@@ -25,11 +25,14 @@
 #include "ticket.h"
 #include "print.h"
 
-template < nanos::mpi::StatusKind kind >
-using ticket = nanos::mpi::Ticket<MPI_Fint,MPI_Fint,kind,MPI_Fint,0>;
+namespace nanos {
+namespace mpi {
 
-template < nanos::mpi::StatusKind kind >
-using checker = nanos::mpi::TicketChecker<MPI_Fint,MPI_Fint,kind,MPI_Fint,0>;
+template< StatusKind kind >
+using ticket = Ticket<Fortran::request,Fortran::status<kind> >;
+
+template< StatusKind kind >
+using checker = TicketChecker<Fortran::request,Fortran::status<kind> >;
 
 extern "C" {
 
@@ -37,16 +40,16 @@ void mpi_waitall_( MPI_Fint *count, MPI_Fint array_of_requests[],
                    MPI_Fint *array_of_statuses, MPI_Fint *err )
 {
     if( array_of_statuses == MPI_F_STATUSES_IGNORE ) {
-        using ticket = ticket<nanos::mpi::StatusKind::ignore>;
-        using checker = checker<nanos::mpi::StatusKind::ignore>;
+        using ticket = ticket<StatusKind::ignore>;
+        using checker = checker<StatusKind::ignore>;
 
         auto waitCond = shared_pointer<ticket>( 
                     new ticket( checker( *count, array_of_requests, array_of_statuses ) ) );
 
         waitCond->wait( *count, array_of_statuses, err );
     } else {
-        using ticket = ticket<nanos::mpi::StatusKind::attend>;
-        using checker = checker<nanos::mpi::StatusKind::attend>;
+        using ticket = ticket<StatusKind::attend>;
+        using checker = checker<StatusKind::attend>;
 
         auto waitCond = shared_pointer<ticket>( 
                     new ticket( checker( *count, array_of_requests, array_of_statuses ) ) );
@@ -56,3 +59,7 @@ void mpi_waitall_( MPI_Fint *count, MPI_Fint array_of_requests[],
 }
 
 } // extern C
+
+} // namespace mpi
+} // namespace nanos
+
