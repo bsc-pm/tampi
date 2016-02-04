@@ -79,7 +79,7 @@ class request
 		using value_type = MPI_Fint;
 
 		request() :
-			_value( MPI_REQUEST_NULL )
+			_value( MPI_Request_c2f(MPI_REQUEST_NULL) )
 		{
 		}
 
