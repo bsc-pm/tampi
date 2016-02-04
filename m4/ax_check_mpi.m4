@@ -72,11 +72,11 @@ AC_DEFUN([AX_CHECK_MPI],[
     impi_flag="-link_mpi=opt_mt"
   ])
 
-  AX_CHECK_COMPILE_FLAG(["$impi_flag"],[
+  AX_CHECK_LINK_FLAG(["$impi_flag"],[
     AX_APPEND_FLAG([ $impi_flag],[CXXFLAGS])
   ],[
     # Older Intel MPI versions use -mt_mpi flag, which is now deprecated.
-    AX_CHECK_COMPILE_FLAG([-mt_mpi],[
+    AX_CHECK_LINK_FLAG([-mt_mpi],[
       AX_APPEND_FLAG([ -mt_mpi],[CXXFLAGS])
     ])
   ])dnl
@@ -85,14 +85,6 @@ AC_DEFUN([AX_CHECK_MPI],[
   AS_IF([test x$mpi == xyes],[
     AC_SEARCH_LIBS([MPI_Init_thread],
                    [mpi_mt mpich mpi],
-                   [mpi=yes;break],
-                   [mpi=no])dnl
-  ])dnl
-
-  # Look for MPI::Comm::Comm() function in libmpicxx, libmpi_cxx or libmpichcxx libraries
-  AS_IF([test x$mpi == xyes],[
-    AC_SEARCH_LIBS([_ZN3MPI4CommD0Ev],
-                   [mpichcxx mpi_cxx],
                    [mpi=yes;break],
                    [mpi=no])dnl
   ])dnl

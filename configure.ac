@@ -18,6 +18,7 @@ AX_DEBUG_MODE
 
 # Look for a valid MPI compiler
 AC_PROG_CXX([$CXX $MPICXX mpiicpc mpicxx])
+AC_PROG_CC([$CC $MPICC mpiicc mpicc])
 
 # AM_PROG_AR must be called before LT_INIT or a warning ensues
 AM_PROG_AR
