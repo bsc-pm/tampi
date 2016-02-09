@@ -58,7 +58,7 @@ public:
     * Initializes the MPI error handling C struct.
     * @param[in] errorHandler pointer to the function that handles the error.
     */
-   MPIErrorHandler( MPI_Comm_errhandler_fn *errorHandler ) :
+   MPIErrorHandler( MPI_Comm_errhandler_function *errorHandler ) :
          mpiObject()
    {
       MPI_Comm_create_errhandler( errorHandler, &mpiObject );

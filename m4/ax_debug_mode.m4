@@ -12,7 +12,7 @@ AC_DEFUN([AX_DEBUG_MODE], [
   AS_IF([test "$enable_debug_mode" = yes],[
     # Debug mode is enabled
     AC_DEFINE([DEBUG_MODE],[1],[Activates debug sections of the library.])
-    ${CXXFLAGS="-O0 -g3"}
+: ${CXXFLAGS="-O0 -g3"}
   ],[
     # Debug mode is disabled. assert() macro is turned off.
     AC_DEFINE([NDEBUG],[1],[Disables assert() macro.])

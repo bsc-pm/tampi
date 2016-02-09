@@ -49,7 +49,9 @@ class status<StatusKind::attend>
 
 		void copy( value_type *other ) const
 		{
+#ifdef DEBUG_MODE
 			if( other != MPI_STATUS_IGNORE )
+#endif // DEBUG_MODE
 				*other = _value;
 		}
 	
@@ -121,10 +123,14 @@ class status<StatusKind::attend>
 
 		void copy( value_type *other ) const
 		{
+#ifdef DEBUG_MODE
 			if( other != MPI_F_STATUS_IGNORE ) {
+#endif // DEBUG_MODE
 				auto array = reinterpret_cast<base_type&>(*other);
 				array = _value;
+#ifdef DEBUG_MODE
 			}
+#endif // DEBUG_MODE
 		}
 
 		operator value_type* ()

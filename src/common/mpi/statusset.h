@@ -50,6 +50,9 @@ class StatusSetBase< C::status<StatusKind::attend>, length>
 
 		void copy( status::value_type* status )
 		{
+ #ifdef DEBUG_MODE
+			if( status != MPI_STATUS_IGNORE )
+ #endif // DEBUG_MODE
 			*status = static_cast<status::value_type>( _statuses.back() );
 		}
 
