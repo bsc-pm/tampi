@@ -33,7 +33,13 @@ using ticket = nanos::mpi::Ticket<Fortran::request,Fortran::status<StatusKind::i
 
 shared_pointer<ticket> ibarrier( MPI_Fint *comm );
 
+} // namespace mpi
+} // namespace nanos
+
 #include "barrier.h"
+
+namespace nanos {
+namespace mpi {
 
 extern "C" {
     void mpi_barrier_( MPI_Fint *comm, MPI_Fint *err )

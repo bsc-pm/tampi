@@ -34,7 +34,13 @@ using ticket = nanos::mpi::Ticket<Fortran::request,Fortran::status<StatusKind::i
 shared_pointer<ticket> ibcast( void *buf, MPI_Fint *count, MPI_Fint *datatype,
                                MPI_Fint *root, MPI_Fint *comm );
 
+} // namespace mpi
+} // namespace nanos
+
 #include "bcast.h"
+
+namespace nanos {
+namespace mpi {
 
 extern "C" {
 

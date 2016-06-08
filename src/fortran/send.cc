@@ -33,7 +33,13 @@ using ticket = nanos::mpi::Ticket<Fortran::request,Fortran::status<StatusKind::i
 shared_pointer<ticket> isend( MPI3CONST void *buf, MPI_Fint *count, 
                               MPI_Fint *datatype, MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm );
 
+} // namespace mpi
+} // namespace nanos
+
 #include "send.h"
+
+namespace nanos {
+namespace mpi {
 
 extern "C" {
     void mpi_send_( MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
