@@ -50,7 +50,7 @@ int MPI_Waitall(int count, MPI_Request array_of_requests[],
         using ticket = ticket<StatusKind::ignore>;
         using checker = checker<StatusKind::ignore>;
 
-        auto waitCond = shared_pointer<ticket>( 
+        auto waitCond = nanos::make_shared(
                     new ticket( checker( count, array_of_requests, array_of_statuses ) ) );
 
         waitCond->wait( count, array_of_statuses, &err );
@@ -58,7 +58,7 @@ int MPI_Waitall(int count, MPI_Request array_of_requests[],
         using ticket = ticket<StatusKind::attend>;
         using checker = checker<StatusKind::attend>;
 
-        auto waitCond = shared_pointer<ticket>( 
+        auto waitCond = nanos::make_shared(
                     new ticket( checker( count, array_of_requests, array_of_statuses ) ) );
 
         waitCond->wait( count, array_of_statuses, &err );

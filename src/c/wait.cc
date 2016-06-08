@@ -51,14 +51,14 @@ int MPI_Wait( MPI_Request *request, MPI_Status *status )
         using ticket = ticket<StatusKind::ignore>;
         using checker = checker<StatusKind::ignore>;
 
-        auto waitCond = shared_pointer<ticket>(
+        auto waitCond = nanos::make_shared(
                 new ticket( checker( request )) );
         waitCond->wait( &err );
     } else {
         using ticket = ticket<StatusKind::attend>;
         using checker = checker<StatusKind::attend>;
 
-        auto waitCond = shared_pointer<ticket>(
+        auto waitCond = nanos::make_shared(
                 new ticket( checker( request )) );
         waitCond->wait( status, &err );
     }

@@ -46,12 +46,12 @@ extern "C" {
     
     shared_pointer< ticket > ibarrier( MPI_Fint *comm )
     {
-        shared_pointer<ticket> result( new ticket() );
+        ticket* result( new ticket() );
         mpi_ibarrier_( comm, 
                 result->getChecker().getRequest(),
                 result->getChecker().getError() );
         
-        return result;
+        return nanos::make_shared(result);
     }
 
 } // namespace mpi
