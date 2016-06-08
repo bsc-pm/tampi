@@ -138,5 +138,17 @@ class unique_pointer {
       }
 };
 
+template < typename T >
+shared_pointer<T> make_shared( T* pointer )
+{
+   return shared_pointer<T>(pointer);
+}
+
+template < typename T >
+unique_pointer<T> make_unique( T* pointer )
+{
+   return unique_pointer<T>(pointer);
+}
+
 } // namespace nanos
 #endif
