@@ -2,7 +2,7 @@
 #ifndef LOCK_BLOCK_HPP
 #define LOCK_BLOCK_HPP
 
-#include "mutex.hpp"
+#include "mutex.h"
 
 namespace abt {
 

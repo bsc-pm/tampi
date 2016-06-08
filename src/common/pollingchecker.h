@@ -30,9 +30,9 @@
 
 #ifdef HAVE_ABT_H
 	#include <atomic>
-	#include "argobots/conditionchecker.hpp"
-	#include "argobots/lockblock.hpp"
-	#include "argobots/mutex.hpp"
+	#include "argobots/conditionchecker.h"
+	#include "argobots/lockblock.h"
+	#include "argobots/mutex.h"
 	template < class T >
 	using Atomic = std::atomic<T>;
 	using Lock = abt::Mutex;
