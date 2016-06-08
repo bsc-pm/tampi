@@ -61,25 +61,29 @@ AC_DEFUN([AX_CHECK_MPI],[
   # Check if mpi.h and mpicxx.h header files exists and compiles
   AC_CHECK_HEADERS([mpi.h], [mpi=yes],[mpi=no])
 
-  # Check if the provided MPI implementation is Intel MPI
-  # Multithread support will be provided using -link_mpi=flag.
-  # Valid values for flag are: opt opt_mt dbg dbg_mt
-  # Values with suffix '_mt' have multithread support.
-  impi_flag=
-  AS_IF([test "$enable_debug_mode" = yes],[
-    impi_flag="-link_mpi=dbg_mt"
-  ],[
-    impi_flag="-link_mpi=opt_mt"
-  ])
-
-  AX_CHECK_LINK_FLAG(["$impi_flag"],[
-    AX_APPEND_FLAG([ $impi_flag],[CXXFLAGS])
-  ],[
-    # Older Intel MPI versions use -mt_mpi flag, which is now deprecated.
-    AX_CHECK_LINK_FLAG([-mt_mpi],[
-      AX_APPEND_FLAG([ -mt_mpi],[CXXFLAGS])
-    ])
-  ])dnl
+  dnl  NOTE: Intel MPI checks are disabled for simplicity.
+  dnl  User must provide either -mt_mpi -link_mpi=opt_mt using
+  dnl  LDFLAGS variable at configure time.
+  dnl  ----------------------------------------------------------
+  dnl  Check if the provided MPI implementation is Intel MPI
+  dnl  Multithread support will be provided using -link_mpi=flag.
+  dnl  Valid values for flag are: opt opt_mt dbg dbg_mt
+  dnl  Values with suffix '_mt' have multithread support.
+  dnl impi_flag=
+  dnl AS_IF([test "$enable_debug_mode" = yes],[
+  dnl   impi_flag="-link_mpi=dbg_mt"
+  dnl ],[
+  dnl   impi_flag="-link_mpi=opt_mt"
+  dnl ])
+  dnl
+  dnl AX_CHECK_LINK_FLAG(["$impi_flag"],[
+  dnl   AX_APPEND_FLAG([ $impi_flag],[CXXFLAGS])
+  dnl ],[
+  dnl   # Older Intel MPI versions use -mt_mpi flag, which is now deprecated.
+  dnl   AX_CHECK_LINK_FLAG([-mt_mpi],[
+  dnl     AX_APPEND_FLAG([ -mt_mpi],[CXXFLAGS])
+  dnl   ])
+  dnl ])dnl
 
   # Look for MPI_Init_thread function in libmpi_mt, libmpi or libmpich libraries
   AS_IF([test x$mpi == xyes],[
@@ -93,7 +97,7 @@ AC_DEFUN([AX_CHECK_MPI],[
   AS_IF([test x$mpi != xyes],[
       AC_MSG_ERROR([
 ------------------------------
-MPI path was not correctly specified. 
+MPI path was not correctly specified.
 Please, check that provided directories are correct.
 ------------------------------])
   ])dnl
@@ -185,24 +189,28 @@ because cross-compilation mode was detected.
       AC_MSG_FAILURE([
 ------------------------------
 MPI library specified does not support multithreading.
-Please, provide a MPI library that does so.
-Maximun multithread level supported: $ac_cv_mpi_mt
+Please, provide a MPI library that does so. If you are
+using Intel MPI, provide suitable mpicxx/mpiicpc link
+flags for multithread support (usually -mt_mpi or
+-link_mpi=opt_mt).
+Note: Maximun multithread level supported: $ac_cv_mpi_mt
 ------------------------------])
     ])dnl
   ])dnl
 
-  AS_CASE([$LIBS],
-    [*"-lmpichcxx "*"-lmpi_mt"*],[
-                         mpi_implementation=intel],
-    [*"-lmpichcxx "*"-lmpich"*], [
-                         mpi_implementation=mpich
-                         CPPFLAGS=""],
-    [*"-lmpicxx "*"-lmpi"*],     [
-                         mpi_implementation=openmpi],
-    [mpi_implementation=none]
-  )
-  AC_DEFINE_UNQUOTED([MPI_IMPLEMENTATION],[$mpi_implementation],
-    [Identifies which MPI implementation is being used. Supported values: intel, mpich, openmpi])
+dnl   # Disabled: not useful and unaccurate
+dnl   AS_CASE([$LIBS],
+dnl     [*"-lmpichcxx "*"-lmpi_mt"*],[
+dnl                          mpi_implementation=intel],
+dnl     [*"-lmpichcxx "*"-lmpich"*], [
+dnl                          mpi_implementation=mpich
+dnl                          CPPFLAGS=""],
+dnl     [*"-lmpicxx "*"-lmpi"*],     [
+dnl                          mpi_implementation=openmpi],
+dnl     [mpi_implementation=none]
+dnl   )
+dnl   AC_DEFINE_UNQUOTED([MPI_IMPLEMENTATION],[$mpi_implementation],
+dnl     [Identifies which MPI implementation is being used. Supported values: intel, mpich, openmpi])
 
   AC_SUBST([mpiflags])
 
