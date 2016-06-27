@@ -15,6 +15,7 @@ LIBS=@extraelibs@ @ompsslibs@ @argobotslibs@
 pkginclude_HEADERS= # This library does not provide any additional header
 
 c_api_sources= \
+ src/c/allreduce.cc \
  src/c/barrier.cc \
  src/c/bcast.cc \
  src/c/gatherv.cc \
@@ -34,6 +35,7 @@ c_api_sources += \
 endif
 
 fortran_api_sources= \
+ src/fortran/allreduce.cc \
  src/fortran/barrier.cc \
  src/fortran/bcast.cc \
  src/fortran/gatherv.cc \
