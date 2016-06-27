@@ -44,7 +44,7 @@ extern "C" {
                    MPI_Datatype datatype, MPI_Op op, MPI_Comm comm )
     {
         int err;
-        nanos::mpi::allreduce<nanos::mpi::ticket>( sendbuf, recvbuf, count, datatype, op, root, comm, &err );
+        nanos::mpi::allreduce<nanos::mpi::ticket>( sendbuf, recvbuf, count, datatype, op, comm, &err );
         return err;
     }
 } // extern C
