@@ -22,48 +22,29 @@
 #if MPI_VERSION >=3
 
 #include "mpi/error.h"
+#include "mpi/request.h"
 #include "mpi/status.h"
 #include "smartpointer.h"
 #include "ticket.h"
+#include "print.h"
 
-namespace nanos {
-namespace mpi {
-
+using namespace nanos::mpi;
 using ticket = Ticket<C::request,C::status<StatusKind::ignore>,1>;
-
-shared_pointer<ticket> iallreduce( const void *sendbuf, void *recvbuf, int count,
-                MPI_Datatype datatype, MPI_Op op, MPI_Comm comm );
-
-} // namespace mpi
-} // namespace nanos
-
-#include "allreduce.h"
 
 extern "C" {
     int MPI_Allreduce( const void *sendbuf, void *recvbuf, int count,
                    MPI_Datatype datatype, MPI_Op op, MPI_Comm comm )
     {
-        int err;
-        nanos::mpi::allreduce<nanos::mpi::ticket>( sendbuf, recvbuf, count, datatype, op, comm, &err );
+        print::intercepted_call( __func__ );
+
+	C::request req;
+        int err = MPI_Iallreduce( sendbuf, recvbuf, count, datatype,
+                                  op, comm, &static_cast<MPI_Request&>(req) );
+        nanos::shared_pointer<ticket> waitCond( new ticket( {req}, err ) );
+        waitCond->wait();
         return err;
     }
 } // extern C
-
-namespace nanos {
-namespace mpi {
-
-    shared_pointer<ticket> iallreduce( const void *sendbuf, void *recvbuf, int count,
-                MPI_Datatype datatype, MPI_Op op, MPI_Comm comm )
-    {
-        shared_pointer<ticket> result( new ticket() );
-        int err = MPI_Iallreduce( sendbuf, recvbuf, count, datatype, op, comm, result->getChecker().getRequest() );
-        result->getChecker().setError( err );
-
-        return result;
-    }
-
-} // namespace mpi
-} // namespace nanos
 
 #endif // MPI_VERSION
 

@@ -22,51 +22,33 @@
 #if MPI_VERSION >=3
 
 #include "mpi/error.h"
+#include "mpi/request.h"
 #include "mpi/status.h"
 #include "smartpointer.h"
 #include "ticket.h"
+#include "print.h"
 
-namespace nanos {
-namespace mpi {
-
+using namespace nanos::mpi;
 using ticket = Ticket<Fortran::request,Fortran::status<StatusKind::ignore>,1>;
 
-shared_pointer<ticket> iallreduce( const void *sendbuf, void *recvbuf, MPI_Fint *count,
-                                MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *comm );
-
-} // namespace mpi
-} // namespace nanos
-
-#include "allreduce.h"
-
-namespace nanos {
-namespace mpi {
-
 extern "C" {
-    void mpi_allreduce_( const void *sendbuf, void *recvbuf, MPI_Fint *count,
-                      MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *comm, MPI_Fint *err )
-    {
-        allreduce<ticket>( sendbuf, recvbuf, count, datatype, op, comm, err );
-    }
-
     void mpi_iallreduce_( const void *sendbuf, void *recvbuf, MPI_Fint *count,
                        MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *comm,
                        MPI_Fint *request, MPI_Fint *err );
+
+    void mpi_allreduce_( const void *sendbuf, void *recvbuf, MPI_Fint *count,
+                      MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *comm, MPI_Fint *err )
+    {
+        print::intercepted_call( __func__ );
+
+        Fortran::request req;
+        mpi_iallreduce_( sendbuf, recvbuf, count, datatype,
+                         op, comm, &static_cast<MPI_Fint&>(req), err );
+
+        nanos::shared_pointer<ticket> waitCond( new ticket( {req}, *err ) );
+        waitCond->wait();
+        *err = waitCond->getReturnError();
+    }
 }
-
-shared_pointer<ticket> iallreduce( const void *sendbuf, void *recvbuf, 
-                                  MPI_Fint *count, MPI_Fint *datatype, 
-                                  MPI_Fint *op, MPI_Fint *comm )
-{
-    shared_pointer<ticket> result( new ticket() );
-    mpi_iallreduce_( sendbuf, recvbuf, count, datatype, op, comm,
-        result->getChecker().getRequest(),
-        result->getChecker().getError() );
-
-    return result;
-}
-
-} // namespace mpi
-} // namespace nanos
 
 #endif // MPI_VERSION
