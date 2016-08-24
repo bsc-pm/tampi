@@ -69,6 +69,11 @@ namespace print {
        nanos_debug( ss.str().c_str() );
     }
 
+    inline void intercepted_call( const char* function_name )
+    {
+       dbg( "[MPI async. overload library] Intercepted ", function_name );
+    }
+
     /* TODO: try to detect at configure time which nanos version is being used 
        (nanos_get_mode api call) and enable define preprocessor flags acordingly.
      */

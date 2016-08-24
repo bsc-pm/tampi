@@ -5,7 +5,22 @@
 #include <mpi.h>
 
 #include "status.h"
-#include "test_decl.h"
+
+extern "C" {
+
+//! MPI_Test Fortran API declaration
+void mpi_test_( MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint* );
+
+//! MPI_Testall Fortran API declaration
+void mpi_testall_( MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint* );
+
+//! MPI_Testany Fortran API declaration
+void mpi_testany_( MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint* );
+
+//! MPI_Testsome Fortran API declaration
+void mpi_testsome_( MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint[], MPI_Fint* );
+
+} // extern C
 
 namespace nanos {
 namespace mpi {
@@ -40,17 +55,6 @@ class request
 			return *this;
 		}
 	
-		bool test()
-		{
-			return test_impl( *this );
-		}
-	
-		template < StatusKind kind >
-		bool test( status<kind> &st )
-		{
-			return test_impl( *this, st );
-		}
-	
 		value_type* data()
 		{
 			return &_value;
@@ -64,6 +68,57 @@ class request
 		operator value_type* ()
 		{
 			return &_value;
+		}
+	
+		template < StatusKind kind = StatusKind::ignore >
+		bool test( status<kind> &return_status = status<kind>() )
+		{
+			int flag;
+			MPI_Test( _value, &flag,
+			          &static_cast<MPI_Status&>(return_status) );
+			return flag == 1;
+		}
+
+		template < StatusKind kind = StatusKind::ignore >
+		static std::pair<bool,int> test_any( std::vector<request>& requests,
+		                      status<kind>& return_status = status<kind>() )
+		{
+			int flag, index;
+			MPI_Testany( requests.size(),
+			             reinterpret_cast<MPI_Request*>(requests.data()),
+			             &index, &flag,
+			             &static_cast<MPI_Status&>(return_status) );
+			return { flag == 1 && index != MPI_UNDEFINED,
+			         index };
+		}
+
+		static bool test_all( std::vector<request>& requests,
+		                      std::vector<status<StatusKind::attend> >& return_statuses )
+		{
+			int flag;
+			return_statuses.resize( requests.size() );
+			MPI_Testall( requests.size(),
+			             reinterpret_cast<MPI_Request*>(requests.data()), &flag,
+			             reinterpret_cast<MPI_Status*>(return_statuses.data()) );
+			return flag == 1;
+		}
+
+		static std::vector<int> test_some( std::vector<request>& requests,
+		                      std::vector<status<StatusKind::attend> >& return_statuses )
+		{
+			int ready_count = 0;
+			std::vector<int> ready_indices(requests.size());
+
+			MPI_Testsome( requests.size(),
+			              reinterpret_cast<MPI_Request*>(requests.data()),
+			              &ready_count, ready_indices.data(),
+			              reinterpret_cast<MPI_Status*>(return_statuses.data()) );
+			if( ready_count == MPI_UNDEFINED ) {
+				ready_indices.clear();
+			} else {
+				ready_indices.resize( ready_count );
+			}
+			return ready_indices;
 		}
 };
 
@@ -93,17 +148,6 @@ class request
 		{
 		}
 
-		bool test()
-		{
-			return test_impl( *this );
-		}
-
-		template< StatusKind kind >
-		bool test( status<kind> &st )
-		{
-			return test_impl( *this, st );
-		}
-
 		value_type* data()
 		{
 			return &_value;
@@ -118,60 +162,67 @@ class request
 		{
 			return &_value;
 		}
+	
+		template < StatusKind kind = StatusKind::ignore >
+		bool test( status<kind> &return_status = status<kind>() )
+		{
+			int err, flag;
+			mpi_test_( &_value, &flag, 
+			           &static_cast<MPI_Fint&>(return_status),
+			           &err );
+			return flag == 1;
+		}
+
+		template < StatusKind kind = StatusKind::ignore >
+		static std::pair<bool,int> test_any( std::vector<request>& requests,
+		                      status<kind>& return_status = status<kind>() )
+		{
+			int err, flag, index;
+			mpi_testany_( requests.size(),
+			             reinterpret_cast<MPI_Fint*>(requests.data()),
+			             &index, &flag,
+			             &static_cast<MPI_Fint&>(return_status),
+			             &err );
+			return { flag == 1 && index != MPI_UNDEFINED,
+			         index };
+		}
+
+		static bool test_all( std::vector<request>& requests,
+		                      std::vector<status<StatusKind::attend> >& return_statuses )
+		{
+			int err, flag;
+			int count = requests.size();
+
+			return_statuses.resize( count );
+			mpi_testall_( &count,
+			             reinterpret_cast<MPI_Fint*>(requests.data()),
+			             &flag,
+			             reinterpret_cast<MPI_Fint*>(return_statuses.data()),
+			             &err );
+			return flag == 1;
+		}
+
+		static std::vector<int> test_some( std::vector<request>& requests,
+		                      std::vector<status<StatusKind::attend> >& return_statuses )
+		{
+			int err, ready_count;
+			int count = requests.size();
+			std::vector<int> ready_indices(requests.size());
+
+			mpi_testsome_( &count,
+			               reinterpret_cast<MPI_Fint*>(requests.data()),
+			               &ready_count, ready_indices.data(),
+			               reinterpret_cast<MPI_Fint*>(return_statuses.data()),
+			               &err );
+			if( ready_count == MPI_UNDEFINED ) {
+				ready_indices.clear();
+			} else {
+				ready_indices.resize( ready_count );
+			}
+			return ready_indices;
+		}
 };
 
-} // namespace Fortran
-
-namespace C {
-	inline bool test_impl( request &req )
-	{
-		int flag;
-		MPI_Test(
-					req.data(),
-					&flag,
-					MPI_STATUS_IGNORE
-				);
-		return flag;
-	}
-
-	template < StatusKind kind >
-	inline bool test_impl( request &req, status<kind> &st )
-	{
-		int flag;
-		MPI_Test(
-					req.data(),
-					&flag,
-					static_cast<typename status<kind>::value_type*>(st)
-				);
-		return flag;
-	}
-} // namespace C
-
-namespace Fortran {
-	inline bool test_impl( request &req )
-	{
-		MPI_Fint flag, error;
-		mpi_test_(
-					req.data(),
-					&flag,
-					MPI_F_STATUS_IGNORE,
-					&error
-				);
-		return flag == 1;
-	}
-
-	template < StatusKind kind >
-	inline bool test_impl( request &req, status<kind> &st )
-	{
-		MPI_Fint flag, error;
-		mpi_test_(
-					req.data(),
-					&flag,
-					static_cast<typename status<kind>::value_type*>(st),
-					&error
-				);
-		return flag == 1;
-	}
 } // namespace Fortran
 
 } // namespace mpi
