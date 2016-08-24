@@ -32,13 +32,12 @@ int MPI_Sendrecv_replace( void *buf, int count, MPI_Datatype datatype,
                        int source, int recvtag,
                        MPI_Comm comm, MPI_Status *status)
 {
-    print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Sendrecv_replace" );
     /*
-     * Note: this implementation tries to mimic its implementation in OpenMPI: 
+     * Note: this implementation tries to mimic OpenMPI's: 
      * https://github.com/open-mpi/ompi/blob/master/ompi/mpi/c/sendrecv_replace.c
-     * It creates a temporary buffer where it stores the received message in
-     * raw data. Then, it unpacks it in the original -- user provided -- buffer
-     * and releases the reserved memory.
+     * First, it creates a temporary buffer where it stores the received message in
+     * countiguous storage. Then, it unpacks it in the original -- user provided --
+     * buffer and releases the temporary buffer.
      */
 
     if ( source == MPI_PROC_NULL || dest == MPI_PROC_NULL || count == 0 ) {
@@ -46,35 +45,38 @@ int MPI_Sendrecv_replace( void *buf, int count, MPI_Datatype datatype,
                              buf, count, datatype, source, recvtag,
                              comm, status );
     } else {
-        int ierror = MPI_SUCCESS;
+        print::intercepted_call( __func__ );
+
+        int err = MPI_SUCCESS;
         int alloc = MPI_SUCCESS;
         int packed_size;
-        void *helperbuf = NULL;
+        void *helperbuf = nullptr;
 
         /* setup a buffer for recv */
-        ierror = MPI_Pack_size( count, datatype, comm, &packed_size );
+        err = MPI_Pack_size( count, datatype, comm, &packed_size );
         alloc = MPI_Alloc_mem( packed_size, MPI_INFO_NULL, &helperbuf );
 
         /* recv into temporary buffer */
-        if ( ierror == MPI_SUCCESS  && alloc == MPI_SUCCESS ) {
-            ierror = MPI_Sendrecv( buf, count, datatype, dest, sendtag,
+        if ( err == MPI_SUCCESS  && alloc == MPI_SUCCESS ) {
+            err = MPI_Sendrecv( buf, count, datatype, dest, sendtag,
                            helperbuf, packed_size, MPI_BYTE, source, recvtag,
                            comm, status);
         }
 
         /* copy into users buffer */
-        if ( ierror == MPI_SUCCESS && alloc == MPI_SUCCESS ) {
+        if ( err == MPI_SUCCESS && alloc == MPI_SUCCESS ) {
             int position = 0;
-            ierror = MPI_Unpack( helperbuf, packed_size, &position,
+            err = MPI_Unpack( helperbuf, packed_size, &position,
                         buf, count, datatype, comm );
         }
 
         /* release resources */
         if ( alloc == MPI_SUCCESS ) {
-            ierror = MPI_Free_mem( helperbuf );
+            err = MPI_Free_mem( helperbuf );
         }
-        return ierror;
+        return err;
     }
 }
 
 } // extern C
+

@@ -26,48 +26,26 @@
 #include "smartpointer.h"
 #include "ticket.h"
 
-namespace nanos {
-namespace mpi {
-
+using namespace nanos::mpi;
 using ticket = nanos::mpi::Ticket<Fortran::request,Fortran::status<StatusKind::ignore>,1>;
 
-shared_pointer<ticket> ibcast( void *buf, MPI_Fint *count, MPI_Fint *datatype,
-                               MPI_Fint *root, MPI_Fint *comm );
-
-} // namespace mpi
-} // namespace nanos
-
-#include "bcast.h"
-
-namespace nanos {
-namespace mpi {
-
 extern "C" {
+    void mpi_ibcast_(void *buffer, MPI_Fint *count, MPI_Fint *datatype,
+        MPI_Fint *root, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
+    
+    void mpi_bcast_(void *buffer, MPI_Fint *count, MPI_Fint *datatype,
+        MPI_Fint *root, MPI_Fint *comm, MPI_Fint *err )
+    {
+        print::intercepted_call( __func__ );
 
-void mpi_bcast_(void *buffer, MPI_Fint *count, MPI_Fint *datatype,
-    MPI_Fint *root, MPI_Fint *comm, MPI_Fint *err )
-{
-    nanos::mpi::bcast<ticket>( buffer, count, datatype, root, comm, err );
-}
+        Fortran::request req;
+        mpi_ibcast_( buf, count, datatype, root, comm,
+            &static_cast<MPI_Fint&>(req), err );
 
-void mpi_ibcast_(void *buffer, MPI_Fint *count, MPI_Fint *datatype,
-    MPI_Fint *root, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
-
+        shared_pointer<ticket> waitCond( new ticket( request, err ) );
+        *err = waitCond->wait();
+    }
 } // extern C
 
-    shared_pointer<ticket> ibcast( void *buf, MPI_Fint *count, MPI_Fint *datatype,
-                                     MPI_Fint *root, MPI_Fint *comm )
-    {
-        shared_pointer<ticket> result( new ticket() );
-        mpi_ibcast_( buf, count, datatype, root, comm,
-            result->getChecker().getRequest(),
-            result->getChecker().getError() );
-        return result;
-    }
-
-} // namespace mpi
-} // namespace nanos
-
 #endif // MPI_VERSION
-
 

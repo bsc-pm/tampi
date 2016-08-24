@@ -23,24 +23,12 @@
 
 #include "mpi/error.h"
 #include "mpi/status.h"
+#include "print.h"
 #include "smartpointer.h"
 #include "ticket.h"
 
-namespace nanos {
-namespace mpi {
-
+using namespace nanos::mpi;
 using ticket = Ticket<C::request,C::status<StatusKind::ignore>,1>;
-
-shared_pointer<ticket> igatherv( const void *sendbuf, int sendcount,
-                                 MPI_Datatype sendtype,
-                                 void* recvbuf, const int recvcounts[], 
-                                 const int displs[], MPI_Datatype recvtype, 
-                                 int root, MPI_Comm comm );
-
-} // namespace mpi
-} // namespace nanos
-
-#include "gatherv.h"
 
 extern "C" {
     int MPI_Gatherv( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
@@ -48,32 +36,17 @@ extern "C" {
     recvtype,
         int root, MPI_Comm comm )
     {
-        int err;
-        nanos::mpi::gatherv<nanos::mpi::ticket>( sendbuf, sendcount, sendtype,
-                        recvbuf, recvcounts, displs, recvtype,
-                        root, comm, &err );
+        print::intercepted_call( __func__ );
+
+	C::request req;
+        int err = MPI_Igatherv( sendbuf, sendcount, sendtype,
+                                recvbuf, recvcounts, displs, recvtype,
+                                root, comm, &static_cast<MPI_Request&>(req) );
+        shared_pointer<ticket> waitCond( new ticket( req, err ) );
+        err = waitCond->wait();
         return err;
     }
 } // extern C
-
-namespace nanos {
-namespace mpi {
-
-    shared_pointer<ticket> igatherv( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
-        void *recvbuf, const int recvcounts[], const int displs[], 
-	     MPI_Datatype recvtype, int root, MPI_Comm comm )
-    {
-        shared_pointer<ticket> result( new ticket() );
-        int err = MPI_Igatherv( sendbuf, sendcount, sendtype, 
-                    recvbuf, recvcounts, displs, recvtype, 
-                    root, comm, result->getChecker().getRequest() );
-        result->getChecker().setError( err );
-
-        return result;
-    }
-
-} // namespace mpi
-} // namespace nanos
 
 #endif // MPI_VERSION
 

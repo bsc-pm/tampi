@@ -21,45 +21,38 @@
 
 #include "mpi/common.h"
 #include "mpi/status.h"
+#include "array_utils.h"
 #include "smartpointer.h"
 #include "ticket.h"
 #include "print.h"
 
-namespace nanos {
-namespace mpi {
+using namespace nanos::mpi;
 
 template< StatusKind kind >
 using ticket = Ticket<Fortran::request,Fortran::status<kind> >;
 
-template< StatusKind kind >
-using checker = TicketChecker<Fortran::request,Fortran::status<kind> >;
-
 extern "C" {
+    void mpi_waitall_( MPI_Fint *count, MPI_Fint array_of_requests[],
+                       MPI_Fint *array_of_statuses, MPI_Fint *err )
+    {
+        print::intercepted_call( __func__ );
 
-void mpi_waitall_( MPI_Fint *count, MPI_Fint array_of_requests[],
-                   MPI_Fint *array_of_statuses, MPI_Fint *err )
-{
-    if( array_of_statuses == MPI_F_STATUSES_IGNORE ) {
-        using ticket = ticket<StatusKind::ignore>;
-        using checker = checker<StatusKind::ignore>;
+	using requests_array = std::vector<Fortran::request>;
+	using statuses_array = std::vector<Fortran::status<StatusKind::attend> >;
 
-        auto waitCond = shared_pointer<ticket>( 
-                    new ticket( checker( *count, array_of_requests, array_of_statuses ) ) );
-
-        waitCond->wait( *count, array_of_statuses, err );
-    } else {
-        using ticket = ticket<StatusKind::attend>;
-        using checker = checker<StatusKind::attend>;
-
-        auto waitCond = shared_pointer<ticket>( 
-                    new ticket( checker( *count, array_of_requests, array_of_statuses ) ) );
-
-        waitCond->wait( *count, array_of_statuses, err );
+        if( array_of_statuses == MPI_F_STATUSES_IGNORE ) {
+            using ticket = ticket<StatusKind::ignore>;
+            shared_pointer<ticket> waitCond( new ticket( 
+                       std::move( utils::transform_to<requests_array>(*count, array_of_requests) ));
+            *err = waitCond->wait();
+        } else {
+            using ticket = ticket<StatusKind::attend>;
+            shared_pointer<ticket> waitCond( new ticket(
+                       std::move( utils::transform_to<requests_array>(*count, array_of_requests) ),
+                       std::move( utils::transform_to<statuses_array>(*count, array_of_statuses) )
+                       );
+            *err = waitCond->wait();
+        }
     }
-}
-
 } // extern C
-
-} // namespace mpi
-} // namespace nanos
 

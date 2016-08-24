@@ -25,44 +25,25 @@
 #include "smartpointer.h"
 #include "ticket.h"
 
-namespace nanos {
-namespace mpi {
-
+using namespace nanos::mpi;
 using ticket = nanos::mpi::Ticket<Fortran::request,Fortran::status<StatusKind::ignore>,1>;
 
-shared_pointer<ticket> isend( MPI3CONST void *buf, MPI_Fint *count, 
-                              MPI_Fint *datatype, MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm );
-
-} // namespace mpi
-} // namespace nanos
-
-#include "send.h"
-
-namespace nanos {
-namespace mpi {
-
 extern "C" {
-    void mpi_send_( MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
-                    MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *err )
-    {
-        nanos::mpi::send<ticket>( buf, count, datatype, dest, tag, comm, err );
-    }
-
     void mpi_isend_( MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
                      MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm, 
                      MPI_Fint *request, MPI_Fint *err );
-}
-    
-    shared_pointer< ticket > isend( MPI3CONST void *buf, MPI_Fint *count,
-                                    MPI_Fint *datatype, MPI_Fint *dest, 
-                                    MPI_Fint *tag, MPI_Fint *comm )
-    {
-        shared_pointer<ticket> result( new ticket() );
-        mpi_isend_( buf, count, datatype, dest, tag, comm, 
-            result->getChecker().getRequest(),
-            result->getChecker().getError() );
-        return result;
-    }
 
-} // namespace mpi
-} // namespace nanos
+    void mpi_send_( MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
+                    MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *err )
+    {
+        print::intercepted_call( __func__ );
+
+        Fortran::request req;
+        mpi_isend_( buf, count, datatype, dest, tag, comm,
+                    &static_cast<MPI_Fint&>(req), err );
+
+        shared_pointer<ticket> waitCond( new ticket( req, *err ) );
+        *err = waitCond->wait();
+    }
+} // extern C
+

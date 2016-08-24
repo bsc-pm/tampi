@@ -23,59 +23,44 @@
 #include "mpi/error.h"
 #include "mpi/status.h"
 #include "smartpointer.h"
+#include "print.h"
 #include "ticket.h"
 
-namespace nanos {
-namespace mpi {
+using namespace nanos::mpi;
 
 template< StatusKind kind >
-using ticket = Ticket<Fortran::request,Fortran::status<kind>,1>;
-
-template < typename TicketType >
-shared_pointer<TicketType> isendrecv( MPI3CONST void *sendbuf, MPI_Fint *sendcount, 
-                                      MPI_Fint *sendtype, MPI_Fint *dest, 
-                                      MPI_Fint *sendtag,
-                                      void *recvbuf, MPI_Fint *recvcount, 
-                                      MPI_Fint *recvtype, MPI_Fint *source, 
-                                      MPI_Fint *recvtag, MPI_Fint *comm );
-
-} // namespace mpi
-} // namespace nanos
-
-#include "sendrecv.h"
-
-namespace nanos {
-namespace mpi {
+using ticket = Ticket<Fortran::request,Fortran::status<kind>,2>;
 
 extern "C" {
-
-void mpi_sendrecv_( MPI3CONST void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
-                       MPI_Fint *dest, MPI_Fint *sendtag,
-                       void *recvbuf, MPI_Fint *recvcount, MPI_Fint *recvtype,
-                       MPI_Fint *source, MPI_Fint *recvtag,
-                       MPI_Fint *comm, MPI_Fint *status, MPI_Fint *err )
-{
-    if( status == MPI_F_STATUS_IGNORE ) {
-        using ticket = ticket<StatusKind::ignore>;
-        sendrecv<ticket>( sendbuf, sendcount, sendtype,
-                                      dest, sendtag, recvbuf, recvcount,
-                                      recvtype, source, recvtag,
-                                      comm, status, err );
-    } else {
-        using ticket = ticket<StatusKind::attend>;
-        sendrecv<ticket>( sendbuf, sendcount, sendtype,
-                                      dest, sendtag, recvbuf, recvcount,
-                                      recvtype, source, recvtag,
-                                      comm, status, err );
+    void mpi_irecv_( void *recvbuf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *src,
+                MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
+    
+    void mpi_isend_( MPI3CONST void *sendbuf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *dest,
+                MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
+    
+    void mpi_sendrecv_( MPI3CONST void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
+                           MPI_Fint *dest, MPI_Fint *sendtag,
+                           void *recvbuf, MPI_Fint *recvcount, MPI_Fint *recvtype,
+                           MPI_Fint *source, MPI_Fint *recvtag,
+                           MPI_Fint *comm, MPI_Fint *status, MPI_Fint *err )
+    {
+        std::array<Fortran::request, 2> reqs;
+        mpi_irecv_( recvbuf, recvcount, recvtype, source, recvtag, comm,
+                    &static_cast<MPI_Fint&>(reqs[0]), err );
+    
+        mpi_isend_( sendbuf, sendcount, sendtype, dest, sendtag, comm,
+                    &static_cast<MPI_Fint&>(reqs[1]), err );
+    
+        if( status == MPI_F_STATUS_IGNORE ) {
+           using ticket = ticket<StatusKind::ignore>;
+           shared_pointer<ticket> waitCond( new ticket( reqs, *err ) );
+           *err = waitCond->wait();
+        } else {
+           using ticket = ticket<StatusKind::attend>;
+           shared_pointer<ticket> waitCond( new ticket( reqs, *err ) );
+           *err = waitCond->wait();
+        }
     }
-}
-
-void mpi_isend_( MPI3CONST void *sendbuf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *dest,
-            MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
-
-void mpi_irecv_( void *recvbuf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *src,
-            MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
-
 } // extern C
     
 template < typename TicketType >
@@ -89,7 +74,8 @@ shared_pointer<TicketType> isendrecv( MPI3CONST void *sendbuf, MPI_Fint *sendcou
 
     using ticket = TicketType;
 
-    shared_pointer<ticket> result( new ticket() );mpi_isend_( sendbuf, sendcount, sendtype, dest, sendtag, comm,
+    shared_pointer<ticket> result( new ticket() );
+    mpi_isend_( sendbuf, sendcount, sendtype, dest, sendtag, comm,
             result->getChecker().getRequest(),
             result->getChecker().getError() );
 

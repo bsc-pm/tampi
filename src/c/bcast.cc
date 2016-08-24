@@ -23,46 +23,26 @@
 
 #include "mpi/error.h"
 #include "mpi/status.h"
+#include "print.h"
 #include "smartpointer.h"
 #include "ticket.h"
 
-namespace nanos {
-namespace mpi {
-
+using namespace nanos::mpi;
 using ticket = Ticket<C::request,C::status<StatusKind::ignore>,1>;
-
-shared_pointer<ticket> ibcast( void *buf, int count, MPI_Datatype datatype, int root, MPI_Comm comm );
-
-} // namespace mpi
-} // namespace nanos
-
-#include "bcast.h"
 
 extern "C" {
     int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
         int root, MPI_Comm comm)
     {
-        int err;
-        nanos::mpi::bcast<nanos::mpi::ticket>( buffer, count, datatype, root, comm, &err );
+        print::intercepted_call( __func__ );
+
+	C::request req;
+        int err = MPI_Ibcast( buffer, count, datatype, root, comm, &static_cast<MPI_Request&>(req) );
+        shared_pointer<ticket> waitCond( new ticket( req, err ) );
+        err = waitCond->wait();
         return err;
     }
 } // extern C
-
-namespace nanos {
-namespace mpi {
-
-    shared_pointer<ticket> ibcast( void *buf, int count, MPI_Datatype datatype,
-                                   int root, MPI_Comm comm )
-    {
-        shared_pointer<ticket> result( new ticket() );
-        int err = MPI_Ibcast( buf, count, datatype, root, comm, result->getChecker().getRequest() );
-        result->getChecker().setError( err );
-
-        return result;
-    }
-
-} // namespace mpi
-} // namespace nanos
 
 #endif // MPI_VERSION
 

@@ -22,20 +22,25 @@
 
 /*!
  * \file init-finalize.cc This file is intended for debug purposes only.
- * Do not use with profiling tools as it is not compatible with them.
+ * Use is not recommended along profiling tools as it may not be compatible
+ * with them.
  */
 
 extern "C" {
 
 int MPI_Init( int *argc, char*** argv )
 {
-	int error = PMPI_Init(argc, argv);
-	nanos::error::MPIErrorTranslator<MPI_Comm>(MPI_COMM_WORLD);
-}
+    // Look for next defined MPI_Init
+    // Used to support other profiling tools
+    int (*mpi_init_fn)(int*, char ***);
+    mpi_init_fn = dlsym(RTLD_NEXT, "MPI_Init");
+    assert(mpi_init_fn != 0);
 
-int MPI_Finalize()
-{
-	return PMPI_Finalize();
+    // Call MPI_Init
+    int error = mpi_init_fn(argc, argv);
+
+    // Set MPI error handler to throw exceptions in MPI_COMM_WORLD
+    nanos::error::MPIErrorTranslator<MPI_Comm>(MPI_COMM_WORLD);
 }
 
 } // extern C

@@ -24,47 +24,35 @@
 #include "ticket.h"
 #include "print.h"
 
-namespace nanos {
-namespace mpi {
+using namespace nanos::mpi;
 
 template < StatusKind kind >
 using ticket =  Ticket<C::request,C::status<kind>,0>;
 
-template < StatusKind kind >
-using checker = TicketChecker<C::request,C::status<kind>,0>;
-
-} // namespace mpi
-} // namespace nanos
-
 extern "C" {
+    int MPI_Waitall(int count, MPI_Request array_of_requests[],
+                          MPI_Status array_of_statuses[])
+    {
+        print::intercepted_call( __func__ );
 
-int MPI_Waitall(int count, MPI_Request array_of_requests[],
-                      MPI_Status array_of_statuses[])
-{
-    print::dbg( "[MPI Async. Overload Library] Intercepted MPI_Waitall" );
-
-    using namespace nanos::mpi;
-
-    int err;
-    if( array_of_statuses == MPI_STATUSES_IGNORE ) {
-        using ticket = ticket<StatusKind::ignore>;
-        using checker = checker<StatusKind::ignore>;
-
-        auto waitCond = nanos::make_shared(
-                    new ticket( checker( count, array_of_requests, array_of_statuses ) ) );
-
-        waitCond->wait( count, array_of_statuses, &err );
-    } else {
-        using ticket = ticket<StatusKind::attend>;
-        using checker = checker<StatusKind::attend>;
-
-        auto waitCond = nanos::make_shared(
-                    new ticket( checker( count, array_of_requests, array_of_statuses ) ) );
-
-        waitCond->wait( count, array_of_statuses, &err );
+	using requests_array = std::vector<C::request>;
+	using statuses_array = std::vector<C::status<StatusKind::attend> >;
+    
+        int err = MPI_SUCCESS;
+        if( status == MPI_STATUS_IGNORE ) {
+            using ticket = ticket<StatusKind::ignore>;
+            shared_pointer<ticket> waitCond( new ticket( 
+                       std::move( utils::transform_to<requests_array>(*count, array_of_requests) ));
+            err = waitCond->wait();
+        } else {
+            using ticket = ticket<StatusKind::attend>;
+            shared_pointer<ticket> waitCond( new ticket(
+                       std::move( utils::transform_to<requests_array>(*count, array_of_requests) ),
+                       std::move( utils::transform_to<statuses_array>(*count, array_of_statuses) )
+                       );
+            *err = waitCond->wait();
+        }
+        return err;
     }
-    return err;
-}
-
 } // extern C
 

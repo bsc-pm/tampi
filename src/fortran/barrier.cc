@@ -24,44 +24,26 @@
 #include "mpi/error.h"
 #include "mpi/status.h"
 #include "smartpointer.h"
+#include "print.h"
 #include "ticket.h"
 
-namespace nanos {
-namespace mpi {
-
+using namespace nanos::mpi;
 using ticket = nanos::mpi::Ticket<Fortran::request,Fortran::status<StatusKind::ignore>,1>;
 
-shared_pointer<ticket> ibarrier( MPI_Fint *comm );
-
-} // namespace mpi
-} // namespace nanos
-
-#include "barrier.h"
-
-namespace nanos {
-namespace mpi {
-
 extern "C" {
+    void mpi_ibarrier_( MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
+
     void mpi_barrier_( MPI_Fint *comm, MPI_Fint *err )
     {
-        nanos::mpi::barrier<ticket>( comm, err );
-    }
+        print::intercepted_call( __func__ );
 
-    void mpi_ibarrier_( MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
-}
-    
-    shared_pointer< ticket > ibarrier( MPI_Fint *comm )
-    {
-        ticket* result( new ticket() );
-        mpi_ibarrier_( comm, 
-                result->getChecker().getRequest(),
-                result->getChecker().getError() );
-        
-        return nanos::make_shared(result);
-    }
+        Fortran::request req;
+        mpi_ibarrier_( comm, &static_cast<MPI_Fint&>(req), err );
 
-} // namespace mpi
-} // namespace nanos
+        shared_pointer<ticket> waitCond( new ticket( request, *err ) );
+        *err = waitCond->wait();
+    }
+} // extern C
 
 #endif // MPI_VERSION
 

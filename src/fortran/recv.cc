@@ -22,55 +22,39 @@
 #include "mpi/error.h"
 #include "mpi/status.h"
 #include "smartpointer.h"
+#include "print.h"
 #include "ticket.h"
 
 namespace nanos {
 namespace mpi {
 
+using namespace nanos::mpi;
+
 template< StatusKind kind >
 using ticket = Ticket<Fortran::request,Fortran::status<kind>,1>;
 
-template< typename ticket >
-shared_pointer<ticket> irecv( void *buf, MPI_Fint *count, MPI_Fint *datatype, 
-                                  MPI_Fint *source, MPI_Fint *tag, MPI_Fint *comm );
-
-} // namespace nanos
-} // namespace mpi
-
-#include "recv.h"
-
-namespace nanos {
-namespace mpi {
-
 extern "C" {
+    void mpi_irecv_( void *buf, MPI_Fint *count, MPI_Fint *datatype,
+        MPI_Fint *source, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
+
     void mpi_recv_( void *buf, MPI_Fint *count, MPI_Fint *datatype,
         MPI_Fint *source, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *status, MPI_Fint *err )
     {
+        print::intercepted_call( __func__ );
+
+        Fortran::request req;
+        mpi_irecv_( buf, count, datatype, source, tag, comm,
+                    &static_cast<MPI_Fint&>(req), err );
 
         if( status == MPI_F_STATUS_IGNORE ) {
            using ticket = ticket<StatusKind::ignore>;
-	        recv<ticket>( buf, count, datatype, source, tag, comm, status, err );
+           shared_pointer<ticket> waitCond( new ticket( req, *err ) );
+           *err = waitCond->wait();
         } else {
            using ticket = ticket<StatusKind::attend>;
-	        recv<ticket>( buf, count, datatype, source, tag, comm, status, err );
+           shared_pointer<ticket> waitCond( new ticket( req, *err ) );
+           *err = waitCond->wait();
         }
     }
-
-    void mpi_irecv_( void *buf, MPI_Fint *count, MPI_Fint *datatype,
-        MPI_Fint *source, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
-}
-
-    template< typename ticket >
-    shared_pointer<ticket> irecv( void *buf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *source, MPI_Fint *tag,
-            MPI_Fint *comm )
-    {
-        shared_pointer<ticket> result( new ticket() );
-        mpi_irecv_( buf, count, datatype, source, tag, comm,
-            result->getChecker().getRequest(),
-            result->getChecker().getError() );
-        return shared_pointer<ticket>(result);
-    }
-    
-} // namespace mpi
-} // namespace nanos
+} // extern C
 

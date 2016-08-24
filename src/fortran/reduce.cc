@@ -24,51 +24,31 @@
 #include "mpi/error.h"
 #include "mpi/status.h"
 #include "smartpointer.h"
+#include "print.h"
 #include "ticket.h"
 
-namespace nanos {
-namespace mpi {
-
+using namespace nanos::mpi;
 using ticket = Ticket<Fortran::request,Fortran::status<StatusKind::ignore>,1>;
 
-shared_pointer<ticket> ireduce( const void *sendbuf, void *recvbuf, MPI_Fint *count,
-                                MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
-                                MPI_Fint *comm );
-
-} // namespace mpi
-} // namespace nanos
-
-#include "reduce.h"
-
-namespace nanos {
-namespace mpi {
-
 extern "C" {
+    void mpi_ireduce_( const void *sendbuf, void *recvbuf, MPI_Fint *count,
+                       MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
+                       MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
+
     void mpi_reduce_( const void *sendbuf, void *recvbuf, MPI_Fint *count,
                       MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
                       MPI_Fint *comm, MPI_Fint *err )
     {
-        reduce<ticket>( sendbuf, recvbuf, count, datatype, op, root, comm, err );
+        print::intercepted_call( __func__ );
+
+        Fortran::request req;
+        mpi_ireduce_( sendbuf, recvbuf, count, datatype, op, root,
+                      comm, &static_cast<MPI_Fint&>(req), err );
+
+        shared_pointer<ticket> waitCond( new ticket( req, *err ) );
+        *err = waitCond->wait();
     }
-
-    void mpi_ireduce_( const void *sendbuf, void *recvbuf, MPI_Fint *count,
-                       MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
-                       MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
-}
-
-shared_pointer<ticket> ireduce( const void *sendbuf, void *recvbuf, 
-                                  MPI_Fint *count, MPI_Fint *datatype, 
-                                  MPI_Fint *op, MPI_Fint *root, MPI_Fint *comm )
-{
-    shared_pointer<ticket> result( new ticket() );
-    mpi_ireduce_( sendbuf, recvbuf, count, datatype, op, root, comm,
-        result->getChecker().getRequest(),
-        result->getChecker().getError() );
-
-    return result;
-}
-
-} // namespace mpi
-} // namespace nanos
+} // extern C
 
 #endif // MPI_VERSION
+
