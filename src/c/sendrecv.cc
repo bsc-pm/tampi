@@ -21,6 +21,7 @@
 
 #include "mpi/common.h"
 #include "mpi/error.h"
+#include "mpi/request.h"
 #include "mpi/status.h"
 #include "print.h"
 #include "smartpointer.h"
@@ -40,22 +41,24 @@ extern "C" {
     {
         print::intercepted_call( __func__ );
 
-        std::vector<C::Request> reqs(2);
+        std::array<C::request,2> reqs;
         int err = MPI_Irecv( recvbuf, recvcount, recvtype, source, recvtag, comm,
-                             &static_cast<MPI_Request&>(req[0]) );
+                             &static_cast<MPI_Request&>(reqs[0]) );
         
         err = MPI_Isend( sendbuf, sendcount, sendtype, dest, sendtag, comm,
-                             &static_cast<MPI_Request&>(req[1]) );
+                             &static_cast<MPI_Request&>(reqs[1]) );
 
         if( status == MPI_STATUS_IGNORE ) {
             using ticket = ticket<StatusKind::ignore>;
-            shared_pointer<ticket> waitCond( new ticket( reqs, err ) );
-            err = waitCond->wait();
+            nanos::shared_pointer<ticket> waitCond( new ticket( reqs, err ) );
+            waitCond->wait();
+            err = waitCond->getReturnError();
         } else {
             using ticket = ticket<StatusKind::attend>;
-            shared_pointer<ticket> waitCond( new ticket( reqs, err ) );
-            err = waitCond->wait();
-            // TODO: copy intermediate status to out parameter 'status'
+            nanos::shared_pointer<ticket> waitCond( new ticket( reqs, err ) );
+            waitCond->wait();
+            err = waitCond->getReturnError();
+            *status = waitCond->getStatuses()[0];
         }
         return err;
     }

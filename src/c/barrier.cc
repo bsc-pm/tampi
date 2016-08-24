@@ -38,7 +38,7 @@ extern "C" {
 
 	C::request req;
         int err = MPI_Ibarrier( comm, &static_cast<MPI_Request&>(req) );
-        shared_pointer<ticket> waitCond( new ticket( req, err ) );
+        nanos::shared_pointer<ticket> waitCond( new ticket( {req}, err ) );
         waitCond->wait();
         return err;
     }

@@ -5,7 +5,10 @@
 #include "common/pollingchecker.h"
 
 #include <nanos.h>
+#include <basethread.hpp>
 #include <synchronizedcondition.hpp>
+
+#include <mutex>
 
 namespace nanos {
 
@@ -14,24 +17,60 @@ namespace nanos {
   Checks the condition and registers itself in a scheduler list to
   be checked when workers are idle or searching for work.
  */
-template < class PollingChecker >
-class SinglePollingCond : public SingleSyncCond< PollingChecker > {
+class SinglePollingCond : public GenericSyncCond {
+private:
+    WorkDescriptor* _waiter;
+    Lock            _lock;
+
 public:
     //! Default constructor.
-    SinglePollingCond() : SingleSyncCond<PollingChecker>() {}
-
-    //! Constructs the condition variable with a reference of PollingChecker.
-    SinglePollingCond( PollingChecker const& c ) : SingleSyncCond<PollingChecker>(c) {}
-
-    //! Constructs the condition variable with a rvalue reference of PollingChecker.
-    SinglePollingCond( PollingChecker && c ) : SingleSyncCond<PollingChecker>(c) {}
+    SinglePollingCond() :
+        _waiter(nullptr)
+    {
+    }
 
     //! Default destructor.
-    virtual ~SinglePollingCond() {}
+    virtual ~SinglePollingCond()
+    {
+    }
+
+    virtual bool check() = 0;
+
+    virtual void signal()
+    {
+        signal_one();
+    }
+
+    virtual void signal_one()
+    {
+        std::unique_lock<Lock> lblock(_lock);
+        if( _waiter ) {
+           Scheduler::wakeUp( _waiter );
+            _waiter = nullptr;
+        }
+    }
+
+    virtual void addWaiter( WorkDescriptor* wd )
+    {
+        _waiter = wd;
+    }
+
+    virtual bool hasWaiters()
+    {
+        return _waiter;
+    }
+
+    virtual WorkDescriptor* getAndRemoveWaiter()
+    {
+        WorkDescriptor* curr_waiter = _waiter;
+        _waiter = nullptr;
+        return curr_waiter;
+    }
 
     //! Registers itself into scheduler's condition check list.
-    void waitForPollCompletion() {
-        nanos_polling_cond_wait( this );
+    void wait() {
+        myThread->getTeam()->getSchedulePolicy().queue( myThread, this );
+        Scheduler::waitOnCondition(this);
     }
 };
 

@@ -43,12 +43,14 @@ extern "C" {
 
         if( status == MPI_STATUS_IGNORE ) {
             using ticket = ticket<StatusKind::ignore>;
-            shared_pointer<ticket> waitCond( new ticket( req, err ) );
-            err = waitCond->wait();
+            nanos::shared_pointer<ticket> waitCond( new ticket( {req}, err ) );
+            waitCond->wait();
+            err = waitCond->getReturnError();
         } else {
             using ticket = ticket<StatusKind::attend>;
-            shared_pointer<ticket> waitCond( new ticket( req, err ) );
-            err = waitCond->wait();
+            nanos::shared_pointer<ticket> waitCond( new ticket( {req}, err ) );
+            waitCond->wait();
+            err = waitCond->getReturnError();
         }
         return err;
     }

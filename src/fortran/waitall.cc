@@ -19,14 +19,16 @@
  */
 #include <mpi.h>
 
-#include "mpi/common.h"
-#include "mpi/status.h"
 #include "array_utils.h"
+#include "mpi/common.h"
+#include "mpi/request.h"
+#include "mpi/status.h"
 #include "smartpointer.h"
 #include "ticket.h"
 #include "print.h"
 
 using namespace nanos::mpi;
+using namespace nanos::utils;
 
 template< StatusKind kind >
 using ticket = Ticket<Fortran::request,Fortran::status<kind> >;
@@ -37,21 +39,25 @@ extern "C" {
     {
         print::intercepted_call( __func__ );
 
-	using requests_array = std::vector<Fortran::request>;
-	using statuses_array = std::vector<Fortran::status<StatusKind::attend> >;
+        using requests_array = std::vector<Fortran::request>;
+        using statuses_array = std::vector<Fortran::status<StatusKind::attend> >;
 
         if( array_of_statuses == MPI_F_STATUSES_IGNORE ) {
             using ticket = ticket<StatusKind::ignore>;
-            shared_pointer<ticket> waitCond( new ticket( 
-                       std::move( utils::transform_to<requests_array>(*count, array_of_requests) ));
-            *err = waitCond->wait();
+            nanos::shared_pointer<ticket> waitCond( new ticket( 
+                       std::move( transform_to<requests_array>()(*count, reinterpret_cast<Fortran::request*>(array_of_requests)) ),
+                       *err ) );
+            waitCond->wait();
+            *err = waitCond->getReturnError();
         } else {
             using ticket = ticket<StatusKind::attend>;
-            shared_pointer<ticket> waitCond( new ticket(
-                       std::move( utils::transform_to<requests_array>(*count, array_of_requests) ),
-                       std::move( utils::transform_to<statuses_array>(*count, array_of_statuses) )
-                       );
-            *err = waitCond->wait();
+            nanos::shared_pointer<ticket> waitCond( new ticket(
+                       std::move( transform_to<requests_array>()(*count, reinterpret_cast<Fortran::request*>(array_of_requests)) ),
+                       *err ) );
+            waitCond->wait();
+            *err = waitCond->getReturnError();
+            std::copy( waitCond->getStatuses().begin(), waitCond->getStatuses().end(),
+                       reinterpret_cast<Fortran::status<StatusKind::attend>*>(array_of_statuses) );
         }
     }
 } // extern C

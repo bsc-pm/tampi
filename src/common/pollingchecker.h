@@ -23,20 +23,20 @@
 
 
 #ifdef HAVE_NANOX_NANOS_H
-	#include <atomic.hpp>
-	#include <lock.hpp>
-        #include <synchronizedcondition_decl.hpp>
+    #include <atomic.hpp>
+    #include <lock.hpp>
+    #include <synchronizedcondition_decl.hpp>
 #endif
 
 #ifdef HAVE_ABT_H
-	#include <atomic>
-	#include "argobots/conditionchecker.h"
-	#include "argobots/lockblock.h"
-	#include "argobots/mutex.h"
-	template < class T >
-	using Atomic = std::atomic<T>;
-	using Lock = abt::Mutex;
-	using LockBlock = abt::LockBlock;
+    #include <atomic>
+    #include "argobots/conditionchecker.h"
+    #include "argobots/lockblock.h"
+    #include "argobots/mutex.h"
+    template < class T >
+    using Atomic = std::atomic<T>;
+    using Lock = abt::Mutex;
+    using LockBlock = abt::LockBlock;
 #endif
 
 

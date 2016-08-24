@@ -20,13 +20,11 @@
 #include <mpi.h>
 
 #include "mpi/error.h"
+#include "mpi/request.h"
 #include "mpi/status.h"
 #include "smartpointer.h"
 #include "print.h"
 #include "ticket.h"
-
-namespace nanos {
-namespace mpi {
 
 using namespace nanos::mpi;
 
@@ -48,12 +46,14 @@ extern "C" {
 
         if( status == MPI_F_STATUS_IGNORE ) {
            using ticket = ticket<StatusKind::ignore>;
-           shared_pointer<ticket> waitCond( new ticket( req, *err ) );
-           *err = waitCond->wait();
+           nanos::shared_pointer<ticket> waitCond( new ticket( {req}, *err ) );
+           waitCond->wait();
+           *err = waitCond->getReturnError();
         } else {
            using ticket = ticket<StatusKind::attend>;
-           shared_pointer<ticket> waitCond( new ticket( req, *err ) );
-           *err = waitCond->wait();
+           nanos::shared_pointer<ticket> waitCond( new ticket( {req}, *err ) );
+           waitCond->wait();
+           *err = waitCond->getReturnError();
         }
     }
 } // extern C

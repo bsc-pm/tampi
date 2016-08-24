@@ -21,7 +21,9 @@
 
 #include "mpi/common.h"
 #include "mpi/error.h"
+#include "mpi/request.h"
 #include "mpi/status.h"
+#include "print.h"
 #include "smartpointer.h"
 #include "ticket.h"
 
@@ -42,8 +44,9 @@ extern "C" {
         mpi_isend_( buf, count, datatype, dest, tag, comm,
                     &static_cast<MPI_Fint&>(req), err );
 
-        shared_pointer<ticket> waitCond( new ticket( req, *err ) );
-        *err = waitCond->wait();
+        nanos::shared_pointer<ticket> waitCond( new ticket( {req}, *err ) );
+        waitCond->wait();
+        *err = waitCond->getReturnError();
     }
 } // extern C
 

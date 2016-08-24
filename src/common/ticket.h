@@ -28,10 +28,7 @@
 #endif
 
 #include "mpi/error.h"
-#include "mpi/requestset.h"
-#include "mpi/statusset.h"
 #include "pollingchecker.h"
-#include "ticketchecker.h"
 
 #include <type_traits>
 
@@ -49,137 +46,80 @@ template<
     typename Status, 
     size_t count = 0 // Fixed number of items. 0 : use dynamic container
 >
-class TicketBase : public SinglePollingCond<TicketChecker<Request,Status,count> > {
+class Ticket : public nanos::SinglePollingCond {
 public:
-    using checker_type = TicketChecker<Request,Status,count>;
-    using super = SinglePollingCond<checker_type>;
 
-    //! Default constructor.
-    TicketBase()
+    std::array<Request,count> _requests;
+    std::array<Status,count> _statuses;
+    int _error;
+
+    Ticket( const std::array<Request,count>& reqs, int error ) :
+        _requests( reqs ),
+        _statuses(),
+        _error( error )
     {
     }
 
     //! Copy constructor.
-    TicketBase( TicketBase const& t ) :
-        super(t)
-    {
-    }
-
-    //! ConditionChecker constructor.
-    /*!
-      Passes a ConditionChecker's reference to its superclass.
-     */
-    TicketBase( checker_type const& tc ) :
-        super(tc)
-    {
-    }
-
-    //! Destructor.
-    virtual ~TicketBase()
-    {
-    }
-
-    //! Returns a reference to MPI request values.
-    auto getChecker() -> typename std::add_lvalue_reference<decltype(super::_conditionChecker)>::type
-    {
-        return this->_conditionChecker;
-    }
-
-    //! Stops the task until the requests are completed.
-    /*!
-      \param err output error code.
-     */
-    void wait( int *err )
-    {
-        if( getChecker().getError().success() )
-            super::waitForPollCompletion();
-        if( err )
-            *err = getChecker().getError().value();
-    }
-};
-
-template < class Request, class Status, size_t length = 0 >
-class Ticket : public TicketBase<Request,Status,length> {
-public:
-    using checker_type = TicketChecker<Request,Status,length>;
-    using super = TicketBase<Request,Status,length>;
-
-    //! Default constructor.
-    Ticket() = default;
-
-    //! Copy constructor.
-    Ticket( Ticket const& t ) :
-        super(t)
-    {
-    }
-
-    //! ConditionChecker constructor.
-    /*!
-      Passes a ConditionChecker's reference to its superclass.
-     */
-    Ticket( checker_type const& tc ) :
-        super(tc)
-    {
-    }
+    Ticket( Ticket const& t ) = delete;
 
     //! Destructor.
     virtual ~Ticket() = default;
 
-    using super::getChecker;
-
-    using super::wait;
-
-    void wait( typename Status::value_type* status, int *err )
+    const std::array<Status,count>& getStatuses() const
     {
-        wait( err );
-        super::getChecker().getStatusSet().copy( status );
+        return _statuses;
     }
 
-	void wait( size_t nelem, typename Status::value_type array_of_statuses[], int *err )
-	{
-	    wait( err );
-	    super::getChecker().getStatusSet().copy( array_of_statuses, nelem );
-	}
+    int getReturnError() const
+    {
+        return _error;
+    }
+
+    virtual bool check()
+    {
+        return Request::test_all( _requests, _statuses );
+    }
 };
 
 template<
-    typename Request, 
-    typename Status 
+    typename Request,
+    typename Status
 >
-class Ticket<Request,Status,1> : public TicketBase<Request,Status,1> {
+class Ticket<Request,Status,0> : public SinglePollingCond {
 public:
-    using checker_type = TicketChecker<Request,Status,1>;
-    using super = TicketBase<Request,Status,1>;
+
+    std::vector<Request> _requests;
+    std::vector<Status>  _statuses;
+    int _error;
 
     //! Default constructor.
-    Ticket() = default;
+    Ticket( const std::vector<Request>& reqs, int error = MPI_SUCCESS ) :
+        _requests( reqs ),
+        _statuses( reqs.size() ),
+        _error( error )
+    {
+    }
 
     //! Copy constructor.
-    Ticket( Ticket const& t ) :
-        super(t)
-    {
-    }
-
-    //! ConditionChecker constructor.
-    /*!
-      Passes a ConditionChecker's reference to its superclass.
-     */
-    Ticket( checker_type const& tc ) :
-        super(tc)
-    {
-    }
+    Ticket( Ticket const& t ) = delete;
 
     //! Destructor.
     virtual ~Ticket() = default;
 
-    using super::getChecker;
-
-    using super::wait;
-
-    void wait( typename Status::value_type* status, int *err )
+    const std::vector<Status>& getStatuses() const
     {
-        wait( err );
-        getChecker().getStatus().copy( status );
+        return _statuses;
+    }
+
+    int getReturnError() const
+    {
+        return _error;
+    }
+
+    virtual bool check()
+    {
+        return Request::test_all( _requests, _statuses );
     }
 };
 

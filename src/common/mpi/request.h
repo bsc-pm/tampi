@@ -92,14 +92,37 @@ class request
 			         index };
 		}
 
+        template < StatusKind kind >
 		static bool test_all( std::vector<request>& requests,
-		                      std::vector<status<StatusKind::attend> >& return_statuses )
+		                      std::vector<status<kind> >& return_statuses )
 		{
 			int flag;
 			return_statuses.resize( requests.size() );
 			MPI_Testall( requests.size(),
 			             reinterpret_cast<MPI_Request*>(requests.data()), &flag,
 			             reinterpret_cast<MPI_Status*>(return_statuses.data()) );
+			return flag == 1;
+		}
+
+        template < size_t count >
+		static bool test_all( std::array<request,count>& requests,
+		                      std::array<status<StatusKind::attend>,count>& return_statuses )
+		{
+			int flag;
+			MPI_Testall( count,
+			             reinterpret_cast<MPI_Request*>(requests.data()), &flag,
+			             reinterpret_cast<MPI_Status*>(return_statuses.data()) );
+			return flag == 1;
+		}
+
+        template < size_t count >
+		static bool test_all( std::array<request,count>& requests,
+		                      std::array<status<StatusKind::ignore>,count>& return_statuses )
+		{
+			int flag;
+			MPI_Testall( count,
+			             reinterpret_cast<MPI_Request*>(requests.data()), &flag,
+			             MPI_STATUSES_IGNORE );
 			return flag == 1;
 		}
 
@@ -187,14 +210,29 @@ class request
 			         index };
 		}
 
+        template< StatusKind kind >
 		static bool test_all( std::vector<request>& requests,
-		                      std::vector<status<StatusKind::attend> >& return_statuses )
+		                      std::vector<status<kind> >& return_statuses )
 		{
 			int err, flag;
 			int count = requests.size();
 
 			return_statuses.resize( count );
 			mpi_testall_( &count,
+			             reinterpret_cast<MPI_Fint*>(requests.data()),
+			             &flag,
+			             reinterpret_cast<MPI_Fint*>(return_statuses.data()),
+			             &err );
+			return flag == 1;
+		}
+
+        template< size_t count, StatusKind kind >
+		static bool test_all( std::array<request,count>& requests,
+		                      std::array<status<kind>,count>& return_statuses )
+		{
+			int err, flag;
+            int size = count;
+			mpi_testall_( &size,
 			             reinterpret_cast<MPI_Fint*>(requests.data()),
 			             &flag,
 			             reinterpret_cast<MPI_Fint*>(return_statuses.data()),

@@ -22,14 +22,13 @@
 #if MPI_VERSION >=3
 
 #include "mpi/error.h"
+#include "mpi/request.h"
 #include "mpi/status.h"
+#include "print.h"
 #include "smartpointer.h"
 #include "ticket.h"
 
-namespace nanos {
-namespace mpi {
-
-using namespace nanos;
+using namespace nanos::mpi;
 using ticket = Ticket<Fortran::request,Fortran::status<StatusKind::ignore>,1>;
 
 extern "C" {
@@ -51,8 +50,9 @@ extern "C" {
                 &static_cast<MPI_Fint&>(req),
                 err );
 
-        shared_pointer<ticket> waitCond( new ticket( request, err ) );
-        *err = waitCond->wait();
+        nanos::shared_pointer<ticket> waitCond( new ticket( {req}, *err ) );
+        waitCond->wait();
+        *err = waitCond->getReturnError();
     }
 
 } // extern C

@@ -21,6 +21,7 @@
 
 #include "mpi/common.h"
 #include "mpi/error.h"
+#include "mpi/request.h"
 #include "mpi/status.h"
 #include "smartpointer.h"
 #include "print.h"
@@ -53,38 +54,15 @@ extern "C" {
     
         if( status == MPI_F_STATUS_IGNORE ) {
            using ticket = ticket<StatusKind::ignore>;
-           shared_pointer<ticket> waitCond( new ticket( reqs, *err ) );
-           *err = waitCond->wait();
+           nanos::shared_pointer<ticket> waitCond( new ticket( {reqs}, *err ) );
+           waitCond->wait();
+           *err = waitCond->getReturnError();
         } else {
            using ticket = ticket<StatusKind::attend>;
-           shared_pointer<ticket> waitCond( new ticket( reqs, *err ) );
-           *err = waitCond->wait();
+           nanos::shared_pointer<ticket> waitCond( new ticket( {reqs}, *err ) );
+           waitCond->wait();
+           *err = waitCond->getReturnError();
         }
     }
 } // extern C
     
-template < typename TicketType >
-shared_pointer<TicketType> isendrecv( MPI3CONST void *sendbuf, MPI_Fint *sendcount,
-                                  MPI_Fint *sendtype, MPI_Fint *dest,
-                                  MPI_Fint *sendtag,
-                                  void *recvbuf, MPI_Fint *recvcount,
-                                  MPI_Fint *recvtype, MPI_Fint *source,
-                                  MPI_Fint *recvtag, MPI_Fint *comm )
-{
-
-    using ticket = TicketType;
-
-    shared_pointer<ticket> result( new ticket() );
-    mpi_isend_( sendbuf, sendcount, sendtype, dest, sendtag, comm,
-            result->getChecker().getRequest(),
-            result->getChecker().getError() );
-
-    mpi_irecv_( recvbuf, recvcount, recvtype, source, recvtag, comm,
-            result->getChecker().getRequest(),
-            result->getChecker().getError() );
-
-    return shared_pointer<ticket>(result);
-}
-
-} // namespace mpi
-} // namespace nanos

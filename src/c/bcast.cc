@@ -22,6 +22,7 @@
 #if MPI_VERSION >=3
 
 #include "mpi/error.h"
+#include "mpi/request.h"
 #include "mpi/status.h"
 #include "print.h"
 #include "smartpointer.h"
@@ -38,9 +39,9 @@ extern "C" {
 
 	C::request req;
         int err = MPI_Ibcast( buffer, count, datatype, root, comm, &static_cast<MPI_Request&>(req) );
-        shared_pointer<ticket> waitCond( new ticket( req, err ) );
-        err = waitCond->wait();
-        return err;
+        nanos::shared_pointer<ticket> waitCond( new ticket( {req}, err ) );
+        waitCond->wait();
+        return waitCond->getReturnError();
     }
 } // extern C
 

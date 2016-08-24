@@ -23,12 +23,11 @@
 #include "mpi/error.h"
 #include "mpi/status.h"
 #include "mpi/request.h"
-#inculde "print.h"
+#include "print.h"
 #include "smartpointer.h"
 #include "ticket.h"
 
-namespace nanos {
-namespace mpi {
+using namespace nanos::mpi;
 
 using ticket = Ticket<C::request,C::status<StatusKind::ignore>,1>;
 
@@ -38,13 +37,13 @@ extern "C" {
     {
         print::intercepted_call( __func__ );
 
-        C::Request req;
+        C::request req;
         int err = MPI_Issend( buf, count, datatype, dest, tag, comm, 
                               &static_cast<MPI_Request&>(req) );
 
-        shared_pointer<ticket> waitCond( new ticket( req, err ) );
-        err = waitCond->wait();
-        return err;
+        nanos::shared_pointer<ticket> waitCond( new ticket( {req}, err ) );
+        waitCond->wait();
+        return waitCond->getReturnError();
     }
 } // extern C
 

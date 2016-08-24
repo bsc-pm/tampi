@@ -36,13 +36,13 @@ extern "C" {
     {
         print::intercepted_call( __func__ );
 
-	C::request req;
+        C::request req;
         int err = MPI_Isend( buf, count, datatype, dest, tag, comm,
                              &static_cast<MPI_Request&>(req) );
 
-        shared_pointer<ticket> waitCond( new ticket( req, err ) );
-        err = waitCond->wait();
-        return err;
+        nanos::shared_pointer<ticket> waitCond( new ticket( {req}, err ) );
+        waitCond->wait();
+        return waitCond->getReturnError();
     }
 } // extern C
 

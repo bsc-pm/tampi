@@ -60,6 +60,11 @@ class status<StatusKind::attend>
 			return _value;
 		}
 
+		operator const value_type& () const
+		{
+			return _value;
+		}
+
 		operator value_type* ()
 		{
 			return &_value;

@@ -22,7 +22,9 @@
 #if MPI_VERSION >=3
 
 #include "mpi/error.h"
+#include "mpi/request.h"
 #include "mpi/status.h"
+#include "print.h"
 #include "smartpointer.h"
 #include "ticket.h"
 
@@ -39,11 +41,12 @@ extern "C" {
         print::intercepted_call( __func__ );
 
         Fortran::request req;
-        mpi_ibcast_( buf, count, datatype, root, comm,
+        mpi_ibcast_( buffer, count, datatype, root, comm,
             &static_cast<MPI_Fint&>(req), err );
 
-        shared_pointer<ticket> waitCond( new ticket( request, err ) );
-        *err = waitCond->wait();
+        nanos::shared_pointer<ticket> waitCond( new ticket( {req}, *err ) );
+        waitCond->wait();
+        *err = waitCond->getReturnError();
     }
 } // extern C
 
