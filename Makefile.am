@@ -28,12 +28,6 @@ c_api_sources= \
  src/c/wait.cc \
  src/c/sendrecvreplace.cc
 
-# Additional debug mode files
-if debug_mode_enabled
-c_api_sources += \
- src/c/init-finalize.cc
-endif
-
 fortran_api_sources= \
  src/fortran/allreduce.cc \
  src/fortran/barrier.cc \
@@ -47,7 +41,6 @@ fortran_api_sources= \
  src/fortran/wait.cc \
  src/fortran/sendrecvreplace.cc
 
-lib_LTLIBRARIES=libmpiompss-interop.la libmpiompss-interop-fort.la
-libmpiompss_interop_la_SOURCES=$(c_api_sources)
-libmpiompss_interop_fort_la_SOURCES=$(fortran_api_sources)
+lib_LTLIBRARIES=libmpiompss-interop.la
+libmpiompss_interop_la_SOURCES=$(c_api_sources) $(fortran_api_sources)
 
