@@ -2,8 +2,6 @@
 #ifndef POLLING_CONDITION_H
 #define POLLING_CONDITION_H
 
-#include "common/pollingchecker.h"
-
 #include <nanos.h>
 #include <basethread.hpp>
 #include <synchronizedcondition.hpp>

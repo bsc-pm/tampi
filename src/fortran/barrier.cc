@@ -21,7 +21,6 @@
 
 #if MPI_VERSION >=3
 
-#include "mpi/error.h"
 #include "mpi/request.h"
 #include "mpi/status.h"
 #include "smartpointer.h"
@@ -29,7 +28,7 @@
 #include "ticket.h"
 
 using namespace nanos::mpi;
-using ticket = nanos::mpi::Ticket<Fortran::request,Fortran::status<StatusKind::ignore>,1>;
+using ticket = nanos::mpi::Ticket<Fortran::request,Fortran::ignored_status,1>;
 
 extern "C" {
     void mpi_ibarrier_( MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );

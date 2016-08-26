@@ -20,7 +20,6 @@
 #include <mpi.h>
 
 #include "mpi/common.h"
-#include "mpi/error.h"
 #include "mpi/request.h"
 #include "mpi/status.h"
 #include "print.h"
@@ -28,7 +27,7 @@
 #include "ticket.h"
 
 using namespace nanos::mpi;
-using ticket = nanos::mpi::Ticket<Fortran::request,Fortran::status<StatusKind::ignore>,1>;
+using ticket = nanos::mpi::Ticket<Fortran::request,Fortran::ignored_status,1>;
 
 extern "C" {
     void mpi_isend_( MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,

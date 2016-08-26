@@ -3,7 +3,6 @@
 #define STATUS_H
 
 #include "common.h"
-#include "status_fwd.h"
 
 #include <cassert>
 #include <mpi.h>
@@ -16,8 +15,7 @@ namespace mpi {
 
 namespace C {
 
-template <>
-class status<StatusKind::attend>
+class status
 {
 	public:
 		using value_type = MPI_Status;
@@ -47,14 +45,6 @@ class status<StatusKind::attend>
 			return *this;
 		}
 
-		void copy( value_type *other ) const
-		{
-#ifdef DEBUG_MODE
-			if( other != MPI_STATUS_IGNORE )
-#endif // DEBUG_MODE
-				*other = _value;
-		}
-	
 		operator value_type& ()
 		{
 			return _value;
@@ -71,9 +61,10 @@ class status<StatusKind::attend>
 		}
 };
 
-#ifndef DEBUG_MODE
-template <>
-class status<StatusKind::ignore>
+#ifdef DEBUG_MODE
+using ignored_status = status;
+#else
+class ignored_status
 {
 	public:
 		using value_type = MPI_Status;
@@ -83,10 +74,6 @@ class status<StatusKind::ignore>
 		{
 			return MPI_STATUS_IGNORE;
 		}
-
-        void copy( value_type *other ) const
-        {
-        }
 };
 #endif
 
@@ -94,8 +81,7 @@ class status<StatusKind::ignore>
 
 namespace Fortran {
 
-template <>
-class status<StatusKind::attend>
+class status
 {
 	public:
 		using value_type = MPI_Fint;
@@ -126,18 +112,6 @@ class status<StatusKind::attend>
 			return *this;
 		}
 
-		void copy( value_type *other ) const
-		{
-#ifdef DEBUG_MODE
-			if( other != MPI_F_STATUS_IGNORE ) {
-#endif // DEBUG_MODE
-				auto array = reinterpret_cast<base_type&>(*other);
-				array = _value;
-#ifdef DEBUG_MODE
-			}
-#endif // DEBUG_MODE
-		}
-
 		operator value_type* ()
 		{
 			return _value.data();
@@ -149,9 +123,10 @@ class status<StatusKind::attend>
 		}
 };
 
-#ifndef DEBUG_MODE
-template <>
-class status<StatusKind::ignore>
+#ifdef DEBUG_MODE
+using ignored_status = status;
+#else
+class ignored_status
 {
 	public:
 		using value_type = MPI_Fint;
@@ -161,10 +136,6 @@ class status<StatusKind::ignore>
 		{
 			return MPI_F_STATUS_IGNORE;
 		}
-
-        void copy( value_type *other ) const
-        {
-        }
 };
 #endif
 

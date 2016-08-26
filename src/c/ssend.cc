@@ -20,7 +20,6 @@
 #include <mpi.h>
 
 #include "mpi/common.h"
-#include "mpi/error.h"
 #include "mpi/status.h"
 #include "mpi/request.h"
 #include "print.h"
@@ -29,7 +28,7 @@
 
 using namespace nanos::mpi;
 
-using ticket = Ticket<C::request,C::status<StatusKind::ignore>,1>;
+using ticket = Ticket<C::request,C::ignored_status,1>;
 
 extern "C" {
     int MPI_Ssend( MPI3CONST void *buf, int count, MPI_Datatype datatype,

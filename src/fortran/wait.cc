@@ -27,8 +27,6 @@
 
 using namespace nanos::mpi;
 
-template< StatusKind kind >
-using ticket = Ticket<Fortran::request,Fortran::status<kind>,1>;
 
 extern "C" {
     void mpi_wait_( MPI_Fint *request, MPI_Fint *status, MPI_Fint *err )
@@ -36,17 +34,18 @@ extern "C" {
         print::intercepted_call( __func__ );
     
         if( status == MPI_F_STATUS_IGNORE ) {
-            using ticket = ticket<StatusKind::ignore>;
-            nanos::shared_pointer<ticket> waitCond( new ticket({*request}, *err) );
-            waitCond->wait();
-            *err = waitCond->getReturnError();
-        } else {
-            using ticket = ticket<StatusKind::attend>;
+            using ticket = Ticket<Fortran::request,Fortran::ignored_status,1>;
 
             nanos::shared_pointer<ticket> waitCond( new ticket({*request}, *err) );
             waitCond->wait();
             *err = waitCond->getReturnError();
-            reinterpret_cast<Fortran::status<StatusKind::attend>&>(*status) = waitCond->getStatuses()[0];
+        } else {
+            using ticket = Ticket<Fortran::request,Fortran::status,1>;
+
+            nanos::shared_pointer<ticket> waitCond( new ticket({*request}, *err) );
+            waitCond->wait();
+            *err = waitCond->getReturnError();
+            reinterpret_cast<Fortran::status&>(*status) = waitCond->getStatuses()[0];
         }
     }
 } // extern C

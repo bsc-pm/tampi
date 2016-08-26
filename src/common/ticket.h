@@ -27,10 +27,9 @@
     #include "nanos/pollingcondition.h"
 #endif
 
-#include "mpi/error.h"
-#include "pollingchecker.h"
-
 #include <type_traits>
+
+#include <mpi.h>
 
 namespace nanos {
 namespace mpi {
@@ -64,7 +63,9 @@ public:
     Ticket( Ticket const& t ) = delete;
 
     //! Destructor.
-    virtual ~Ticket() = default;
+    virtual ~Ticket()
+    {
+    }
 
     const std::array<Status,count>& getStatuses() const
     {
@@ -105,7 +106,9 @@ public:
     Ticket( Ticket const& t ) = delete;
 
     //! Destructor.
-    virtual ~Ticket() = default;
+    virtual ~Ticket()
+    {
+    }
 
     const std::vector<Status>& getStatuses() const
     {

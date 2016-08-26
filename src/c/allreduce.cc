@@ -21,7 +21,6 @@
 
 #if MPI_VERSION >=3
 
-#include "mpi/error.h"
 #include "mpi/request.h"
 #include "mpi/status.h"
 #include "smartpointer.h"
@@ -29,7 +28,7 @@
 #include "print.h"
 
 using namespace nanos::mpi;
-using ticket = Ticket<C::request,C::status<StatusKind::ignore>,1>;
+using ticket = Ticket<C::request,C::ignored_status,1>;
 
 extern "C" {
     int MPI_Allreduce( const void *sendbuf, void *recvbuf, int count,

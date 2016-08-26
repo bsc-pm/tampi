@@ -21,7 +21,6 @@
 
 #if MPI_VERSION >=3
 
-#include "mpi/error.h"
 #include "mpi/request.h"
 #include "mpi/status.h"
 #include "print.h"
@@ -29,7 +28,7 @@
 #include "ticket.h"
 
 using namespace nanos::mpi;
-using ticket = Ticket<Fortran::request,Fortran::status<StatusKind::ignore>,1>;
+using ticket = Ticket<Fortran::request,Fortran::ignored_status,1>;
 
 extern "C" {
     void mpi_igatherv_( const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,

@@ -29,8 +29,6 @@
 using namespace nanos::mpi;
 using namespace nanos::utils;
 
-template < StatusKind kind >
-using ticket =  Ticket<C::request,C::status<kind>,0>;
 
 extern "C" {
     int MPI_Waitall(int count, MPI_Request array_of_requests[],
@@ -39,18 +37,18 @@ extern "C" {
         print::intercepted_call( __func__ );
 
         using requests_array = std::vector<C::request>;
-        using statuses_array = std::vector<C::status<StatusKind::attend> >;
+        using statuses_array = std::vector<C::status >;
     
         int err = MPI_SUCCESS;
         if( array_of_statuses == MPI_STATUSES_IGNORE ) {
-            using ticket = ticket<StatusKind::ignore>;
+            using ticket =  Ticket<C::request,C::ignored_status,0>;
             nanos::shared_pointer<ticket> waitCond( new ticket(
                        std::move( transform_to<requests_array>()(count, reinterpret_cast<C::request*>(array_of_requests)) ),
                        err ) );
             waitCond->wait();
             err = waitCond->getReturnError();
         } else {
-            using ticket = ticket<StatusKind::attend>;
+            using ticket =  Ticket<C::request,C::status,0>;
             nanos::shared_pointer<ticket> waitCond( new ticket(
                        std::move( transform_to<requests_array>()(count, reinterpret_cast<C::request*>(array_of_requests)) ),
                        err ) );

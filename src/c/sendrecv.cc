@@ -20,7 +20,6 @@
 #include <mpi.h>
 
 #include "mpi/common.h"
-#include "mpi/error.h"
 #include "mpi/request.h"
 #include "mpi/status.h"
 #include "print.h"
@@ -29,8 +28,6 @@
 
 using namespace nanos::mpi;
 
-template < StatusKind kind >
-using ticket = Ticket<C::request,C::status<kind>,2>;
 
 extern "C" {
     int MPI_Sendrecv( MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
@@ -49,12 +46,12 @@ extern "C" {
                              &static_cast<MPI_Request&>(reqs[1]) );
 
         if( status == MPI_STATUS_IGNORE ) {
-            using ticket = ticket<StatusKind::ignore>;
+            using ticket = Ticket<C::request,C::ignored_status,2>;
             nanos::shared_pointer<ticket> waitCond( new ticket( reqs, err ) );
             waitCond->wait();
             err = waitCond->getReturnError();
         } else {
-            using ticket = ticket<StatusKind::attend>;
+            using ticket = Ticket<C::request,C::status,2>;
             nanos::shared_pointer<ticket> waitCond( new ticket( reqs, err ) );
             waitCond->wait();
             err = waitCond->getReturnError();

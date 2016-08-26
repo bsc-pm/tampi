@@ -27,8 +27,6 @@
 
 using namespace nanos::mpi;
 
-template < StatusKind kind >
-using ticket =  Ticket<C::request,C::status<kind>,1>;
 
 extern "C" {
     int MPI_Wait( MPI_Request *request, MPI_Status *status )
@@ -37,12 +35,12 @@ extern "C" {
         
         int err = MPI_SUCCESS;
         if( status == MPI_STATUS_IGNORE ) {
-            using ticket = ticket<StatusKind::ignore>;
+            using ticket =  Ticket<C::request,C::ignored_status,1>;
             nanos::shared_pointer<ticket> waitCond( new ticket( {*request}, err ) );
             waitCond->wait();
             err = waitCond->getReturnError();
         } else {
-            using ticket = ticket<StatusKind::attend>;
+            using ticket =  Ticket<C::request,C::status,1>;
             nanos::shared_pointer<ticket> waitCond( new ticket( {*request}, err ) );
             waitCond->wait();
             err = waitCond->getReturnError();

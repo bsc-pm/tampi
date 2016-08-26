@@ -30,9 +30,6 @@
 using namespace nanos::mpi;
 using namespace nanos::utils;
 
-template< StatusKind kind >
-using ticket = Ticket<Fortran::request,Fortran::status<kind> >;
-
 extern "C" {
     void mpi_waitall_( MPI_Fint *count, MPI_Fint array_of_requests[],
                        MPI_Fint *array_of_statuses, MPI_Fint *err )
@@ -40,24 +37,24 @@ extern "C" {
         print::intercepted_call( __func__ );
 
         using requests_array = std::vector<Fortran::request>;
-        using statuses_array = std::vector<Fortran::status<StatusKind::attend> >;
+        using statuses_array = std::vector<Fortran::status >;
 
         if( array_of_statuses == MPI_F_STATUSES_IGNORE ) {
-            using ticket = ticket<StatusKind::ignore>;
+            using ticket = Ticket<Fortran::request,Fortran::ignored_status>;
             nanos::shared_pointer<ticket> waitCond( new ticket( 
                        std::move( transform_to<requests_array>()(*count, reinterpret_cast<Fortran::request*>(array_of_requests)) ),
                        *err ) );
             waitCond->wait();
             *err = waitCond->getReturnError();
         } else {
-            using ticket = ticket<StatusKind::attend>;
+            using ticket = Ticket<Fortran::request,Fortran::status>;
             nanos::shared_pointer<ticket> waitCond( new ticket(
                        std::move( transform_to<requests_array>()(*count, reinterpret_cast<Fortran::request*>(array_of_requests)) ),
                        *err ) );
             waitCond->wait();
             *err = waitCond->getReturnError();
             std::copy( waitCond->getStatuses().begin(), waitCond->getStatuses().end(),
-                       reinterpret_cast<Fortran::status<StatusKind::attend>*>(array_of_statuses) );
+                       reinterpret_cast<Fortran::status*>(array_of_statuses) );
         }
     }
 } // extern C
