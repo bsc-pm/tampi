@@ -158,7 +158,7 @@ namespace C {
 
 #ifndef DEBUG_MODE
 template <> 
-bool request::test<ignored_status>( ignored_status &return_status )
+inline bool request::test<ignored_status>( ignored_status &return_status )
 {
 	int flag;
 	MPI_Test( &_value, &flag,
@@ -168,7 +168,7 @@ bool request::test<ignored_status>( ignored_status &return_status )
 #endif
 
 template <> 
-bool request::test<status>( status &return_status )
+inline bool request::test<status>( status &return_status )
 {
 	int flag;
 	MPI_Test( &_value, &flag,
@@ -178,7 +178,7 @@ bool request::test<status>( status &return_status )
 
 #ifndef DEBUG_MODE
 template <>
-bool request::test_all<ignored_status>( std::vector<request>& requests,
+inline bool request::test_all<ignored_status>( std::vector<request>& requests,
                       std::vector<ignored_status>& return_statuses )
 {
 	int flag;
@@ -190,7 +190,7 @@ bool request::test_all<ignored_status>( std::vector<request>& requests,
 #endif
 
 template <>
-bool request::test_all<status>( std::vector<request>& requests,
+inline bool request::test_all<status>( std::vector<request>& requests,
                       std::vector<status>& return_statuses )
 {
 	int flag;
@@ -203,7 +203,7 @@ bool request::test_all<status>( std::vector<request>& requests,
 
 #ifndef DEBUG_MODE
 template < size_t count >
-bool request::test_all( std::array<request,count>& requests,
+inline bool request::test_all( std::array<request,count>& requests,
                       std::array<ignored_status,count>& return_statuses )
 {
 	int flag;
@@ -215,7 +215,7 @@ bool request::test_all( std::array<request,count>& requests,
 #endif
 
 template < size_t count >
-bool request::test_all( std::array<request,count>& requests,
+inline bool request::test_all( std::array<request,count>& requests,
                       std::array<status,count>& return_statuses )
 {
 	int flag;
@@ -227,7 +227,7 @@ bool request::test_all( std::array<request,count>& requests,
 
 #ifndef DEBUG_MODE
 template <>
-std::pair<bool,int> request::test_any<ignored_status>( std::vector<request>& requests,
+inline std::pair<bool,int> request::test_any<ignored_status>( std::vector<request>& requests,
                       ignored_status& return_status )
 {
 	int flag, index;
@@ -241,7 +241,7 @@ std::pair<bool,int> request::test_any<ignored_status>( std::vector<request>& req
 #endif
 
 template <>
-std::pair<bool,int> request::test_any<status>( std::vector<request>& requests,
+inline std::pair<bool,int> request::test_any<status>( std::vector<request>& requests,
                       status& return_status )
 {
 	int flag, index;
@@ -254,7 +254,7 @@ std::pair<bool,int> request::test_any<status>( std::vector<request>& requests,
 }
 
 template<>
-std::vector<int> request::test_some( std::vector<request>& requests,
+inline std::vector<int> request::test_some( std::vector<request>& requests,
                       std::vector<status>& return_statuses )
 {
 	int ready_count = 0;
@@ -296,7 +296,7 @@ namespace Fortran {
 
 #ifndef DEBUG_MODE
 template <>
-bool request::test<ignored_status>( ignored_status &return_status )
+inline bool request::test<ignored_status>( ignored_status &return_status )
 {
 	int err, flag;
 	mpi_test_( &_value, &flag, 
@@ -307,7 +307,7 @@ bool request::test<ignored_status>( ignored_status &return_status )
 #endif
 
 template <>
-bool request::test<status>( status &return_status )
+inline bool request::test<status>( status &return_status )
 {
 	int err, flag;
 	mpi_test_( &_value, &flag, 
@@ -318,7 +318,7 @@ bool request::test<status>( status &return_status )
 
 #ifndef DEBUG_MODE
 template<>
-bool request::test_all<ignored_status>( std::vector<request>& requests,
+inline bool request::test_all<ignored_status>( std::vector<request>& requests,
 		    std::vector<ignored_status>& return_statuses )
 {
 	int err, flag;
@@ -334,7 +334,7 @@ bool request::test_all<ignored_status>( std::vector<request>& requests,
 #endif
 
 template<>
-bool request::test_all<status>( std::vector<request>& requests,
+inline bool request::test_all<status>( std::vector<request>& requests,
 		    std::vector<status>& return_statuses )
 {
 	int err, flag;
@@ -350,7 +350,7 @@ bool request::test_all<status>( std::vector<request>& requests,
 }
 
 template< size_t count >
-bool request::test_all( std::array<request,count>& requests,
+inline bool request::test_all( std::array<request,count>& requests,
                       std::array<status,count>& return_statuses )
 {
 	int err, flag;
@@ -363,8 +363,22 @@ bool request::test_all( std::array<request,count>& requests,
 	return flag == 1;
 }
 
+template< size_t count >
+inline bool request::test_all( std::array<request,count>& requests,
+                      std::array<ignored_status,count>& return_statuses )
+{
+	int err, flag;
+	int size = count;
+	mpi_testall_( &size,
+	             reinterpret_cast<MPI_Fint*>(requests.data()),
+	             &flag,
+	             MPI_F_STATUSES_IGNORE,
+	             &err );
+	return flag == 1;
+}
+
 template <>
-std::pair<bool,int> request::test_any<status>( std::vector<request>& requests,
+inline std::pair<bool,int> request::test_any<status>( std::vector<request>& requests,
 		    status& return_status )
 {
 	int err, flag, index;
@@ -380,7 +394,7 @@ std::pair<bool,int> request::test_any<status>( std::vector<request>& requests,
 
 #ifndef DEBUG_MODE
 template <>
-std::pair<bool,int> request::test_any<ignored_status>( std::vector<request>& requests,
+inline std::pair<bool,int> request::test_any<ignored_status>( std::vector<request>& requests,
 		    ignored_status& return_status )
 {
 	int err, flag, index;
@@ -396,7 +410,7 @@ std::pair<bool,int> request::test_any<ignored_status>( std::vector<request>& req
 #endif
 
 template <>
-std::vector<int> request::test_some( std::vector<request>& requests,
+inline std::vector<int> request::test_some( std::vector<request>& requests,
                       std::vector<status>& return_statuses )
 {
 	int err, ready_count;
