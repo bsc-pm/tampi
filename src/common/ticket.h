@@ -27,6 +27,7 @@
     #include "nanos/pollingcondition.h"
 #endif
 
+#include <stdexcept>
 #include <type_traits>
 
 #include <mpi.h>
@@ -50,12 +51,16 @@ public:
 
     std::array<Request,count> _requests;
     std::array<Status,count> _statuses;
-    int _error;
+    Lock _test_lock;
+    int  _error;
+    bool _completed;
 
     Ticket( const std::array<Request,count>& reqs, int error ) :
         _requests( reqs ),
         _statuses(),
-        _error( error )
+        _test_lock(),
+        _error( error ),
+        _completed( false )
     {
     }
 
@@ -63,8 +68,10 @@ public:
     Ticket( Ticket const& t ) = delete;
 
     //! Destructor.
-    virtual ~Ticket()
+    virtual ~Ticket() noexcept
     {
+        if( !_completed )
+            std::runtime_error( "Destroying unfinished MPI requests" );
     }
 
     const std::array<Status,count>& getStatuses() const
@@ -79,7 +86,12 @@ public:
 
     virtual bool check()
     {
-        return Request::test_all( _requests, _statuses );
+
+        std::unique_lock<Lock> lock( _test_lock );
+        if( !_completed ) {
+            _completed = Request::test_all( _requests, _statuses );
+        }
+        return _completed;
     }
 };
 
@@ -92,13 +104,17 @@ public:
 
     std::vector<Request> _requests;
     std::vector<Status>  _statuses;
-    int _error;
+    Lock         _test_lock;
+    int          _error;
+    Atomic<bool> _completed;
 
     //! Default constructor.
     Ticket( const std::vector<Request>& reqs, int error = MPI_SUCCESS ) :
         _requests( reqs ),
         _statuses( reqs.size() ),
-        _error( error )
+        _test_lock(),
+        _error( error ),
+        _completed( false )
     {
     }
 
@@ -108,6 +124,8 @@ public:
     //! Destructor.
     virtual ~Ticket()
     {
+        if( !_completed )
+            std::runtime_error( "Destroying an unsatisfied polling condition" );
     }
 
     const std::vector<Status>& getStatuses() const
@@ -122,7 +140,13 @@ public:
 
     virtual bool check()
     {
-        return Request::test_all( _requests, _statuses );
+        if( !_completed ) {
+            std::unique_lock<Lock> lock( _test_lock );
+            if( !_completed ) {
+                _completed = Request::test_all( _requests, _statuses );
+            }
+        }
+        return _completed;
     }
 };
 

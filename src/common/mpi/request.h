@@ -4,6 +4,7 @@
 
 #include <mpi.h>
 
+#include "error.h"
 #include "status.h"
 
 namespace nanos {
@@ -161,8 +162,9 @@ template <>
 inline bool request::test<ignored_status>( ignored_status &return_status )
 {
 	int flag;
-	MPI_Test( &_value, &flag,
+	int err = MPI_Test( &_value, &flag,
 	          MPI_STATUS_IGNORE );
+	check_error( err );
 	return flag == 1;
 }
 #endif
@@ -171,8 +173,9 @@ template <>
 inline bool request::test<status>( status &return_status )
 {
 	int flag;
-	MPI_Test( &_value, &flag,
+	int err = MPI_Test( &_value, &flag,
 	          &reinterpret_cast<MPI_Status&>(return_status) );
+	check_error( err );
 	return flag == 1;
 }
 
@@ -182,9 +185,10 @@ inline bool request::test_all<ignored_status>( std::vector<request>& requests,
                       std::vector<ignored_status>& return_statuses )
 {
 	int flag;
-	MPI_Testall( requests.size(),
+	int err = MPI_Testall( requests.size(),
 	             reinterpret_cast<MPI_Request*>(requests.data()), &flag,
 	             MPI_STATUSES_IGNORE );
+	check_error( err );
 	return flag == 1;
 }
 #endif
@@ -195,60 +199,61 @@ inline bool request::test_all<status>( std::vector<request>& requests,
 {
 	int flag;
 	return_statuses.resize( requests.size() );
-	MPI_Testall( requests.size(),
+	int err = MPI_Testall( requests.size(),
 	             reinterpret_cast<MPI_Request*>(requests.data()), &flag,
 	             reinterpret_cast<MPI_Status*>(return_statuses.data()) );
+	check_error( err );
 	return flag == 1;
 }
 
-#ifndef DEBUG_MODE
 template < size_t count >
 inline bool request::test_all( std::array<request,count>& requests,
                       std::array<ignored_status,count>& return_statuses )
 {
 	int flag;
-	MPI_Testall( count,
+	int err = MPI_Testall( count,
 	             reinterpret_cast<MPI_Request*>(requests.data()), &flag,
 	             MPI_STATUSES_IGNORE );
+	check_error( err );
 	return flag == 1;
 }
-#endif
 
 template < size_t count >
 inline bool request::test_all( std::array<request,count>& requests,
                       std::array<status,count>& return_statuses )
 {
 	int flag;
-	MPI_Testall( count,
+	int err = MPI_Testall( count,
 	             reinterpret_cast<MPI_Request*>(requests.data()), &flag,
 	             reinterpret_cast<MPI_Status*>(return_statuses.data()) );
+	check_error( err );
 	return flag == 1;
 }
 
-#ifndef DEBUG_MODE
 template <>
 inline std::pair<bool,int> request::test_any<ignored_status>( std::vector<request>& requests,
                       ignored_status& return_status )
 {
 	int flag, index;
-	MPI_Testany( requests.size(),
+	int err = MPI_Testany( requests.size(),
 	             reinterpret_cast<MPI_Request*>(requests.data()),
 	             &index, &flag,
 	             MPI_STATUSES_IGNORE );
+	check_error( err );
 	return { flag == 1 && index != MPI_UNDEFINED,
 	         index };
 }
-#endif
 
 template <>
 inline std::pair<bool,int> request::test_any<status>( std::vector<request>& requests,
                       status& return_status )
 {
 	int flag, index;
-	MPI_Testany( requests.size(),
+	int err = MPI_Testany( requests.size(),
 	             reinterpret_cast<MPI_Request*>(requests.data()),
 	             &index, &flag,
 	             &static_cast<MPI_Status&>(return_status) );
+	check_error( err );
 	return { flag == 1 && index != MPI_UNDEFINED,
 	         index };
 }
@@ -260,10 +265,11 @@ inline std::vector<int> request::test_some( std::vector<request>& requests,
 	int ready_count = 0;
 	std::vector<int> ready_indices(requests.size());
 
-	MPI_Testsome( requests.size(),
+	int err = MPI_Testsome( requests.size(),
 	              reinterpret_cast<MPI_Request*>(requests.data()),
 	              &ready_count, ready_indices.data(),
 	              reinterpret_cast<MPI_Status*>(return_statuses.data()) );
+	check_error( err );
 	if( ready_count == MPI_UNDEFINED ) {
 		ready_indices.clear();
 	} else {
@@ -302,6 +308,7 @@ inline bool request::test<ignored_status>( ignored_status &return_status )
 	mpi_test_( &_value, &flag, 
 	           MPI_F_STATUS_IGNORE,
 	           &err );
+	check_error( err );
 	return flag == 1;
 }
 #endif
@@ -313,6 +320,7 @@ inline bool request::test<status>( status &return_status )
 	mpi_test_( &_value, &flag, 
 	           &reinterpret_cast<MPI_Fint&>(return_status),
 	           &err );
+	check_error( err );
 	return flag == 1;
 }
 
@@ -329,6 +337,7 @@ inline bool request::test_all<ignored_status>( std::vector<request>& requests,
 	             &flag,
 	             MPI_F_STATUSES_IGNORE,
 	             &err );
+	check_error( err );
 	return flag == 1;
 }
 #endif
@@ -346,6 +355,7 @@ inline bool request::test_all<status>( std::vector<request>& requests,
 	             &flag,
 	             reinterpret_cast<MPI_Fint*>(return_statuses.data()),
 	             &err );
+	check_error( err );
 	return flag == 1;
 }
 
@@ -360,6 +370,7 @@ inline bool request::test_all( std::array<request,count>& requests,
 	             &flag,
 	             reinterpret_cast<MPI_Fint*>(return_statuses.data()),
 	             &err );
+	check_error( err );
 	return flag == 1;
 }
 
@@ -374,6 +385,7 @@ inline bool request::test_all( std::array<request,count>& requests,
 	             &flag,
 	             MPI_F_STATUSES_IGNORE,
 	             &err );
+	check_error( err );
 	return flag == 1;
 }
 
@@ -388,6 +400,7 @@ inline std::pair<bool,int> request::test_any<status>( std::vector<request>& requ
 		    &index, &flag,
 		    &reinterpret_cast<MPI_Fint&>(return_status),
 		    &err );
+	check_error( err );
 	return { flag == 1 && index != MPI_UNDEFINED,
 		index };
 }
@@ -404,6 +417,7 @@ inline std::pair<bool,int> request::test_any<ignored_status>( std::vector<reques
 		    &index, &flag,
 		    MPI_F_STATUSES_IGNORE,
 		    &err );
+	check_error( err );
 	return { flag == 1 && index != MPI_UNDEFINED,
 		index };
 }
@@ -422,6 +436,7 @@ inline std::vector<int> request::test_some( std::vector<request>& requests,
 	               &ready_count, ready_indices.data(),
 	               reinterpret_cast<MPI_Fint*>(return_statuses.data()),
 	               &err );
+	check_error( err );
 	if( ready_count == MPI_UNDEFINED ) {
 		ready_indices.clear();
 	} else {

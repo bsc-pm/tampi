@@ -18,7 +18,6 @@ namespace nanos {
 class SinglePollingCond : public GenericSyncCond {
 private:
     WorkDescriptor* _waiter;
-    Lock            _lock;
 
 public:
     //! Default constructor.
@@ -28,7 +27,7 @@ public:
     }
 
     //! Default destructor.
-    virtual ~SinglePollingCond()
+    virtual ~SinglePollingCond() noexcept
     {
     }
 
@@ -41,7 +40,6 @@ public:
 
     virtual void signal_one()
     {
-        std::unique_lock<Lock> lblock(_lock);
         if( _waiter ) {
            Scheduler::wakeUp( _waiter );
             _waiter = nullptr;
@@ -67,8 +65,10 @@ public:
 
     //! Registers itself into scheduler's condition check list.
     void wait() {
-        myThread->getTeam()->getSchedulePolicy().queue( myThread, this );
-        Scheduler::waitOnCondition(this);
+        if( !check() ) {
+            myThread->getTeam()->getSchedulePolicy().queue( myThread, this );
+            Scheduler::waitOnCondition(this);
+        }
     }
 };
 
