@@ -53,7 +53,11 @@ AC_ARG_WITH(ompss-lib,
 # Search for ompss by default
 AS_IF([test "$with_ompss" != yes],[
   ompssinc="-I$with_ompss/include"
-  ompsslib="-L$with_ompss/lib -Wl,-rpath,$with_ompss/lib"
+  AS_IF([test -d $with_ompss/lib64],
+    [olibdir=$with_ompss/lib64],
+    [olibdir=$with_ompss/lib])
+
+  ompsslib="-L$olibdir -Wl,-rpath,$olibdir"
 ])
 
 AS_IF([test "x$with_ompss_include" != x],[

@@ -47,7 +47,11 @@ AC_ARG_WITH(argobots,
 # Search for argobots by default
 AS_IF([test "$with_argobots" != yes],[
   argobotsinc="-I$with_argobots/include"
-  argobotslib="-L$with_argobots/lib -Wl,-rpath,$with_argobots/lib"
+  AS_IF([test -d $with_argobots/lib64],
+    [alibdir=$with_argobots/lib64],
+    [alibdir=$with_argobots/lib])
+
+  argobotslib="-L$alibdir -Wl,-rpath,$alibdir"
 ])
 
 # This is fulfilled even if $with_argobots="yes" 
