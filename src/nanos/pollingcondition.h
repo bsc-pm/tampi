@@ -5,6 +5,7 @@
 #include <nanos.h>
 #include <basethread.hpp>
 #include <synchronizedcondition.hpp>
+#include <workdescriptor.hpp>
 
 #include <mutex>
 
@@ -40,14 +41,20 @@ public:
 
     virtual void signal_one()
     {
+        lock();
         if( _waiter ) {
            Scheduler::wakeUp( _waiter );
             _waiter = nullptr;
         }
+        unlock();
     }
 
     virtual void addWaiter( WorkDescriptor* wd )
     {
+        // Avoid process to hang if the owner thread
+        // is acquired by other process (DLB)
+        wd->untie();
+
         _waiter = wd;
     }
 
