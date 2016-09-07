@@ -9,7 +9,7 @@ AM_CPPFLAGS=\
  $(CPPFLAGS)
 
 AM_CXXFLAGS=$(CXXFLAGS)
-AM_LDFLAGS=@extraelib@ @ompsslib@ @argobotslib@ $(LDFLAGS)
+AM_LDFLAGS=@extraelib@ @ompsslib@ @argobotslib@ -ldl $(LDFLAGS)
 LIBS=@extraelibs@ @ompsslibs@ @argobotslibs@
 
 pkginclude_HEADERS= # This library does not provide any additional header
@@ -19,6 +19,7 @@ c_api_sources= \
  src/c/barrier.cc \
  src/c/bcast.cc \
  src/c/gatherv.cc \
+ src/c/init-finalize.cc \
  src/c/recv.cc \
  src/c/reduce.cc \
  src/c/send.cc \
