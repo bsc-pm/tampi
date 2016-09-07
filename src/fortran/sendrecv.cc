@@ -50,12 +50,12 @@ extern "C" {
     
         if( status == MPI_F_STATUS_IGNORE ) {
            using ticket = Ticket<Fortran::request,Fortran::ignored_status,2>;
-           nanos::shared_pointer<ticket> waitCond( new ticket( {reqs}, *err ) );
+           nanos::shared_pointer<ticket> waitCond( new ticket( reqs, *err ) );
            waitCond->wait();
            *err = waitCond->getReturnError();
         } else {
            using ticket = Ticket<Fortran::request,Fortran::status,2>;
-           nanos::shared_pointer<ticket> waitCond( new ticket( {reqs}, *err ) );
+           nanos::shared_pointer<ticket> waitCond( new ticket( reqs, *err ) );
            waitCond->wait();
            *err = waitCond->getReturnError();
         }
