@@ -20,12 +20,7 @@
 #ifndef TICKET_H
 #define TICKET_H
 
-#ifdef HAVE_ABT_H
-    #include "argobots/pollingcondition.h"
-    using namespace abt;
-#else
-    #include "nanos/pollingcondition.h"
-#endif
+#include "nanos/pollingcondition.h"
 
 #include <stdexcept>
 #include <type_traits>
