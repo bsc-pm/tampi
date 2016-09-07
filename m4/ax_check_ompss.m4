@@ -86,8 +86,8 @@ AS_IF([test "$ac_cv_header_nanox_nanos_h" == yes],
       [test "$ac_cv_header_nanos6_nanos6_rt_interface_h" == yes],
         [runtime_version=6])
 
-# Look for nanox_polling_cond_wait function in OmpSs runtime libraries
-AC_SEARCH_LIBS([nanos_polling_cond_wait],
+# Look for nanos_register_polling_service function in OmpSs runtime libraries
+AC_SEARCH_LIBS([nanos_register_polling_service],
   [nanox-c nanos6-argobots nanos6],
   [ompss=yes],
   [ompss=no],

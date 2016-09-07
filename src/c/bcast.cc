@@ -23,12 +23,13 @@
 
 #include "mpi/request.h"
 #include "mpi/status.h"
+#include "ticketqueue.h"
 #include "print.h"
 #include "smartpointer.h"
 #include "ticket.h"
 
 using namespace nanos::mpi;
-using ticket = Ticket<C::request,C::ignored_status,1>;
+using ticket_t = Ticket<C::request,C::ignored_status,1>;
 
 extern "C" {
     int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
@@ -38,9 +39,9 @@ extern "C" {
 
 	C::request req;
         int err = MPI_Ibcast( buffer, count, datatype, root, comm, &static_cast<MPI_Request&>(req) );
-        nanos::shared_pointer<ticket> waitCond( new ticket( {req}, err ) );
-        waitCond->wait();
-        return waitCond->getReturnError();
+        ticket_t ticket( {req}, err );
+		TicketQueue::wait( ticket );
+        return ticket.getReturnError();
     }
 } // extern C
 

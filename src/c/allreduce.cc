@@ -23,12 +23,13 @@
 
 #include "mpi/request.h"
 #include "mpi/status.h"
+#include "ticketqueue.h"
 #include "smartpointer.h"
 #include "ticket.h"
 #include "print.h"
 
 using namespace nanos::mpi;
-using ticket = Ticket<C::request,C::ignored_status,1>;
+using ticket_t = Ticket<C::request,C::ignored_status,1>;
 
 extern "C" {
     int MPI_Allreduce( const void *sendbuf, void *recvbuf, int count,
@@ -36,11 +37,11 @@ extern "C" {
     {
         print::intercepted_call( __func__ );
 
-	C::request req;
+		C::request req;
         int err = MPI_Iallreduce( sendbuf, recvbuf, count, datatype,
                                   op, comm, &static_cast<MPI_Request&>(req) );
-        nanos::shared_pointer<ticket> waitCond( new ticket( {req}, err ) );
-        waitCond->wait();
+        ticket_t ticket( {req}, err );
+		TicketQueue::wait( ticket );
         return err;
     }
 } // extern C

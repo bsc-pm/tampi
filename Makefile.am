@@ -5,6 +5,7 @@ AM_CPPFLAGS=\
  @argobotsinc@ \
  -I@top_srcdir@/src \
  -I@top_srcdir@/src/common \
+ -I@top_srcdir@/src/nanos6 \
  -include "config.h" \
  $(CPPFLAGS)
 

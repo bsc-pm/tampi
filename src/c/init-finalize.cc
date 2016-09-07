@@ -18,7 +18,13 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <mpi.h>
-#include "debug/mpierrortranslator.hpp"
+#include <dlfcn.h>
+#include <cassert>
+
+//#include "debug/mpierrortranslator.hpp"
+#include "environment.h"
+
+nanos::mpi::TicketQueue* nanos::mpi::TicketQueue::_queue = nullptr;
 
 /*!
  * \file init-finalize.cc This file is intended for debug purposes only.
@@ -33,14 +39,56 @@ int MPI_Init( int *argc, char*** argv )
     // Look for next defined MPI_Init
     // Used to support other profiling tools
     int (*mpi_init_fn)(int*, char ***);
-    mpi_init_fn = dlsym(RTLD_NEXT, "MPI_Init");
+    mpi_init_fn = (int (*)(int*, char***)) dlsym(RTLD_NEXT, "MPI_Init");
     assert(mpi_init_fn != 0);
+
+	// Initialize the environment
+	nanos::mpi::environment::initialize();
 
     // Call MPI_Init
     int error = mpi_init_fn(argc, argv);
 
     // Set MPI error handler to throw exceptions in MPI_COMM_WORLD
-    nanos::error::MPIErrorTranslator<MPI_Comm>(MPI_COMM_WORLD);
+    //nanos::error::MPIErrorTranslator<MPI_Comm>(MPI_COMM_WORLD);
+
+	return error;
+}
+
+int MPI_Init_thread( int *argc, char ***argv, int required, int *provided )
+{
+    // Look for next defined MPI_Init
+    // Used to support other profiling tools
+    int (*mpi_init_thread_fn)(int*, char ***, int, int*);
+    mpi_init_thread_fn = (int (*)(int*, char***, int, int*)) dlsym(RTLD_NEXT, "MPI_Init_thread");
+    assert(mpi_init_thread_fn != 0);
+
+    // Initialize the environment
+    nanos::mpi::environment::initialize();
+
+    // Call MPI_Init_thread
+    int error = mpi_init_thread_fn(argc, argv, required, provided);
+
+    // Set MPI error handler to throw exceptions in MPI_COMM_WORLD
+    //nanos::error::MPIErrorTranslator<MPI_Comm>(MPI_COMM_WORLD);
+
+    return error;
+}
+
+int MPI_Finalize()
+{
+	// Look for next defined MPI_Finalize
+	// Used to support other profiling tools
+	int (*mpi_finalize_fn)();
+	mpi_finalize_fn = (int (*)()) dlsym(RTLD_NEXT, "MPI_Finalize");
+	assert(mpi_finalize_fn != 0);
+
+	// Call MPI_Finalize
+	int error = mpi_finalize_fn();
+
+	// Finalize the environment
+	nanos::mpi::environment::finalize();
+
+	return error;
 }
 
 } // extern C

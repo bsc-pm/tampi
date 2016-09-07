@@ -21,6 +21,7 @@
 
 #include "mpi/request.h"
 #include "mpi/status.h"
+#include "ticketqueue.h"
 #include "smartpointer.h"
 #include "ticket.h"
 #include "print.h"
@@ -35,15 +36,16 @@ extern "C" {
         
         int err = MPI_SUCCESS;
         if( status == MPI_STATUS_IGNORE ) {
-            using ticket =  Ticket<C::request,C::ignored_status,1>;
-            nanos::shared_pointer<ticket> waitCond( new ticket( {*request}, err ) );
-            waitCond->wait();
-            err = waitCond->getReturnError();
+            using ticket_t = Ticket<C::request,C::ignored_status,1>;
+            ticket_t ticket( {*request}, err );
+			TicketQueue::wait( ticket );
+            err = ticket.getReturnError();
         } else {
-            using ticket =  Ticket<C::request,C::status,1>;
-            nanos::shared_pointer<ticket> waitCond( new ticket( {*request}, err ) );
-            waitCond->wait();
-            err = waitCond->getReturnError();
+            using ticket_t = Ticket<C::request,C::status,1>;
+            ticket_t ticket( {*request}, err );
+			TicketQueue::wait( ticket );
+            err = ticket.getReturnError();
+			*status = ticket.getStatuses()[0];
         }
         return err;
     }

@@ -38,7 +38,6 @@ int MPI_Sendrecv_replace( void *buf, int count, MPI_Datatype datatype,
      * countiguous storage. Then, it unpacks it in the original -- user provided --
      * buffer and releases the temporary buffer.
      */
-
     if ( source == MPI_PROC_NULL || dest == MPI_PROC_NULL || count == 0 ) {
         return MPI_Sendrecv( buf, count, datatype, dest, sendtag,
                              buf, count, datatype, source, recvtag,

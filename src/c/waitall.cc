@@ -22,6 +22,7 @@
 #include "array_utils.h"
 #include "mpi/request.h"
 #include "mpi/status.h"
+#include "ticketqueue.h"
 #include "smartpointer.h"
 #include "ticket.h"
 #include "print.h"
@@ -41,20 +42,20 @@ extern "C" {
     
         int err = MPI_SUCCESS;
         if( array_of_statuses == MPI_STATUSES_IGNORE ) {
-            using ticket =  Ticket<C::request,C::ignored_status,0>;
-            nanos::shared_pointer<ticket> waitCond( new ticket(
+            using ticket_t = Ticket<C::request,C::ignored_status,0>;
+            ticket_t ticket(
                        std::move( transform_to<requests_array>()(count, reinterpret_cast<C::request*>(array_of_requests)) ),
-                       err ) );
-            waitCond->wait();
-            err = waitCond->getReturnError();
+                       err );
+			TicketQueue::wait( ticket );
+            err = ticket.getReturnError();
         } else {
-            using ticket =  Ticket<C::request,C::status,0>;
-            nanos::shared_pointer<ticket> waitCond( new ticket(
+            using ticket_t = Ticket<C::request,C::status,0>;
+            ticket_t ticket(
                        std::move( transform_to<requests_array>()(count, reinterpret_cast<C::request*>(array_of_requests)) ),
-                       err ) );
-            waitCond->wait();
-            err = waitCond->getReturnError();
-            std::copy( waitCond->getStatuses().begin(), waitCond->getStatuses().end(), array_of_statuses );
+                       err );
+			TicketQueue::wait( ticket );
+            err = ticket.getReturnError();
+            std::copy( ticket.getStatuses().begin(), ticket.getStatuses().end(), array_of_statuses );
         }
         return err;
     }
