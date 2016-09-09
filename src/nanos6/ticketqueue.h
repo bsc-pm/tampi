@@ -2,6 +2,7 @@
 #define NANOS6_TIQUET_QUEUE_H
 
 #include "genericticket.h"
+#include "ticketmutex.h"
 
 #include "mpi/error.h"
 
@@ -21,7 +22,7 @@ class TicketQueue {
 	static TicketQueue* _queue;
 
 	container _list;
-	std::mutex _mutex;
+	TicketMutex<> _mutex;
 
   public:
 	TicketQueue() :
@@ -52,8 +53,8 @@ class TicketQueue {
 
     void push_back( type &ticket )
     {
-		while( !_mutex.try_lock() );
-		std::lock_guard<std::mutex> guard( _mutex, std::adopt_lock );
+		_mutex.lock();
+		std::lock_guard< TicketMutex<> > guard( _mutex, std::adopt_lock );
 		_list.push_back( &ticket );
     }
 
@@ -62,24 +63,22 @@ class TicketQueue {
 		if ( _list.empty() )
 			return false;
 
-        if( _mutex.try_lock() ) {
-            if ( !_list.empty() ) {
-                container::iterator it = _list.begin();
+		_mutex.lock();
+		std::lock_guard< TicketMutex<> > guard( _mutex, std::adopt_lock );
 
-                while( it != _list.end() ) {
-                    GenericTicket *ticket = *it;
-                    if ( ticket->check() ) {
-						ticket->signal();
-                        _list.erase( it++ );
-                        _mutex.unlock();
-                        return true;
-                    }
-                    ++it;
-                }
-            }
-            _mutex.unlock();
-        }
-        return false;
+		if ( !_list.empty() ) {
+			container::iterator it = _list.begin();
+			while( it != _list.end() ) {
+				GenericTicket *ticket = *it;
+				if ( ticket->check() ) {
+					ticket->signal();
+					_list.erase( it++ );
+					return true;
+				}
+				++it;
+			}
+		}
+		return false;
     }
 
 	static void wait(GenericTicket &ticket)
