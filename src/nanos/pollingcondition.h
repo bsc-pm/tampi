@@ -19,34 +19,19 @@ namespace nanos {
 class SinglePollingCond : public GenericSyncCond {
 private:
     WorkDescriptor* _waiter;
+    Atomic<bool>    _completed;
 
 public:
     //! Default constructor.
     SinglePollingCond() :
-        _waiter(nullptr)
+        _waiter(nullptr),
+        _completed(false)
     {
     }
 
     //! Default destructor.
     virtual ~SinglePollingCond() noexcept
     {
-    }
-
-    virtual bool check() = 0;
-
-    virtual void signal()
-    {
-        signal_one();
-    }
-
-    virtual void signal_one()
-    {
-        lock();
-        if( _waiter ) {
-           Scheduler::wakeUp( _waiter );
-            _waiter = nullptr;
-        }
-        unlock();
     }
 
     virtual void addWaiter( WorkDescriptor* wd )
@@ -58,9 +43,16 @@ public:
         _waiter = wd;
     }
 
-    virtual bool hasWaiters()
+    /*! \brief checks for polling completion.
+     * Polling is considered completed if either
+     * the polling thread has called signal()
+     * or the waiting thread has verified that
+     * the condition was already fulfilled even
+     * before calling the wait() function.
+     */
+    virtual bool check()
     {
-        return _waiter;
+        return _completed;
     }
 
     virtual WorkDescriptor* getAndRemoveWaiter()
@@ -70,9 +62,43 @@ public:
         return curr_waiter;
     }
 
+    virtual bool hasWaiters()
+    {
+        return _waiter;
+    }
+
+    virtual void signal()
+    {
+        signal_one();
+    }
+
+    /*! \brief Signals the waiting workdescriptor (if exists)
+     * Wakes waiting workdescriptor up if exists.
+     * It assumes that the condition is satisfied, otherwise
+     * its behaviour is undefined.
+     */
+    virtual void signal_one()
+    {
+        std::unique_lock<SinglePollingCond> block( *this );
+	    _completed = true;
+
+        if( _waiter ) {
+           Scheduler::wakeUp( _waiter );
+            _waiter = nullptr;
+        }
+    }
+
+    //! Polls to check if the condition has finished
+    virtual bool test() = 0;
+
     //! Registers itself into scheduler's condition check list.
     void wait() {
-        if( !check() ) {
+        std::unique_lock<SinglePollingCond> block( *this );
+        if( !_completed )
+            _completed = test();
+        block.unlock();
+
+        if( !_completed ) {
             myThread->getTeam()->getSchedulePolicy().queue( myThread, this );
             Scheduler::waitOnCondition(this);
         }

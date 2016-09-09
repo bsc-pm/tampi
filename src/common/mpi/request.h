@@ -7,6 +7,8 @@
 #include "error.h"
 #include "status.h"
 
+#include <vector>
+
 namespace nanos {
 namespace mpi {
 

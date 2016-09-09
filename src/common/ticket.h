@@ -51,16 +51,12 @@ public:
 
     std::array<Request,count> _requests;
     std::array<Status,count> _statuses;
-    Lock _test_lock;
     int  _error;
-    bool _completed;
 
     Ticket( const std::array<Request,count>& reqs, int error ) :
         _requests( reqs ),
         _statuses(),
-        _test_lock(),
-        _error( error ),
-        _completed( false )
+        _error( error )
     {
     }
 
@@ -70,8 +66,6 @@ public:
     //! Destructor.
     virtual ~Ticket() noexcept
     {
-        if( !_completed )
-            std::runtime_error( "Destroying unfinished MPI requests" );
     }
 
     const std::array<Status,count>& getStatuses() const
@@ -84,14 +78,9 @@ public:
         return _error;
     }
 
-    virtual bool check()
+    virtual bool test()
     {
-
-        std::unique_lock<Lock> lock( _test_lock );
-        if( !_completed ) {
-            _completed = Request::test_all( _requests, _statuses );
-        }
-        return _completed;
+        return Request::test_all( _requests, _statuses );
     }
 };
 
@@ -104,17 +93,13 @@ public:
 
     std::vector<Request> _requests;
     std::vector<Status>  _statuses;
-    Lock         _test_lock;
     int          _error;
-    Atomic<bool> _completed;
 
     //! Default constructor.
     Ticket( const std::vector<Request>& reqs, int error = MPI_SUCCESS ) :
         _requests( reqs ),
         _statuses( reqs.size() ),
-        _test_lock(),
-        _error( error ),
-        _completed( false )
+        _error( error )
     {
     }
 
@@ -124,8 +109,6 @@ public:
     //! Destructor.
     virtual ~Ticket()
     {
-        if( !_completed )
-            std::runtime_error( "Destroying an unsatisfied polling condition" );
     }
 
     const std::vector<Status>& getStatuses() const
@@ -138,15 +121,9 @@ public:
         return _error;
     }
 
-    virtual bool check()
+    virtual bool test()
     {
-        if( !_completed ) {
-            std::unique_lock<Lock> lock( _test_lock );
-            if( !_completed ) {
-                _completed = Request::test_all( _requests, _statuses );
-            }
-        }
-        return _completed;
+        return Request::test_all( _requests, _statuses );
     }
 };
 
