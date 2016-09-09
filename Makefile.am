@@ -2,7 +2,6 @@ ACLOCAL_AMFLAGS=-I m4
 
 AM_CPPFLAGS=\
  @ompssinc@ \
- @argobotsinc@ \
  -I@top_srcdir@/src \
  -I@top_srcdir@/src/common \
  -I@top_srcdir@/src/nanos6 \
@@ -10,8 +9,8 @@ AM_CPPFLAGS=\
  $(CPPFLAGS)
 
 AM_CXXFLAGS=$(CXXFLAGS)
-AM_LDFLAGS=@extraelib@ @ompsslib@ @argobotslib@ -ldl $(LDFLAGS)
-LIBS=@extraelibs@ @ompsslibs@ @argobotslibs@
+AM_LDFLAGS=@extraelib@ @ompsslib@ -ldl $(LDFLAGS)
+LIBS=@extraelibs@ @ompsslibs@
 
 pkginclude_HEADERS= # This library does not provide any additional header
 
