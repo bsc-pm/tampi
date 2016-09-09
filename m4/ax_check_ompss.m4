@@ -88,10 +88,24 @@ AS_IF([test "$ac_cv_header_nanox_nanos_h" == yes],
 
 # Look for nanos_register_polling_service function in OmpSs runtime libraries
 AC_SEARCH_LIBS([nanos_register_polling_service],
-  [nanox-c nanos6-argobots nanos6],
-  [ompss=yes],
-  [ompss=no],
+  [nanos6],
+  [
+    ompss="yes"
+    runtime_version="nanos6"
+  ],
+  [ompss="no"],
   [$prereq_libs])
+
+AS_IF([test "$ompss" != "yes"],[
+  AC_SEARCH_LIBS([nanos_polling_cond_wait],
+    [nanox-c],
+    [
+      ompss="yes"
+      runtime_version="nanox"
+    ],
+    [ompss="no"],
+    [$prereq_libs])
+])
 
 ompsslibs=$LIBS
 
@@ -112,6 +126,8 @@ AC_SUBST([ompss])
 AC_SUBST([ompssinc])
 AC_SUBST([ompsslib])
 AC_SUBST([ompsslibs])
+AM_CONDITIONAL([NANOS6],[test "$runtime_version" = "nanos6"])
+AM_CONDITIONAL([NANOX],[test "$runtime_version" = "nanox"])
 
 ])dnl AX_CHECK_OMPSS
 

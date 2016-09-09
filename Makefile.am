@@ -4,9 +4,17 @@ AM_CPPFLAGS=\
  @ompssinc@ \
  -I@top_srcdir@/src \
  -I@top_srcdir@/src/common \
- -I@top_srcdir@/src/nanos6 \
  -include "config.h" \
  $(CPPFLAGS)
+
+if NANOS6
+AM_CPPFLAGS+=\
+ -I@top_srcdir@/src/nanos6
+endif
+if NANOX
+AM_CPPFLAGS+=\
+ -I@top_srcdir@/src/nanox
+endif
 
 AM_CXXFLAGS=$(CXXFLAGS)
 AM_LDFLAGS=@extraelib@ @ompsslib@ -ldl $(LDFLAGS)
