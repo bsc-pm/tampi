@@ -21,7 +21,6 @@
 #include <dlfcn.h>
 #include <cassert>
 
-//#include "debug/mpierrortranslator.hpp"
 #include "environment.h"
 
 nanos::mpi::TicketQueue* nanos::mpi::TicketQueue::_queue = nullptr;
@@ -47,10 +46,6 @@ int MPI_Init( int *argc, char*** argv )
 
     // Call MPI_Init
     int error = mpi_init_fn(argc, argv);
-
-    // Set MPI error handler to throw exceptions in MPI_COMM_WORLD
-    //nanos::error::MPIErrorTranslator<MPI_Comm>(MPI_COMM_WORLD);
-
 	return error;
 }
 
@@ -67,10 +62,6 @@ int MPI_Init_thread( int *argc, char ***argv, int required, int *provided )
 
     // Call MPI_Init_thread
     int error = mpi_init_thread_fn(argc, argv, required, provided);
-
-    // Set MPI error handler to throw exceptions in MPI_COMM_WORLD
-    //nanos::error::MPIErrorTranslator<MPI_Comm>(MPI_COMM_WORLD);
-
     return error;
 }
 

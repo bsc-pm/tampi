@@ -22,9 +22,8 @@
 #include "array_utils.h"
 #include "mpi/request.h"
 #include "mpi/status.h"
-#include "ticketqueue.h"
-#include "smartpointer.h"
 #include "ticket.h"
+#include "smartpointer.h"
 #include "print.h"
 
 using namespace nanos::mpi;
@@ -46,14 +45,14 @@ extern "C" {
             ticket_t ticket(
                        std::move( transform_to<requests_array>()(count, reinterpret_cast<C::request*>(array_of_requests)) ),
                        err );
-			TicketQueue::wait( ticket );
+            ticket.wait();
             err = ticket.getReturnError();
         } else {
             using ticket_t = Ticket<C::request,C::status,0>;
             ticket_t ticket(
                        std::move( transform_to<requests_array>()(count, reinterpret_cast<C::request*>(array_of_requests)) ),
                        err );
-			TicketQueue::wait( ticket );
+            ticket.wait();
             err = ticket.getReturnError();
             std::copy( ticket.getStatuses().begin(), ticket.getStatuses().end(), array_of_statuses );
         }

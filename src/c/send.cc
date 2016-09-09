@@ -22,10 +22,9 @@
 #include "mpi/common.h"
 #include "mpi/status.h"
 #include "mpi/request.h"
-#include "ticketqueue.h"
+#include "ticket.h"
 #include "print.h"
 #include "smartpointer.h"
-#include "ticket.h"
 
 using namespace nanos::mpi;
 using ticket_t = Ticket<C::request,C::ignored_status,1>;
@@ -41,7 +40,7 @@ extern "C" {
                              &static_cast<MPI_Request&>(req) );
 
         ticket_t ticket( {req}, err );
-		TicketQueue::wait( ticket );
+        ticket.wait();
         return ticket.getReturnError();
     }
 } // extern C

@@ -51,7 +51,7 @@ class TicketQueue {
         return _list.empty();
     }
 
-    void push_back( type &ticket )
+    void pushBack( type &ticket )
     {
 		_mutex.lock();
 		std::lock_guard< TicketMutex<> > guard( _mutex, std::adopt_lock );
@@ -79,14 +79,6 @@ class TicketQueue {
 			}
 		}
 		return false;
-    }
-
-	static void wait(GenericTicket &ticket)
-    {
-        if( !ticket.check() ) {
-            _queue->push_back( ticket );
-            ticket.wait();
-        }
     }
 
 	static TicketQueue& get()

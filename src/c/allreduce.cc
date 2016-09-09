@@ -23,7 +23,6 @@
 
 #include "mpi/request.h"
 #include "mpi/status.h"
-#include "ticketqueue.h"
 #include "smartpointer.h"
 #include "ticket.h"
 #include "print.h"
@@ -41,7 +40,7 @@ extern "C" {
         int err = MPI_Iallreduce( sendbuf, recvbuf, count, datatype,
                                   op, comm, &static_cast<MPI_Request&>(req) );
         ticket_t ticket( {req}, err );
-		TicketQueue::wait( ticket );
+        ticket.wait();
         return err;
     }
 } // extern C

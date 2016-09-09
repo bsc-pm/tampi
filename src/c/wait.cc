@@ -21,9 +21,8 @@
 
 #include "mpi/request.h"
 #include "mpi/status.h"
-#include "ticketqueue.h"
-#include "smartpointer.h"
 #include "ticket.h"
+#include "smartpointer.h"
 #include "print.h"
 
 using namespace nanos::mpi;
@@ -38,12 +37,12 @@ extern "C" {
         if( status == MPI_STATUS_IGNORE ) {
             using ticket_t = Ticket<C::request,C::ignored_status,1>;
             ticket_t ticket( {*request}, err );
-			TicketQueue::wait( ticket );
+            ticket.wait();
             err = ticket.getReturnError();
         } else {
             using ticket_t = Ticket<C::request,C::status,1>;
             ticket_t ticket( {*request}, err );
-			TicketQueue::wait( ticket );
+            ticket.wait();
             err = ticket.getReturnError();
 			*status = ticket.getStatuses()[0];
         }

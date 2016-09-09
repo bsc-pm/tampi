@@ -23,10 +23,9 @@
 
 #include "mpi/request.h"
 #include "mpi/status.h"
-#include "ticketqueue.h"
+#include "ticket.h"
 #include "print.h"
 #include "smartpointer.h"
-#include "ticket.h"
 
 
 using namespace nanos::mpi;
@@ -39,12 +38,12 @@ extern "C" {
     {
         print::intercepted_call( __func__ );
 
-	C::request req;
+        C::request req;
         int err = MPI_Ireduce( sendbuf, recvbuf, count, datatype,
                                op, root, comm, &static_cast<MPI_Request&>(req) );
 
         ticket_t ticket( {req}, err );
-		TicketQueue::wait( ticket );
+        ticket.wait();
         return ticket.getReturnError();
     }
 } // extern C

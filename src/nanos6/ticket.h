@@ -21,6 +21,7 @@
 #define TICKET_H
 
 #include "genericticket.h"
+#include "ticketqueue.h"
 
 #include "mpi/error.h"
 
@@ -90,11 +91,16 @@ public:
 		nanos_unblock_task( _blocked_task );
 	}
 
-	void wait()
-	{
-		_blocked_task = nanos_get_current_task();
-		nanos_block_current_task();
-	}
+    void wait()
+    {
+        if( !check() ) {
+            TicketQueue& queue = TicketQueue::get();
+            queue.pushBack( *this );
+
+            _blocked_task = nanos_get_current_task();
+            nanos_block_current_task();
+        }
+    }
 
 	bool check()
 	{
@@ -154,9 +160,14 @@ public:
     }
 
     void wait()
-    {
-		_blocked_task = nanos_get_current_task();
-		nanos_block_current_task();
+    {   
+        if( !check() ) { 
+            TicketQueue& queue = TicketQueue::get();
+            queue.pushBack( *this );
+            
+            _blocked_task = nanos_get_current_task();
+            nanos_block_current_task();
+        }
     }
 
     bool check()
