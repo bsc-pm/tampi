@@ -27,7 +27,6 @@ c_api_sources= \
  src/c/barrier.cc \
  src/c/bcast.cc \
  src/c/gatherv.cc \
- src/c/init-finalize.cc \
  src/c/recv.cc \
  src/c/reduce.cc \
  src/c/send.cc \
@@ -49,6 +48,13 @@ fortran_api_sources= \
  src/fortran/waitall.cc \
  src/fortran/wait.cc \
  src/fortran/sendrecvreplace.cc
+
+if NANOS6
+c_api_sources+= \
+ src/c/init-finalize.cc
+fortran_api_sources+= \
+ src/fortran/init-finalize.cc
+endif
 
 lib_LTLIBRARIES=libmpiompss-interop.la
 libmpiompss_interop_la_SOURCES=$(c_api_sources) $(fortran_api_sources)
