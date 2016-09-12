@@ -25,7 +25,6 @@
 #include "mpi/status.h"
 #include "ticket.h"
 #include "print.h"
-#include "smartpointer.h"
 
 using namespace nanos::mpi;
 using ticket_t = Ticket<C::request,C::ignored_status,1>;

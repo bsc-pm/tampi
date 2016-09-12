@@ -24,7 +24,6 @@
 #include "mpi/request.h"
 #include "mpi/status.h"
 #include "print.h"
-#include "smartpointer.h"
 #include "ticket.h"
 
 using namespace nanos::mpi;

@@ -20,7 +20,6 @@
 #include <mpi.h>
 
 #include "mpi/status.h"
-#include "smartpointer.h"
 #include "print.h"
 
 extern "C" {
