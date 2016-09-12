@@ -23,7 +23,6 @@
 #include "mpi/common.h"
 #include "mpi/request.h"
 #include "mpi/status.h"
-#include "smartpointer.h"
 #include "ticket.h"
 #include "print.h"
 
@@ -40,20 +39,20 @@ extern "C" {
         using statuses_array = std::vector<Fortran::status >;
 
         if( array_of_statuses == MPI_F_STATUSES_IGNORE ) {
-            using ticket = Ticket<Fortran::request,Fortran::ignored_status>;
-            nanos::shared_pointer<ticket> waitCond( new ticket( 
+            using ticket_t = Ticket<Fortran::request,Fortran::ignored_status>;
+            ticket_t ticket(
                        std::move( transform_to<requests_array>()(*count, reinterpret_cast<Fortran::request*>(array_of_requests)) ),
-                       *err ) );
-            waitCond->wait();
-            *err = waitCond->getReturnError();
+                       *err );
+            ticket.wait();
+            *err = ticket.getReturnError();
         } else {
-            using ticket = Ticket<Fortran::request,Fortran::status>;
-            nanos::shared_pointer<ticket> waitCond( new ticket(
+            using ticket_t = Ticket<Fortran::request,Fortran::status>;
+            ticket_t ticket(
                        std::move( transform_to<requests_array>()(*count, reinterpret_cast<Fortran::request*>(array_of_requests)) ),
-                       *err ) );
-            waitCond->wait();
-            *err = waitCond->getReturnError();
-            std::copy( waitCond->getStatuses().begin(), waitCond->getStatuses().end(),
+                       *err );
+            ticket.wait();
+            *err = ticket.getReturnError();
+            std::copy( ticket.getStatuses().begin(), ticket.getStatuses().end(),
                        reinterpret_cast<Fortran::status*>(array_of_statuses) );
         }
     }

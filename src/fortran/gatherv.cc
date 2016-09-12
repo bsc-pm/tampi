@@ -24,11 +24,10 @@
 #include "mpi/request.h"
 #include "mpi/status.h"
 #include "print.h"
-#include "smartpointer.h"
 #include "ticket.h"
 
 using namespace nanos::mpi;
-using ticket = Ticket<Fortran::request,Fortran::ignored_status,1>;
+using ticket_t = Ticket<Fortran::request,Fortran::ignored_status,1>;
 
 extern "C" {
     void mpi_igatherv_( const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
@@ -49,9 +48,9 @@ extern "C" {
                 &static_cast<MPI_Fint&>(req),
                 err );
 
-        nanos::shared_pointer<ticket> waitCond( new ticket( {req}, *err ) );
-        waitCond->wait();
-        *err = waitCond->getReturnError();
+        ticket_t ticket( {req}, *err );
+        ticket.wait();
+        *err = ticket.getReturnError();
     }
 
 } // extern C

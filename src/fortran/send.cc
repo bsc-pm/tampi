@@ -23,11 +23,10 @@
 #include "mpi/request.h"
 #include "mpi/status.h"
 #include "print.h"
-#include "smartpointer.h"
 #include "ticket.h"
 
 using namespace nanos::mpi;
-using ticket = nanos::mpi::Ticket<Fortran::request,Fortran::ignored_status,1>;
+using ticket_t = nanos::mpi::Ticket<Fortran::request,Fortran::ignored_status,1>;
 
 extern "C" {
     void mpi_isend_( MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
@@ -43,9 +42,9 @@ extern "C" {
         mpi_isend_( buf, count, datatype, dest, tag, comm,
                     &static_cast<MPI_Fint&>(req), err );
 
-        nanos::shared_pointer<ticket> waitCond( new ticket( {req}, *err ) );
-        waitCond->wait();
-        *err = waitCond->getReturnError();
+        ticket_t ticket( {req}, *err );
+        ticket.wait();
+        *err = ticket.getReturnError();
     }
 } // extern C
 

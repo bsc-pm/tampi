@@ -21,7 +21,6 @@
 
 #include "mpi/request.h"
 #include "mpi/status.h"
-#include "smartpointer.h"
 #include "print.h"
 #include "ticket.h"
 
@@ -42,15 +41,15 @@ extern "C" {
                     &static_cast<MPI_Fint&>(req), err );
 
         if( status == MPI_F_STATUS_IGNORE ) {
-           using ticket = Ticket<Fortran::request,Fortran::ignored_status,1>;
-           nanos::shared_pointer<ticket> waitCond( new ticket( {req}, *err ) );
-           waitCond->wait();
-           *err = waitCond->getReturnError();
+           using ticket_t = Ticket<Fortran::request,Fortran::ignored_status,1>;
+           ticket_t ticket( {req}, *err );
+           ticket.wait();
+           *err = ticket.getReturnError();
         } else {
-           using ticket = Ticket<Fortran::request,Fortran::status,1>;
-           nanos::shared_pointer<ticket> waitCond( new ticket( {req}, *err ) );
-           waitCond->wait();
-           *err = waitCond->getReturnError();
+           using ticket_t = Ticket<Fortran::request,Fortran::status,1>;
+           ticket_t ticket( {req}, *err );
+           ticket.wait();
+           *err = ticket.getReturnError();
         }
     }
 } // extern C
