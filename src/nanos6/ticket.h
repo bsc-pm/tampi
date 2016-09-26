@@ -62,7 +62,7 @@ public:
         _statuses(),
 		_error( error ),
         _completed( false ),
-		_blocked_task( nullptr )
+		_blocked_task( nanos_get_current_task() )
     {
     }
 
@@ -96,8 +96,6 @@ public:
         if( !check() ) {
             TicketQueue& queue = TicketQueue::get();
             queue.pushBack( *this );
-
-            _blocked_task = nanos_get_current_task();
             nanos_block_current_task();
         }
     }
@@ -130,7 +128,7 @@ public:
         _statuses( reqs.size() ),
 		_error( error ),
         _completed( false ),
-		_blocked_task( nullptr )
+		_blocked_task( nanos_get_current_task() )
     {
     }
 
@@ -164,8 +162,6 @@ public:
         if( !check() ) { 
             TicketQueue& queue = TicketQueue::get();
             queue.pushBack( *this );
-            
-            _blocked_task = nanos_get_current_task();
             nanos_block_current_task();
         }
     }
