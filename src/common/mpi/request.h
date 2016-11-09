@@ -164,7 +164,7 @@ template <>
 inline bool request::test<ignored_status>( ignored_status &return_status )
 {
 	int flag;
-	int err = MPI_Test( &_value, &flag,
+	int err = PMPI_Test( &_value, &flag,
 	          MPI_STATUS_IGNORE );
 	check_error( err );
 	return flag == 1;
@@ -175,7 +175,7 @@ template <>
 inline bool request::test<status>( status &return_status )
 {
 	int flag;
-	int err = MPI_Test( &_value, &flag,
+	int err = PMPI_Test( &_value, &flag,
 	          &reinterpret_cast<MPI_Status&>(return_status) );
 	check_error( err );
 	return flag == 1;
@@ -187,7 +187,7 @@ inline bool request::test_all<ignored_status>( std::vector<request>& requests,
                       std::vector<ignored_status>& return_statuses )
 {
 	int flag;
-	int err = MPI_Testall( requests.size(),
+	int err = PMPI_Testall( requests.size(),
 	             reinterpret_cast<MPI_Request*>(requests.data()), &flag,
 	             MPI_STATUSES_IGNORE );
 	check_error( err );
@@ -201,7 +201,7 @@ inline bool request::test_all<status>( std::vector<request>& requests,
 {
 	int flag;
 	return_statuses.resize( requests.size() );
-	int err = MPI_Testall( requests.size(),
+	int err = PMPI_Testall( requests.size(),
 	             reinterpret_cast<MPI_Request*>(requests.data()), &flag,
 	             reinterpret_cast<MPI_Status*>(return_statuses.data()) );
 	check_error( err );
@@ -213,7 +213,7 @@ inline bool request::test_all( std::array<request,count>& requests,
                       std::array<ignored_status,count>& return_statuses )
 {
 	int flag;
-	int err = MPI_Testall( count,
+	int err = PMPI_Testall( count,
 	             reinterpret_cast<MPI_Request*>(requests.data()), &flag,
 	             MPI_STATUSES_IGNORE );
 	check_error( err );
@@ -225,7 +225,7 @@ inline bool request::test_all( std::array<request,count>& requests,
                       std::array<status,count>& return_statuses )
 {
 	int flag;
-	int err = MPI_Testall( count,
+	int err = PMPI_Testall( count,
 	             reinterpret_cast<MPI_Request*>(requests.data()), &flag,
 	             reinterpret_cast<MPI_Status*>(return_statuses.data()) );
 	check_error( err );
@@ -237,7 +237,7 @@ inline std::pair<bool,int> request::test_any<ignored_status>( std::vector<reques
                       ignored_status& return_status )
 {
 	int flag, index;
-	int err = MPI_Testany( requests.size(),
+	int err = PMPI_Testany( requests.size(),
 	             reinterpret_cast<MPI_Request*>(requests.data()),
 	             &index, &flag,
 	             MPI_STATUSES_IGNORE );
@@ -251,7 +251,7 @@ inline std::pair<bool,int> request::test_any<status>( std::vector<request>& requ
                       status& return_status )
 {
 	int flag, index;
-	int err = MPI_Testany( requests.size(),
+	int err = PMPI_Testany( requests.size(),
 	             reinterpret_cast<MPI_Request*>(requests.data()),
 	             &index, &flag,
 	             &static_cast<MPI_Status&>(return_status) );
@@ -267,7 +267,7 @@ inline std::vector<int> request::test_some( std::vector<request>& requests,
 	int ready_count = 0;
 	std::vector<int> ready_indices(requests.size());
 
-	int err = MPI_Testsome( requests.size(),
+	int err = PMPI_Testsome( requests.size(),
 	              reinterpret_cast<MPI_Request*>(requests.data()),
 	              &ready_count, ready_indices.data(),
 	              reinterpret_cast<MPI_Status*>(return_statuses.data()) );
@@ -287,16 +287,16 @@ inline std::vector<int> request::test_some( std::vector<request>& requests,
 extern "C" {
 
 //! MPI_Test Fortran API declaration
-void mpi_test_( MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint* );
+void pmpi_test_( MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint* );
 
 //! MPI_Testall Fortran API declaration
-void mpi_testall_( MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint* );
+void pmpi_testall_( MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint* );
 
 //! MPI_Testany Fortran API declaration
-void mpi_testany_( MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint* );
+void pmpi_testany_( MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint* );
 
 //! MPI_Testsome Fortran API declaration
-void mpi_testsome_( MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint[], MPI_Fint* );
+void pmpi_testsome_( MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint[], MPI_Fint* );
 
 } // extern C
 
@@ -307,7 +307,7 @@ template <>
 inline bool request::test<ignored_status>( ignored_status &return_status )
 {
 	int err, flag;
-	mpi_test_( &_value, &flag, 
+	pmpi_test_( &_value, &flag,
 	           MPI_F_STATUS_IGNORE,
 	           &err );
 	check_error( err );
@@ -319,7 +319,7 @@ template <>
 inline bool request::test<status>( status &return_status )
 {
 	int err, flag;
-	mpi_test_( &_value, &flag, 
+	pmpi_test_( &_value, &flag,
 	           &reinterpret_cast<MPI_Fint&>(return_status),
 	           &err );
 	check_error( err );
@@ -334,7 +334,7 @@ inline bool request::test_all<ignored_status>( std::vector<request>& requests,
 	int err, flag;
 	int count = requests.size();
 
-	mpi_testall_( &count,
+	pmpi_testall_( &count,
 	             reinterpret_cast<MPI_Fint*>(requests.data()),
 	             &flag,
 	             MPI_F_STATUSES_IGNORE,
@@ -352,7 +352,7 @@ inline bool request::test_all<status>( std::vector<request>& requests,
 	int count = requests.size();
 
 	return_statuses.resize( count );
-	mpi_testall_( &count,
+	pmpi_testall_( &count,
 	             reinterpret_cast<MPI_Fint*>(requests.data()),
 	             &flag,
 	             reinterpret_cast<MPI_Fint*>(return_statuses.data()),
@@ -367,7 +367,7 @@ inline bool request::test_all( std::array<request,count>& requests,
 {
 	int err, flag;
 	int size = count;
-	mpi_testall_( &size,
+	pmpi_testall_( &size,
 	             reinterpret_cast<MPI_Fint*>(requests.data()),
 	             &flag,
 	             reinterpret_cast<MPI_Fint*>(return_statuses.data()),
@@ -382,7 +382,7 @@ inline bool request::test_all( std::array<request,count>& requests,
 {
 	int err, flag;
 	int size = count;
-	mpi_testall_( &size,
+	pmpi_testall_( &size,
 	             reinterpret_cast<MPI_Fint*>(requests.data()),
 	             &flag,
 	             MPI_F_STATUSES_IGNORE,
@@ -397,7 +397,7 @@ inline std::pair<bool,int> request::test_any<status>( std::vector<request>& requ
 {
 	int err, flag, index;
 	int count = requests.size();
-	mpi_testany_( &count,
+	pmpi_testany_( &count,
 		    reinterpret_cast<MPI_Fint*>(requests.data()),
 		    &index, &flag,
 		    &reinterpret_cast<MPI_Fint&>(return_status),
@@ -414,7 +414,7 @@ inline std::pair<bool,int> request::test_any<ignored_status>( std::vector<reques
 {
 	int err, flag, index;
 	int count = requests.size();
-	mpi_testany_( &count,
+	pmpi_testany_( &count,
 		    reinterpret_cast<MPI_Fint*>(requests.data()),
 		    &index, &flag,
 		    MPI_F_STATUSES_IGNORE,
@@ -433,7 +433,7 @@ inline std::vector<int> request::test_some( std::vector<request>& requests,
 	int count = requests.size();
 	std::vector<int> ready_indices(requests.size());
 
-	mpi_testsome_( &count,
+	pmpi_testsome_( &count,
 	               reinterpret_cast<MPI_Fint*>(requests.data()),
 	               &ready_count, ready_indices.data(),
 	               reinterpret_cast<MPI_Fint*>(return_statuses.data()),
