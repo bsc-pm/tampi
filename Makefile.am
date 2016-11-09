@@ -24,6 +24,8 @@ pkginclude_HEADERS= # This library does not provide any additional header
 
 c_api_sources= \
  src/c/allreduce.cc \
+ src/c/alltoall.cc \
+ src/c/alltoallv.cc \
  src/c/barrier.cc \
  src/c/bcast.cc \
  src/c/gatherv.cc \
@@ -38,6 +40,8 @@ c_api_sources= \
 
 fortran_api_sources= \
  src/fortran/allreduce.cc \
+ src/fortran/alltoall.cc \
+ src/fortran/alltoallv.cc \
  src/fortran/barrier.cc \
  src/fortran/bcast.cc \
  src/fortran/gatherv.cc \
