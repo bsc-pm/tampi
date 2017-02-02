@@ -74,38 +74,32 @@ AX_VAR_PUSHVALUE([LDFLAGS],[$LDFLAGS $ompsslib])
 AX_VAR_PUSHVALUE([LIBS],[])
 
 # Check if nanos runtime header file exists and compiles
-AC_CHECK_HEADERS([nanox/nanos.h nanos6/nanos6_rt_interface.h], 
+AC_CHECK_HEADERS([nanox/nanos.h nanos6.h], 
                  [ompss=yes; break],
                  [ompss=no])
 
-AS_IF([test "$ac_cv_header_nanox_nanos_h" == yes],
-        [runtime_version=5
-         ompssinc="$ompssinc/nanox $ompssinc/nanox-dev"
-         prereq_libs="-lnanox-ompss"
-        ],
-      [test "$ac_cv_header_nanos6_nanos6_rt_interface_h" == yes],
-        [runtime_version=6])
-
-# Look for nanos_register_polling_service function in OmpSs runtime libraries
-AC_SEARCH_LIBS([nanos_register_polling_service],
-  [nanos6],
-  [
-    ompss="yes"
-    runtime_version="nanos6"
-  ],
-  [ompss="no"],
-  [$prereq_libs])
-
-AS_IF([test "$ompss" != "yes"],[
-  AC_SEARCH_LIBS([nanos_polling_cond_wait],
-    [nanox-c],
-    [
-      ompss="yes"
-      runtime_version="nanox"
-    ],
-    [ompss="no"],
-    [$prereq_libs])
+AS_IF([test "$ac_cv_header_nanox_nanos_h" = "yes"],[
+  search_lib=nanox-c
+  required_libs="-lnanox -lnanox-ompss"
+],[
+  search_lib=nanos6
+  required_libs=
 ])
+
+m4_foreach([function],
+           [nanos_register_polling_service,
+            nanos_unregister_polling_service,
+            nanos_block_current_task,
+            nanos_unblock_task],
+           [
+             AS_IF([test "$ompss" = "yes"],[
+               AC_SEARCH_LIBS(function,
+                              [$search_lib],
+                              [ompss=yes],
+                              [ompss=no],
+                              [$required_libs])dnl
+             ])
+           ])dnl
 
 ompsslibs=$LIBS
 
@@ -114,7 +108,7 @@ AX_VAR_POPVALUE([CXXFLAGS])
 AX_VAR_POPVALUE([LDFLAGS])
 AX_VAR_POPVALUE([LIBS])
 
-AS_IF([test "$ompss" != "yes" -a "$runtime_version" != ""],[
+AS_IF([test "$ompss" != "yes"],[
     AC_MSG_ERROR([
 ------------------------------
 OmpSs path was not correctly specified. 
@@ -126,8 +120,6 @@ AC_SUBST([ompss])
 AC_SUBST([ompssinc])
 AC_SUBST([ompsslib])
 AC_SUBST([ompsslibs])
-AM_CONDITIONAL([NANOS6],[test "$runtime_version" = "nanos6"])
-AM_CONDITIONAL([NANOX],[test "$runtime_version" = "nanox"])
 
 ])dnl AX_CHECK_OMPSS
 

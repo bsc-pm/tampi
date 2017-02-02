@@ -27,12 +27,15 @@
 
 #include <type_traits>
 
-/* Nanos6 runtime API */
-extern "C" {
-void *nanos_get_current_task();
-void nanos_block_current_task();
-void nanos_unblock_task(void *blocked_task_handler);
-} //extern C
+#ifdef HAVE_NANOX_NANOS_H
+#include <nanox/nanos.h>
+#define nanos_get_current_task nanos_current_wd
+#endif
+
+#ifdef HAVE_NANOS6_H
+#include <nanos6.h>
+typedef void* nanos_wd_t;
+#endif
 
 namespace nanos {
 namespace mpi {
@@ -51,18 +54,18 @@ template<
 class Ticket : public GenericTicket {
 private:
     std::array<Request,count> _requests;
-    std::array<Status,count> _statuses;
-    int _error;
-	bool _completed;
-	void * _blocked_task;
+    std::array<Status,count>  _statuses;
+    int                       _error;
+    bool                      _completed;
+    nanos_wd_t                _blocked_task;
 
 public:
     Ticket( const std::array<Request,count>& reqs, int error = MPI_SUCCESS ) :
         _requests( reqs ),
         _statuses(),
-		_error( error ),
+        _error( error ),
         _completed( false ),
-		_blocked_task( nanos_get_current_task() )
+        _blocked_task( nanos_get_current_task() )
     {
     }
 
@@ -86,10 +89,10 @@ public:
         return _error;
     }
 
-	virtual void signal()
-	{
-		nanos_unblock_task( _blocked_task );
-	}
+    virtual void signal()
+    {
+       nanos_unblock_task( _blocked_task );
+    }
 
     void wait()
     {
@@ -100,13 +103,13 @@ public:
         }
     }
 
-	bool check()
-	{
-		if (!_completed) {
-			_completed = Request::test_all( _requests, _statuses );
-		}
-		return _completed;
-	}
+    bool check()
+    {
+       if (!_completed) {
+          _completed = Request::test_all( _requests, _statuses );
+       }
+       return _completed;
+    }
 };
 
 template<
@@ -118,17 +121,17 @@ private:
     std::vector<Request> _requests;
     std::vector<Status>  _statuses;
     int _error;
-	bool _completed;
-	void * _blocked_task;
+    bool _completed;
+    void * _blocked_task;
 
 public:
     //! Default constructor.
     Ticket( const std::vector<Request>& reqs, int error = MPI_SUCCESS ) :
         _requests( reqs ),
         _statuses( reqs.size() ),
-		_error( error ),
+        _error( error ),
         _completed( false ),
-		_blocked_task( nanos_get_current_task() )
+        _blocked_task( nanos_get_current_task() )
     {
     }
 
@@ -154,7 +157,7 @@ public:
 
     virtual void signal()
     {
-		nanos_unblock_task( _blocked_task );
+       nanos_unblock_task( _blocked_task );
     }
 
     void wait()

@@ -3,14 +3,15 @@
 
 #include "ticketqueue.h"
 
-#include <atomic>
+#ifdef HAVE_NANOX_NANOS_H
+#include <nanox/nanos.h>
+#endif
 
-/* Nanos6 runtime API */
-extern "C" {
-typedef int (*nanos_polling_service_t)(void *service_data);
-void nanos_register_polling_service(char const *service_name, nanos_polling_service_t service_function, void *service_data);
-void nanos_unregister_polling_service(char const *service_name, nanos_polling_service_t service_function, void *service_data);
-} //extern C
+#ifdef HAVE_NANOS6_H
+#include <nanos6.h>
+#endif
+
+#include <atomic>
 
 namespace nanos {
 namespace mpi {
