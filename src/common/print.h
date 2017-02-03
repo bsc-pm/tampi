@@ -34,49 +34,49 @@
   printing helpers.
  */
 
-namespace print {
+namespace nanos {
+namespace log {
+   template <typename OStreamType>
+   static inline OStreamType &join( OStreamType &&os )
+   {
+      os << std::endl;
+      return os;
+   }
+   
+   template <typename OStreamType, typename T, typename...Ts>
+   static inline OStreamType &join( OStreamType &&os, const T &first, const Ts&... rest)
+   {
+      os << first;
+      return join( os, rest... );
+   }
 
-#ifdef HAVE_NANOX_NANOS_H
-    inline void nanos_debug( const char *message )
-    {
-        ::nanos_debug( message );
-    }
-#else
-    inline void nanos_debug( const char *message )
-    {
-    }
+   template <typename...Ts>
+   inline void message( const Ts&... msg )
+   {
+      std::ostream::sentry sentry(std::cout);
+      join( std::cout, msg... );
+   }
+
+   template <typename...Ts>
+   inline void debug( const Ts&... msg )
+   {
+#ifdef DEBUG_ENABLED
+      std::ostream::sentry sentry(std::cout);
+      join( std::cout, msg... );
 #endif
+   }
 
-    template <typename OStreamType>
-    static inline OStreamType &join( OStreamType &&os )
-    {
-       os << std::endl;
-       return os;
-    }
-    
-    template <typename OStreamType, typename T, typename...Ts>
-    static inline OStreamType &join( OStreamType &&os, const T &first, const Ts&... rest)
-    {
-       os << first;
-       return join( os, rest... );
-    }
+   inline void fatal( const char* msg ) {
+      message("[MPI interoperability] Fatal error: ", msg);
+      std::terminate();
+   }
 
-    template <typename...Ts>
-    inline void dbg( const Ts&... msg )
-    {
-       std::stringstream ss;
-       join( ss, msg... );
-       nanos_debug( ss.str().c_str() );
-    }
+   inline void intercepted_call( const char* function_name )
+   {
+      debug( "[MPI interoperability] Debug: Intercepted ", function_name );
+   }
 
-    inline void intercepted_call( const char* function_name )
-    {
-       dbg( "[MPI async. overload library] Intercepted ", function_name );
-    }
-
-    /* TODO: try to detect at configure time which nanos version is being used 
-       (nanos_get_mode api call) and enable define preprocessor flags acordingly.
-     */
-}
+} // namespace log
+} // namespace nanos
 
 #endif // PRINT_H

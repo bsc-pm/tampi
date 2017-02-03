@@ -47,5 +47,5 @@ fortran_api_sources= \
  src/fortran/init-finalize.cc
 
 lib_LTLIBRARIES=libmpiompss-interop.la
-libmpiompss_interop_la_SOURCES=$(c_api_sources) $(fortran_api_sources)
+libmpiompss_interop_la_SOURCES=$(c_api_sources)# $(fortran_api_sources)
 

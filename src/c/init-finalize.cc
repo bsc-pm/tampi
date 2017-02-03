@@ -23,13 +23,7 @@
 
 #include "environment.h"
 
-nanos::mpi::TicketQueue* nanos::mpi::TicketQueue::_queue = nullptr;
-
-/*!
- * \file init-finalize.cc This file is intended for debug purposes only.
- * Use is not recommended along profiling tools as it may not be compatible
- * with them.
- */
+nanos::mpi::TicketQueue *nanos::mpi::environment::_queue;
 
 extern "C" {
 

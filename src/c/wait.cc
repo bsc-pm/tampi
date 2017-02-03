@@ -28,24 +28,23 @@ using namespace nanos::mpi;
 
 
 extern "C" {
-    int MPI_Wait( MPI_Request *request, MPI_Status *status )
-    {
-        print::intercepted_call( __func__ );
-        
-        int err = MPI_SUCCESS;
-        if( status == MPI_STATUS_IGNORE ) {
-            using ticket_t = Ticket<C::request,C::ignored_status,1>;
-            ticket_t ticket( {*request}, err );
-            ticket.wait();
-            err = ticket.getReturnError();
-        } else {
-            using ticket_t = Ticket<C::request,C::status,1>;
-            ticket_t ticket( {*request}, err );
-            ticket.wait();
-            err = ticket.getReturnError();
-			*status = ticket.getStatuses()[0];
-        }
-        return err;
-    }
+   int MPI_Wait( MPI_Request *request, MPI_Status *status )
+   {
+      nanos::log::intercepted_call( __func__ );
+
+      int err = MPI_SUCCESS;
+      if( status == MPI_STATUS_IGNORE ) {
+         using ticket_t = Ticket;
+         // using ticket_t = Ticket<C::request,C::ignored_status,1>;
+         ticket_t ticket( *request );
+         ticket.wait();
+      } else {
+         using ticket_t = Ticket;
+         // using ticket_t = Ticket<C::request,C::status,1>;
+         ticket_t ticket( *request );
+         ticket.wait();
+      }
+      return err;
+   }
 } // extern C
 

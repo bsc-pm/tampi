@@ -27,21 +27,22 @@
 
 using namespace nanos::mpi;
 
-using ticket_t = Ticket<C::request,C::ignored_status,1>;
+using ticket_t = Ticket;
+// using ticket_t = Ticket<C::request,C::ignored_status,1>;
 
 extern "C" {
     int MPI_Ssend( MPI3CONST void *buf, int count, MPI_Datatype datatype,
         int dest, int tag, MPI_Comm comm )
     {
-        print::intercepted_call( __func__ );
+        nanos::log::intercepted_call( __func__ );
 
         C::request req;
         int err = MPI_Issend( buf, count, datatype, dest, tag, comm, 
                               &static_cast<MPI_Request&>(req) );
 
-        ticket_t ticket( {req}, err );
+        ticket_t ticket( req );
         ticket.wait();
-        return ticket.getReturnError();
+        err;
     }
 } // extern C
 

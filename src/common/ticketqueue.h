@@ -1,93 +1,89 @@
-#ifndef NANOS6_TICKET_QUEUE_H
-#define NANOS6_TIQUET_QUEUE_H
+#ifndef TICKET_QUEUE_H
+#define TIQUET_QUEUE_H
 
-#include "genericticket.h"
-#include "ticketmutex.h"
+#include "spin_mutex.h"
 
-#include "mpi/error.h"
+#include "ticket_decl.h"
 
 #include <mutex>
-#include <list>
+#include <vector>
+
+#include <mpi.h>
 
 namespace nanos {
 namespace mpi {
 
 class TicketQueue {
+   private:
+      std::vector<MPI_Request> _requests;
+      std::vector<Ticket*>     _tickets;
+      mutable spin_mutex       _mutex;
 
-  private:
-	friend class environment;
-	typedef GenericTicket type;
-    typedef std::list< type* > container;
+   public:
+      TicketQueue() :
+         _mutex(),
+         _requests(),
+         _tickets()
+      {
+      }
 
-	static TicketQueue* _queue;
+      TicketQueue ( const TicketQueue & ) = delete;
 
-	container _list;
-	TicketMutex<> _mutex;
+      const TicketQueue & operator= ( const TicketQueue & ) = delete;
 
-  public:
-	TicketQueue() :
-      _list(),
-      _mutex()
-    {
+      bool empty () const {
+         return _requests.empty();
+      }
 
-    }
+      void add( Ticket& ticket, MPI_Request req )
+      {
+         std::lock_guard<spin_mutex> guard( _mutex );
+         _requests.push_back( req );
+         _tickets.push_back( &ticket );
+      }
 
-    TicketQueue ( const TicketQueue & ) = delete;
+      void add( Ticket& ticket, MPI_Request* first, MPI_Request* last )
+      {
+         const size_t count = std::distance(first,last);
+         std::lock_guard<spin_mutex> guard( _mutex );
 
-    const TicketQueue & operator= ( const TicketQueue & ) = delete;
+         _requests.insert( _requests.end(), first, last );
+         _tickets.insert(  _tickets.end(),  count, &ticket );
+      }
 
-    ~TicketQueue()
-    {
-		_list.clear();
-    }
+      void poll() {
+         if ( !_requests.empty() ) {
+            std::unique_lock<spin_mutex> guard( _mutex, std::try_to_lock );
+            if ( guard.owns_lock() && !_requests.empty() ) {
+               int count = _requests.size();
+               int completed = 0;
+               int indices[count];
+               int err = MPI_Testsome( count, _requests.data(), &completed,
+                                       indices, MPI_STATUSES_IGNORE );
 
-    bool empty () const
-    {
-        return _list.empty();
-    }
+               // Assumes indices array is sorted from lower to higher values
+               // Iterate from the end to the beginning of the array to ensure
+               // indexed element positions are not changed after a deletion
+               typedef std::reverse_iterator<int*> index_iterator;
+               index_iterator indexIt;
+               for( indexIt =  index_iterator(indices+count-1);
+                    indexIt != index_iterator(indices);
+                    ++indexIt )
+               {
+                  auto requestIt = std::next( _requests.begin(), *indexIt );
+                  auto ticketIt  = std::next( _tickets.begin(),  *indexIt );
 
-    size_t size() const
-    {
-        return _list.empty();
-    }
+                  (*ticketIt)->notifyCompletion();
 
-    void pushBack( type &ticket )
-    {
-		_mutex.lock();
-		std::lock_guard< TicketMutex<> > guard( _mutex, std::adopt_lock );
-		_list.push_back( &ticket );
-    }
-
-    bool poll()
-    {
-		if ( _list.empty() )
-			return false;
-
-		_mutex.lock();
-		std::lock_guard< TicketMutex<> > guard( _mutex, std::adopt_lock );
-
-		if ( !_list.empty() ) {
-			container::iterator it = _list.begin();
-			while( it != _list.end() ) {
-				GenericTicket *ticket = *it;
-				if ( ticket->check() ) {
-					ticket->signal();
-					_list.erase( it++ );
-					return true;
-				}
-				++it;
-			}
-		}
-		return false;
-    }
-
-	static TicketQueue& get()
-	{
-		return *_queue;
-	}
+                  _requests.erase(requestIt);
+                  _tickets.erase(ticketIt);
+               }
+            }
+         }
+      }
 };
 
 } // namespace mpi
 } // namespace nanos
 
-#endif // NANOS6_TICKET_QUEUE_H
+#endif // TICKET_QUEUE_H

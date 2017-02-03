@@ -41,7 +41,7 @@ int MPI_Sendrecv_replace( void *buf, int count, MPI_Datatype datatype,
                              buf, count, datatype, source, recvtag,
                              comm, status );
     } else {
-        print::intercepted_call( __func__ );
+        nanos::log::intercepted_call( __func__ );
 
         int err = MPI_SUCCESS;
         int alloc = MPI_SUCCESS;

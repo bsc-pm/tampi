@@ -28,28 +28,27 @@ using namespace nanos::mpi;
 
 
 extern "C" {
-    int MPI_Recv( void *buf, int count, MPI_Datatype datatype,
-        int source, int tag, MPI_Comm comm, MPI_Status *status )
-    {
-        print::intercepted_call( __func__ );
+   int MPI_Recv( void *buf, int count, MPI_Datatype datatype,
+         int source, int tag, MPI_Comm comm, MPI_Status *status )
+   {
+      nanos::log::intercepted_call( __func__ );
 
-        C::request req;
-        int err = MPI_Irecv( buf, count, datatype, source, tag, comm,
-                             &static_cast<MPI_Request&>(req) );
+      C::request req;
+      int err = MPI_Irecv( buf, count, datatype, source, tag, comm,
+            &static_cast<MPI_Request&>(req) );
 
-        if( status == MPI_STATUS_IGNORE ) {
-            using ticket_t = Ticket<C::request,C::ignored_status,1>;
-            ticket_t ticket( {req}, err );
-            ticket.wait();
-            err = ticket.getReturnError();
-        } else {
-            using ticket_t = Ticket<C::request,C::status,1>;
-            ticket_t ticket( {req}, err );
-            ticket.wait();
-            err = ticket.getReturnError();
-			*status = ticket.getStatuses()[0];
-        }
-        return err;
-    }
+      if( status == MPI_STATUS_IGNORE ) {
+         using ticket_t = Ticket;
+         // using ticket_t = Ticket<C::request,C::ignored_status,1>;
+         ticket_t ticket( req );
+         ticket.wait();
+      } else {
+         using ticket_t = Ticket;
+         // using ticket_t = Ticket<C::request,C::status,1>;
+         ticket_t ticket( req );
+         ticket.wait();
+      }
+      return err;
+   }
 } // extern C
 

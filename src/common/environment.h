@@ -17,24 +17,32 @@ namespace nanos {
 namespace mpi {
 
 class environment {
-  public:
-	static void initialize()
-	{
-		TicketQueue::_queue = new TicketQueue();
-		nanos_register_polling_service("MPI INTEROPERABILITY", environment::poll, &TicketQueue::get());
-	}
+public:
+   static void initialize()
+   {
+      _queue = new TicketQueue();
+      nanos_register_polling_service("MPI INTEROPERABILITY", environment::poll, _queue);
+   }
 
-	static void finalize()
-	{
-		nanos_unregister_polling_service("MPI INTEROPERABILITY", environment::poll, &TicketQueue::get());
-		delete TicketQueue::_queue;
-	}
+   static void finalize()
+   {
+      nanos_unregister_polling_service("MPI INTEROPERABILITY", environment::poll, _queue);
+      delete _queue;
+   }
 
-  private:
-	static int poll(void * data)
-	{
-		return TicketQueue::get().poll();
-	}
+   static int poll( void* data )
+   {
+      _queue->poll();
+      return 0;
+   }
+
+   static TicketQueue& getQueue()
+   {
+      return *_queue;
+   }
+
+private:
+   static TicketQueue* _queue;
 };
 
 } // namespace mpi

@@ -30,32 +30,24 @@ using namespace nanos::utils;
 
 
 extern "C" {
-    int MPI_Waitall(int count, MPI_Request array_of_requests[],
-                          MPI_Status array_of_statuses[])
-    {
-        print::intercepted_call( __func__ );
+   int MPI_Waitall(int count, MPI_Request array_of_requests[],
+         MPI_Status array_of_statuses[])
+   {
+      nanos::log::intercepted_call( __func__ );
 
-        using requests_array = std::vector<C::request>;
-        using statuses_array = std::vector<C::status >;
-    
-        int err = MPI_SUCCESS;
-        if( array_of_statuses == MPI_STATUSES_IGNORE ) {
-            using ticket_t = Ticket<C::request,C::ignored_status,0>;
-            ticket_t ticket(
-                       std::move( transform_to<requests_array>()(count, reinterpret_cast<C::request*>(array_of_requests)) ),
-                       err );
-            ticket.wait();
-            err = ticket.getReturnError();
-        } else {
-            using ticket_t = Ticket<C::request,C::status,0>;
-            ticket_t ticket(
-                       std::move( transform_to<requests_array>()(count, reinterpret_cast<C::request*>(array_of_requests)) ),
-                       err );
-            ticket.wait();
-            err = ticket.getReturnError();
-            std::copy( ticket.getStatuses().begin(), ticket.getStatuses().end(), array_of_statuses );
-        }
-        return err;
-    }
+      int err = MPI_SUCCESS;
+      if( array_of_statuses == MPI_STATUSES_IGNORE ) {
+         using ticket_t = Ticket;
+         // using ticket_t = Ticket<C::request,C::ignored_status,0>;
+         ticket_t ticket( array_of_requests, array_of_requests+count );
+         ticket.wait();
+      } else {
+         using ticket_t = Ticket;
+         // using ticket_t = Ticket<C::request,C::status,0>;
+         ticket_t ticket( array_of_requests, array_of_requests+count );
+         ticket.wait();
+      }
+      return err;
+   }
 } // extern C
 
