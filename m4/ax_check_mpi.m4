@@ -102,8 +102,17 @@ Please, check that provided directories are correct.
 ------------------------------])
   ])dnl
 
+  # Check if the user explicitly disabled multithread support check
+  AC_ARG_ENABLE([mpi-mt-check], [AS_HELP_STRING([--disable-mpi-mt-check (default: enabled)],
+    [Adds compiler debug flags and enables additional internal debugging mechanisms.])])
+
+
+  AS_IF([test "$enable_mpi_mt_check" = no],[
+    ac_cv_mpi_mt=skip
+  ])
+
   # Check that the MPI library supports multithreading (MPI_THREAD_MULTIPLE)
-  AS_IF([test x$mpi = xyes],[
+  AS_IF([test "$mpi" = "yes" -a "$ac_cv_mpi_mt" != "skip"],[
     AC_CACHE_CHECK([MPI library multithreading support],[ac_cv_mpi_mt],
       [AC_RUN_IFELSE(
         [AC_LANG_PROGRAM(
@@ -181,8 +190,9 @@ The execution of MPI multithread support test failed
   AS_IF([test $ac_cv_mpi_mt = skip],[
     AC_MSG_WARN([
 ------------------------------
-Multithreading support check was not done
-because cross-compilation mode was detected.
+Multithreading support check was not done.
+If the user has not disable it explicitly,
+cross-compilation mode might be enabled.
 ------------------------------])
   ],[
     AS_IF([test $ac_cv_mpi_mt != concurrent],[
