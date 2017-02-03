@@ -9,8 +9,8 @@ namespace nanos {
 namespace mpi {
 
 inline Ticket::Ticket( MPI_Request req ) :
-   _task( nanos_get_current_task() ),
-   _pending( 0 )
+   _waiter(nullptr),
+   _pending(0)
 {
    int completed;
    int err = MPI_Test( &req, &completed, MPI_STATUS_IGNORE );
@@ -18,14 +18,12 @@ inline Ticket::Ticket( MPI_Request req ) :
       _pending = 1;
       environment::getQueue().add(*this, req);
    }
-
-   printf("Create ticket %p, pending: %d\n", this, _pending);
 }
 
 // typedef MPI_Request* InputIt
 inline Ticket::Ticket( MPI_Request* first, MPI_Request* last ) :
-   _task( nanos_get_current_task() ),
-   _pending( 0 )
+   _waiter(nullptr),
+   _pending(0)
 {
    int size = std::distance(first,last);
    int completed = 0;
@@ -36,15 +34,13 @@ inline Ticket::Ticket( MPI_Request* first, MPI_Request* last ) :
    if( !finished() ) {
       environment::getQueue().add(*this, first, last);
    }
-   printf("Create ticket %p, pending: %d\n", this, _pending);
 }
 
 inline void Ticket::wait() {
    environment::getQueue().poll();
 
-   printf("Waiting for ticket %p, pending: %d\n", this, _pending);
    if( !finished() ) { 
-      printf("Call nanos_block_current_task() for ticket %p\n", this);
+      _waiter = nanos_get_current_task();
       nanos_block_current_task();
    }
 }

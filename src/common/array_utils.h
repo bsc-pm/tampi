@@ -35,6 +35,26 @@ struct transform_to< std::array<T,size> >
 	}
 };
 
+template < typename T, typename Size >
+std::reverse_iterator<T*> rbegin( T* array, Size length ) {
+   return std::reverse_iterator<T*>(array+length-1);
+}
+
+template < typename T, typename Size >
+std::reverse_iterator<const T*> crbegin( const T* array, Size length ) {
+   return std::reverse_iterator<T*>(array+length-1);
+}
+
+template < typename T, typename Size >
+std::reverse_iterator<T*> rend( T* array, Size length ) {
+   return std::reverse_iterator<T*>(array-1);
+}
+
+template < typename T, typename Size >
+std::reverse_iterator<const T*> crend( const T* array, Size length ) {
+   return std::reverse_iterator<T*>(array-1);
+}
+
 } // namespace utils
 } // namespace nanos
 

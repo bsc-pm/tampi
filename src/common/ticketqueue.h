@@ -1,8 +1,8 @@
 #ifndef TICKET_QUEUE_H
 #define TIQUET_QUEUE_H
 
+#include "array_utils.h"
 #include "spin_mutex.h"
-
 #include "ticket_decl.h"
 
 #include <mutex>
@@ -47,8 +47,17 @@ class TicketQueue {
          const size_t count = std::distance(first,last);
          std::lock_guard<spin_mutex> guard( _mutex );
 
-         _requests.insert( _requests.end(), first, last );
-         _tickets.insert(  _tickets.end(),  count, &ticket );
+         const size_t capacity = _requests.capacity() - _requests.size() + count;
+         _requests.reserve(capacity);
+         _tickets.reserve(capacity);
+
+         while( first != last ) {
+            if( *first != MPI_REQUEST_NULL ) {
+               _requests.push_back( *first );
+               _tickets.push_back( &ticket );
+            }
+            ++first;
+         }
       }
 
       void poll() {
@@ -61,22 +70,26 @@ class TicketQueue {
                int err = MPI_Testsome( count, _requests.data(), &completed,
                                        indices, MPI_STATUSES_IGNORE );
 
-               // Assumes indices array is sorted from lower to higher values
-               // Iterate from the end to the beginning of the array to ensure
-               // indexed element positions are not changed after a deletion
-               typedef std::reverse_iterator<int*> index_iterator;
-               index_iterator indexIt;
-               for( indexIt =  index_iterator(indices+count-1);
-                    indexIt != index_iterator(indices);
-                    ++indexIt )
-               {
-                  auto requestIt = std::next( _requests.begin(), *indexIt );
-                  auto ticketIt  = std::next( _tickets.begin(),  *indexIt );
+               if( completed == MPI_UNDEFINED ) {
+                  // All requests are already released.
+                  // Consider skip deletion of completed requests and only clear
+                  // them whenever all of them are released.
+                  _requests.clear();
+                  _tickets.clear();
+               } else {
+                  // Assumes indices array is sorted from lower to higher values
+                  // Iterate from the end to the beginning of the array to ensure
+                  // indexed element positions are not changed after a deletion
+                  for( int* indexIt = &indices[completed-1]; indexIt != &indices[-1]; --indexIt )
+                  {
+                     auto requestIt = std::next( _requests.begin(), *indexIt );
+                     auto ticketIt  = std::next( _tickets.begin(),  *indexIt );
 
-                  (*ticketIt)->notifyCompletion();
+                     (*ticketIt)->notifyCompletion();
 
-                  _requests.erase(requestIt);
-                  _tickets.erase(ticketIt);
+                     _requests.erase(requestIt);
+                     _tickets.erase(ticketIt);
+                  }
                }
             }
          }

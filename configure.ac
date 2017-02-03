@@ -9,9 +9,11 @@ AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([config.h])
 
 AC_LANG([C++])
-# MPICXX and MPICC variables will be read for compile checks
-AC_ARG_VAR(MPICXX,[MPI C++ compiler command])
-AC_ARG_VAR(MPICC,[MPI C compiler command])
+# MPICXX and implementation specific variables will be read for compile checks
+AC_ARG_VAR(MPICXX,[MPI C++ frontend compiler])
+AC_ARG_VAR(OMPI_CXX, [OpenMPI C++ backend compiler])
+AC_ARG_VAR(MPICH_CXX,[MPICH C++ backend compiler])
+AC_ARG_VAR(I_MPI_CXX,[Intel MPI C++ backend compiler])
 
 # Check if debug mode is enabled
 AX_DEBUG_MODE

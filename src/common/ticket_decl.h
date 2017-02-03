@@ -18,7 +18,7 @@ namespace mpi {
 
 class Ticket {
 private:
-   nanos_wd_t _task;
+   nanos_wd_t _waiter;
    int        _pending;
 
 public:
@@ -33,17 +33,16 @@ public:
    Ticket& operator=( const Ticket & gt ) = delete;
 
    ~Ticket() {
-      printf("Destroy ticket %p\n", this);
       if( _pending > 0 )
-         log::fatal( "Destroying uncompleted ticket" );
+         log::fatal( "Destroying unfinished ticket" );
    }
 
    void notifyCompletion( int num = 1 ) {
       assert( _pending >= num );
       _pending -= num;
-      printf("Notify ticket %p, pending: %d\n", this, _pending);
-      if( _pending == 0 )
-         nanos_unblock_task(_task);
+
+      if( finished() && _waiter )
+         nanos_unblock_task(_waiter);
    }
 
    bool finished() const {
