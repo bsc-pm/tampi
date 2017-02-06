@@ -50,6 +50,7 @@ AC_DEFUN([AX_CHECK_MPI],[
   # errors when mpi.h is included after stdio.h when compiling C++ code
   # It only applies, however, to mpich implementations
   AX_VAR_PUSHVALUE([CPPFLAGS])
+  AX_VAR_PUSHVALUE([CXXFLAGS])
   AX_VAR_PUSHVALUE([LDFLAGS])
   AX_VAR_PUSHVALUE([LIBS])
 
@@ -229,6 +230,7 @@ dnl     [Identifies which MPI implementation is being used. Supported values: in
   # Otherwise, libtool will use sequential version libmpi.so as MPICXX requirement
   # and link will fail
   AX_VAR_POPVALUE([CPPFLAGS])
+  AX_VAR_POPVALUE([CXXFLAGS])
   AX_VAR_POPVALUE([LDFLAGS])
   AX_VAR_POPVALUE([LIBS])
 

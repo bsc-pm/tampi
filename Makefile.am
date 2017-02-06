@@ -11,6 +11,10 @@ AM_CXXFLAGS=$(CXXFLAGS)
 AM_LDFLAGS=@extraelib@ @ompsslib@ -ldl $(LDFLAGS)
 LIBS=@extraelibs@ @ompsslibs@
 
+export I_MPI_CXX=@I_MPI_CXX@
+export OMPI_CXX=@OMPI_CXX@
+export MPICH_CXX=@MPICH_CXX@
+
 pkginclude_HEADERS= # This library does not provide any additional header
 
 c_api_sources= \
