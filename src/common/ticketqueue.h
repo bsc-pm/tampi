@@ -67,7 +67,7 @@ class TicketQueue {
                int count = _requests.size();
                int completed = 0;
                int indices[count];
-               int err = MPI_Testsome( count, _requests.data(), &completed,
+               int err = PMPI_Testsome( count, _requests.data(), &completed,
                                        indices, MPI_STATUSES_IGNORE );
 
                if( completed == MPI_UNDEFINED ) {

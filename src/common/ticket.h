@@ -13,7 +13,7 @@ inline Ticket::Ticket( MPI_Request req ) :
    _pending(0)
 {
    int completed;
-   int err = MPI_Test( &req, &completed, MPI_STATUS_IGNORE );
+   int err = PMPI_Test( &req, &completed, MPI_STATUS_IGNORE );
    if( !completed ) {
       _pending = 1;
       environment::getQueue().add(*this, req);
@@ -28,7 +28,7 @@ inline Ticket::Ticket( MPI_Request* first, MPI_Request* last ) :
    int size = std::distance(first,last);
    int completed = 0;
    int indices[size];
-   int err = MPI_Testsome( size, first, indices, &completed, MPI_STATUSES_IGNORE );
+   int err = PMPI_Testsome( size, first, indices, &completed, MPI_STATUSES_IGNORE );
 
    _pending = size - completed;
    if( !finished() ) {
