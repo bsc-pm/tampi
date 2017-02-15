@@ -26,7 +26,7 @@
 using namespace nanos::mpi;
 
 template<>
-TicketQueue<C::Ticket> *C::environment::_queue;
+TicketQueue<C::Ticket>* C::environment::_queue = nullptr;
 
 extern "C" {
 

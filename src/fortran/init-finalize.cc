@@ -26,7 +26,7 @@
 using namespace nanos::mpi;
 
 template<>
-TicketQueue<Fortran::Ticket> *Fortran::environment::_queue;
+TicketQueue<Fortran::Ticket>* Fortran::environment::_queue = nullptr;
 
 extern "C" {
 
