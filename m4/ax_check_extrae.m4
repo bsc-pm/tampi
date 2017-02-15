@@ -52,58 +52,62 @@ AC_ARG_WITH(extrae-lib,
                 [specify directory for the installed extrae library])])
 
 # Search for extrae by default
-if [[[ ! "x$with_extrae" =~  x(yes|no|)$ ]]]; then
+AS_IF([ [[[ ! "x$with_extrae" =~  x(yes|no|)$ ]]] ],[
   extraeinc="$with_extrae/include"
   extraelib=$with_extrae/lib
-fi
-if test "x$with_extrae_lib" != x; then
+])
+AS_IF([test "$with_extrae_lib" != ""],[
   extraelib="$with_extrae_lib"
-fi
+])
 
 # This is fulfilled even if $with_extrae="yes" 
 # This happens when user leaves --with-value alone
-if test x$extraelib != x; then
+AS_IF([test "$extraelib" != "" ],[
+
+    extraeinc="-I$extraeinc"
+    extraelib="-L$extraelib -Wl,-rpath,$extraelib"
 
     #tests if provided headers and libraries are usable and correct
-    bak_CFLAGS="$CFLAGS"
-    bak_CPPFLAGS="$CPPFLAGS"
-    bak_LIBS="$LIBS"
-    bak_LDFLAGS="$LDFLAGS"
-
-    CFLAGS=
-    CPPFLAGS=-I$extraeinc
-    LIBS=
-    LDFLAGS=-L$extraelib
+    AX_VAR_PUSHVALUE([CPPFLAGS],[$CPPFLAGS $extraeinc])
+    AX_VAR_PUSHVALUE([CXXFLAGS])
+    AX_VAR_PUSHVALUE([LIBS])
+    AX_VAR_PUSHVALUE([LDFLAGS],[$LDFLAGS $extraelib])
 
     # Looking for MPI_Isend function in libnanosmpitrace library
     # is complex due to the variable number of dependencies it has,
     # so we just check for the existence of the 
-    AC_MSG_CHECKING([extrae libraries])
-    if [[ -e $extraelib/libnanosmpitrace.la ]]; then
-       AC_MSG_RESULT([found])
-       extrae=yes
+    AC_CHECK_HEADERS([extrae.h], 
+      [extrae=yes],
+      [extrae=no])
 
-       LIBS="$LIBS $extraelib/libnanosmpitrace.la"
-    else
-       AC_MSG_RESULT([not found])
-       extrae=no
-    fi
+    m4_foreach([function],
+      [Extrae_event,
+       Extrae_eventandcounters],
+      [
+        AS_IF([test "$extrae" = "yes"],[
+          AC_SEARCH_LIBS(function,
+            [mpitrace nanosmpitrace],
+            [extrae=yes],
+            [extrae=no],
+            [])
+        ])
+    ])dnl
 
     extraelibs=$LIBS
 
-    CFLAGS="$bak_CFLAGS"
-    CPPFLAGS="$bak_CPPFLAGS"
-    LIBS="$bak_LIBS"
-    LDFLAGS="$bak_LDFLAGS"
+    AX_VAR_POPVALUE([CPPFLAGS])
+    AX_VAR_POPVALUE([CXXFLAGS])
+    AX_VAR_POPVALUE([LIBS])
+    AX_VAR_POPVALUE([LDFLAGS])
 
-    if test x$extrae != xyes; then
+    AS_IF([test "$extrae" != "yes"],[
         AC_MSG_ERROR([
 ------------------------------
-Either provided extrae path was not correctly specified,
+Extrae path was not correctly specified
 or installation is not correct. 
 ------------------------------])
-    fi
-fi
+    ])
+])
 
 AC_SUBST([extrae])
 AC_SUBST([extrae_prefix])

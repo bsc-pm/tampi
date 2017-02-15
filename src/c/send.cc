@@ -26,8 +26,6 @@
 #include "print.h"
 
 using namespace nanos::mpi;
-using ticket_t = Ticket;
-// using ticket_t = Ticket<C::request,C::ignored_status,1>;
 
 extern "C" {
     int MPI_Send( MPI3CONST void *buf, int count, MPI_Datatype datatype,
@@ -35,11 +33,11 @@ extern "C" {
     {
         nanos::log::intercepted_call( __func__ );
 
-        C::request req;
+        MPI_Request req;
         int err = MPI_Isend( buf, count, datatype, dest, tag, comm,
-                             &static_cast<MPI_Request&>(req) );
+                             &req );
 
-        ticket_t ticket( req );
+        C::Ticket ticket( req );
         ticket.wait();
         err;
     }

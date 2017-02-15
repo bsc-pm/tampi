@@ -33,21 +33,16 @@ extern "C" {
    {
       nanos::log::intercepted_call( __func__ );
 
-      C::request req;
+      MPI_Request req;
       int err = MPI_Irecv( buf, count, datatype, source, tag, comm,
-            &static_cast<MPI_Request&>(req) );
+            &req );
 
-      if( status == MPI_STATUS_IGNORE ) {
-         using ticket_t = Ticket;
-         // using ticket_t = Ticket<C::request,C::ignored_status,1>;
-         ticket_t ticket( req );
-         ticket.wait();
-      } else {
-         using ticket_t = Ticket;
-         // using ticket_t = Ticket<C::request,C::status,1>;
-         ticket_t ticket( req );
-         ticket.wait();
-      }
+      // TODO: copy back status information
+      //if( status == MPI_STATUS_IGNORE ) {
+      C::Ticket ticket( req );
+      ticket.wait();
+      //} else {
+      //}
       return err;
    }
 } // extern C

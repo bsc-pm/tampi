@@ -26,25 +26,22 @@
 #include "ticket.h"
 
 using namespace nanos::mpi;
-using ticket_t = nanos::mpi::Ticket<Fortran::request,Fortran::ignored_status,1>;
 
 extern "C" {
     void mpi_isend_( MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
-                     MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm, 
+                     MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm,
                      MPI_Fint *request, MPI_Fint *err );
 
     void mpi_send_( MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
                     MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *err )
     {
-        print::intercepted_call( __func__ );
+        nanos::log::intercepted_call( __func__ );
 
-        Fortran::request req;
-        mpi_isend_( buf, count, datatype, dest, tag, comm,
-                    &static_cast<MPI_Fint&>(req), err );
+        MPI_Fint req;
+        mpi_isend_( buf, count, datatype, dest, tag, comm, &req, err );
 
-        ticket_t ticket( {req}, *err );
+        Fortran::Ticket ticket( req );
         ticket.wait();
-        *err = ticket.getReturnError();
     }
 } // extern C
 

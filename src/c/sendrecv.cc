@@ -29,31 +29,26 @@ using namespace nanos::mpi;
 
 extern "C" {
    int MPI_Sendrecv( MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
-         int dest, int sendtag, 
+         int dest, int sendtag,
          void *recvbuf, int recvcount, MPI_Datatype recvtype,
-         int source, int recvtag, 
+         int source, int recvtag,
          MPI_Comm comm, MPI_Status *status)
    {
       nanos::log::intercepted_call( __func__ );
 
       std::array<MPI_Request,2> reqs;
       int err = MPI_Irecv( recvbuf, recvcount, recvtype, source, recvtag, comm,
-            &static_cast<MPI_Request&>(reqs[0]) );
+            reqs.begin() );
 
       err = MPI_Isend( sendbuf, sendcount, sendtype, dest, sendtag, comm,
-            &static_cast<MPI_Request&>(reqs[1]) );
+            reqs.begin() );
 
-      if( status == MPI_STATUS_IGNORE ) {
-         using ticket_t = Ticket;
-         // using ticket_t = Ticket<C::request,C::ignored_status,2>;
-         ticket_t ticket( std::begin(reqs), std::end(reqs) );
-         ticket.wait();
-      } else {
-         using ticket_t = Ticket;
-         // using ticket_t = Ticket<C::request,C::status,2>;
-         ticket_t ticket( std::begin(reqs), std::end(reqs) );
-         ticket.wait();
-      }
+      // TODO: copy back status information if not ignored
+      //if( status == MPI_STATUS_IGNORE ) {
+      C::Ticket ticket( std::begin(reqs), std::end(reqs) );
+      ticket.wait();
+      //} else {
+      //}
       return err;
    }
 } // extern C

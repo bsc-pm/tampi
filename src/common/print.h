@@ -42,7 +42,7 @@ namespace log {
       os << std::endl;
       return os;
    }
-   
+
    template <typename OStreamType, typename T, typename...Ts>
    static inline OStreamType &join( OStreamType &&os, const T &first, const Ts&... rest)
    {

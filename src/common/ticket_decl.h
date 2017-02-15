@@ -16,23 +16,33 @@ typedef void* nanos_wd_t;
 namespace nanos {
 namespace mpi {
 
-class Ticket {
+namespace detail {
+
+class TicketBase {
 private:
    nanos_wd_t _waiter;
    int        _pending;
 
 public:
-   Ticket( MPI_Request req );
+   template < typename Request >
+   TicketBase( Request& req ) :
+      _waiter(nullptr),
+      _pending(1)
+   {
+   }
 
-   // Only participates in overload resolution if iterators to MPI_Request types are provided.
-   // typedef MPI_Request* InputIt
-   Ticket( MPI_Request* first, MPI_Request* last );
+   template < typename Request >
+   TicketBase( Request* first, Request* last ) :
+      _waiter(nullptr),
+      _pending(std::distance(first,last))
+   {
+   }
 
-   Ticket( const Ticket & gt ) = delete;
+   TicketBase( const TicketBase & gt ) = delete;
 
-   Ticket& operator=( const Ticket & gt ) = delete;
+   TicketBase& operator=( const TicketBase & gt ) = delete;
 
-   ~Ticket() {
+   ~TicketBase() {
       if( _pending > 0 )
          log::fatal( "Destroying unfinished ticket" );
    }
@@ -49,8 +59,35 @@ public:
       return _pending == 0;
    }
 
-   void wait();
+   void wait() {
+      if( !finished() ) {
+         _waiter = nanos_get_current_task();
+         nanos_block_current_task();
+      }
+   }
 };
+
+} // namespace detail
+
+namespace C {
+   struct Ticket : public detail::TicketBase {
+      typedef MPI_Request Request;
+
+      Ticket( Request& r );
+
+      Ticket( Request* first, Request* last );
+   };
+} // namespace C
+
+namespace Fortran {
+   struct Ticket : public detail::TicketBase {
+      typedef MPI_Request Request;
+
+      Ticket( Request& r );
+
+      Ticket( Request* first, Request* last );
+   };
+} // namespace Fortran
 
 } // namespace mpi
 } // namespace nanos

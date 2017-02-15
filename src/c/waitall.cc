@@ -28,7 +28,6 @@
 using namespace nanos::mpi;
 using namespace nanos::utils;
 
-
 extern "C" {
    int MPI_Waitall(int count, MPI_Request array_of_requests[],
          MPI_Status array_of_statuses[])
@@ -36,17 +35,12 @@ extern "C" {
       nanos::log::intercepted_call( __func__ );
 
       int err = MPI_SUCCESS;
-      if( array_of_statuses == MPI_STATUSES_IGNORE ) {
-         using ticket_t = Ticket;
-         // using ticket_t = Ticket<C::request,C::ignored_status,0>;
-         ticket_t ticket( array_of_requests, array_of_requests+count );
-         ticket.wait();
-      } else {
-         using ticket_t = Ticket;
-         // using ticket_t = Ticket<C::request,C::status,0>;
-         ticket_t ticket( array_of_requests, array_of_requests+count );
-         ticket.wait();
-      }
+      // TODO: copy back status info  when not ignored
+      //if( array_of_statuses == MPI_STATUSES_IGNORE ) {
+      C::Ticket ticket( array_of_requests, array_of_requests+count );
+      ticket.wait();
+      //} else {
+      //}
       return err;
    }
 } // extern C

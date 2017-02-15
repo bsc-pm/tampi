@@ -16,11 +16,14 @@
 namespace nanos {
 namespace mpi {
 
+namespace detail {
+
+template < typename Queue >
 class environment {
 public:
    static void initialize()
    {
-      _queue = new TicketQueue();
+      _queue = new Queue();
       nanos_register_polling_service("MPI INTEROPERABILITY", environment::poll, _queue);
    }
 
@@ -36,14 +39,24 @@ public:
       return 0;
    }
 
-   static TicketQueue& getQueue()
+   static Queue& getQueue()
    {
       return *_queue;
    }
 
 private:
-   static TicketQueue* _queue;
+   static Queue* _queue;
 };
+
+} // namespace detail
+
+namespace C {
+   typedef detail::environment<TicketQueue<C::Ticket> >       environment;
+}
+
+namespace Fortran {
+   typedef detail::environment<TicketQueue<Fortran::Ticket> > environment;
+}
 
 } // namespace mpi
 } // namespace nanos

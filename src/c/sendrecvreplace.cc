@@ -30,7 +30,7 @@ int MPI_Sendrecv_replace( void *buf, int count, MPI_Datatype datatype,
                        MPI_Comm comm, MPI_Status *status)
 {
     /*
-     * Note: this implementation tries to mimic OpenMPI's: 
+     * Note: this implementation tries to mimic OpenMPI's:
      * https://github.com/open-mpi/ompi/blob/master/ompi/mpi/c/sendrecv_replace.c
      * First, it creates a temporary buffer where it stores the received message in
      * countiguous storage. Then, it unpacks it in the original -- user provided --

@@ -1,13 +1,19 @@
 ACLOCAL_AMFLAGS=-I m4
 
 AM_CPPFLAGS=\
+ @extraeinc@ \
  @ompssinc@ \
  -I@top_srcdir@/src \
  -I@top_srcdir@/src/common \
  -include "config.h" \
  $(CPPFLAGS)
 
-AM_CXXFLAGS=$(CXXFLAGS)
+if debug_mode_enabled
+AM_CXXFLAGS=-O0 -g3 $(CXXFLAGS)
+else
+AM_CXXFLAGS=-O3 -fno-rtti -fno-exceptions -fvisibility-inlines-hidden $(CXXFLAGS)
+endif
+
 AM_LDFLAGS=@extraelib@ @ompsslib@ -ldl $(LDFLAGS)
 LIBS=@extraelibs@ @ompsslibs@
 
@@ -51,5 +57,5 @@ fortran_api_sources= \
  src/fortran/init-finalize.cc
 
 lib_LTLIBRARIES=libmpiompss-interop.la
-libmpiompss_interop_la_SOURCES=$(c_api_sources)# $(fortran_api_sources)
+libmpiompss_interop_la_SOURCES=$(c_api_sources) $(fortran_api_sources)
 

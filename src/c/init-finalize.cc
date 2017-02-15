@@ -23,7 +23,10 @@
 
 #include "environment.h"
 
-nanos::mpi::TicketQueue *nanos::mpi::environment::_queue;
+using namespace nanos::mpi;
+
+template<>
+TicketQueue<C::Ticket> *C::environment::_queue;
 
 extern "C" {
 
@@ -35,12 +38,12 @@ int MPI_Init( int *argc, char*** argv )
     mpi_init_fn = (int (*)(int*, char***)) dlsym(RTLD_NEXT, "MPI_Init");
     assert(mpi_init_fn != 0);
 
-	// Initialize the environment
-	nanos::mpi::environment::initialize();
+    // Initialize the environment
+    C::environment::initialize();
 
     // Call MPI_Init
     int error = mpi_init_fn(argc, argv);
-	return error;
+    return error;
 }
 
 int MPI_Init_thread( int *argc, char ***argv, int required, int *provided )
@@ -52,7 +55,7 @@ int MPI_Init_thread( int *argc, char ***argv, int required, int *provided )
     assert(mpi_init_thread_fn != 0);
 
     // Initialize the environment
-    nanos::mpi::environment::initialize();
+    C::environment::initialize();
 
     // Call MPI_Init_thread
     int error = mpi_init_thread_fn(argc, argv, required, provided);
@@ -61,19 +64,19 @@ int MPI_Init_thread( int *argc, char ***argv, int required, int *provided )
 
 int MPI_Finalize()
 {
-	// Look for next defined MPI_Finalize
-	// Used to support other profiling tools
-	int (*mpi_finalize_fn)();
-	mpi_finalize_fn = (int (*)()) dlsym(RTLD_NEXT, "MPI_Finalize");
-	assert(mpi_finalize_fn != 0);
+    // Look for next defined MPI_Finalize
+    // Used to support other profiling tools
+    int (*mpi_finalize_fn)();
+    mpi_finalize_fn = (int (*)()) dlsym(RTLD_NEXT, "MPI_Finalize");
+    assert(mpi_finalize_fn != 0);
 
-	// Call MPI_Finalize
-	int error = mpi_finalize_fn();
+    // Call MPI_Finalize
+    int error = mpi_finalize_fn();
 
-	// Finalize the environment
-	nanos::mpi::environment::finalize();
+    // Finalize the environment
+    C::environment::finalize();
 
-	return error;
+    return error;
 }
 
 } // extern C

@@ -27,7 +27,6 @@
 #include "ticket.h"
 
 using namespace nanos::mpi;
-using ticket_t = Ticket<Fortran::request,Fortran::ignored_status,1>;
 
 extern "C" {
     void mpi_igatherv_( const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
@@ -35,22 +34,19 @@ extern "C" {
         MPI_Fint *root, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
 
     void mpi_gatherv_( const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
-                       void *recvbuf, const MPI_Fint recvcounts[], 
+                       void *recvbuf, const MPI_Fint recvcounts[],
                        const MPI_Fint displs[], MPI_Fint *recvtype,
                        MPI_Fint *root, MPI_Fint *comm, MPI_Fint *err )
     {
-        print::intercepted_call( __func__ );
+        nanos::log::intercepted_call( __func__ );
 
-        Fortran::request req;
+        MPI_Fint req;
         mpi_igatherv_( sendbuf, sendcount, sendtype,
                 recvbuf, recvcounts, displs, recvtype,
-                root, comm,
-                &static_cast<MPI_Fint&>(req),
-                err );
+                root, comm, &req, err );
 
-        ticket_t ticket( {req}, *err );
+        Fortran::Ticket ticket( req );
         ticket.wait();
-        *err = ticket.getReturnError();
     }
 
 } // extern C

@@ -27,21 +27,19 @@
 #include "ticket.h"
 
 using namespace nanos::mpi;
-using ticket_t = nanos::mpi::Ticket<Fortran::request,Fortran::ignored_status,1>;
 
 extern "C" {
     void mpi_ibarrier_( MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
 
     void mpi_barrier_( MPI_Fint *comm, MPI_Fint *err )
     {
-        print::intercepted_call( __func__ );
+        nanos::log::intercepted_call( __func__ );
 
-        Fortran::request req;
-        mpi_ibarrier_( comm, &static_cast<MPI_Fint&>(req), err );
+        MPI_Fint req;
+        mpi_ibarrier_( comm, &req, err );
 
-        ticket_t ticket( {req}, *err );
+        Fortran::Ticket ticket( req );
         ticket.wait();
-        *err = ticket.getReturnError();
     }
 } // extern C
 

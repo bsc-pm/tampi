@@ -27,17 +27,15 @@
 #include "ticket.h"
 
 using namespace nanos::mpi;
-using ticket_t = Ticket;
-// using ticket_t = Ticket<C::request,C::ignored_status,1>;
 
 extern "C" {
     int MPI_Barrier( MPI_Comm comm )
     {
         nanos::log::intercepted_call( __func__ );
 
-        C::request req;
-        int err = MPI_Ibarrier( comm, &static_cast<MPI_Request&>(req) );
-        ticket_t ticket( req );
+        MPI_Request req;
+        int err = MPI_Ibarrier( comm, &req );
+        C::Ticket ticket( req );
         ticket.wait();
         return err;
     }

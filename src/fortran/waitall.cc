@@ -30,31 +30,17 @@ using namespace nanos::mpi;
 using namespace nanos::utils;
 
 extern "C" {
-    void mpi_waitall_( MPI_Fint *count, MPI_Fint array_of_requests[],
-                       MPI_Fint *array_of_statuses, MPI_Fint *err )
-    {
-        print::intercepted_call( __func__ );
+   void mpi_waitall_( MPI_Fint *count, MPI_Fint array_of_requests[],
+         MPI_Fint *array_of_statuses, MPI_Fint *err )
+   {
+      nanos::log::intercepted_call( __func__ );
 
-        using requests_array = std::vector<Fortran::request>;
-        using statuses_array = std::vector<Fortran::status >;
-
-        if( array_of_statuses == MPI_F_STATUSES_IGNORE ) {
-            using ticket_t = Ticket<Fortran::request,Fortran::ignored_status>;
-            ticket_t ticket(
-                       std::move( transform_to<requests_array>()(*count, reinterpret_cast<Fortran::request*>(array_of_requests)) ),
-                       *err );
-            ticket.wait();
-            *err = ticket.getReturnError();
-        } else {
-            using ticket_t = Ticket<Fortran::request,Fortran::status>;
-            ticket_t ticket(
-                       std::move( transform_to<requests_array>()(*count, reinterpret_cast<Fortran::request*>(array_of_requests)) ),
-                       *err );
-            ticket.wait();
-            *err = ticket.getReturnError();
-            std::copy( ticket.getStatuses().begin(), ticket.getStatuses().end(),
-                       reinterpret_cast<Fortran::status*>(array_of_statuses) );
-        }
-    }
+      // TODO: copy back status information when not ignored
+      //if( array_of_statuses == MPI_F_STATUSES_IGNORE ) {
+      Fortran::Ticket ticket( array_of_requests, array_of_requests+(*count) );
+      ticket.wait();
+      //} else {
+      //}
+   }
 } // extern C
 

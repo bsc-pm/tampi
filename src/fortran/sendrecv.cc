@@ -30,34 +30,29 @@ using namespace nanos::mpi;
 extern "C" {
     void mpi_irecv_( void *recvbuf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *src,
                 MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
-    
+
     void mpi_isend_( MPI3CONST void *sendbuf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *dest,
                 MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
-    
+
     void mpi_sendrecv_( MPI3CONST void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
                            MPI_Fint *dest, MPI_Fint *sendtag,
                            void *recvbuf, MPI_Fint *recvcount, MPI_Fint *recvtype,
                            MPI_Fint *source, MPI_Fint *recvtag,
                            MPI_Fint *comm, MPI_Fint *status, MPI_Fint *err )
     {
-        std::array<Fortran::request, 2> reqs;
+        std::array<MPI_Fint, 2> reqs;
         mpi_irecv_( recvbuf, recvcount, recvtype, source, recvtag, comm,
-                    &static_cast<MPI_Fint&>(reqs[0]), err );
-    
+                    &reqs[0], err );
+
         mpi_isend_( sendbuf, sendcount, sendtype, dest, sendtag, comm,
-                    &static_cast<MPI_Fint&>(reqs[1]), err );
-    
-        if( status == MPI_F_STATUS_IGNORE ) {
-           using ticket_t = Ticket<Fortran::request,Fortran::ignored_status,2>;
-           ticket_t ticket( reqs, *err );
+                    &reqs[1], err );
+
+	// TODO: copy back status information when not ignored
+        //if( status == MPI_F_STATUS_IGNORE ) {
+           Fortran::Ticket ticket( reqs.begin(), reqs.end() );
            ticket.wait();
-           *err = ticket.getReturnError();
-        } else {
-           using ticket_t = Ticket<Fortran::request,Fortran::status,2>;
-           ticket_t ticket( reqs, *err );
-           ticket.wait();
-           *err = ticket.getReturnError();
-        }
+        //} else {
+        //}
     }
 } // extern C
 

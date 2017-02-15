@@ -34,23 +34,17 @@ extern "C" {
     void mpi_recv_( void *buf, MPI_Fint *count, MPI_Fint *datatype,
         MPI_Fint *source, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *status, MPI_Fint *err )
     {
-        print::intercepted_call( __func__ );
+        nanos::log::intercepted_call( __func__ );
 
-        Fortran::request req;
-        mpi_irecv_( buf, count, datatype, source, tag, comm,
-                    &static_cast<MPI_Fint&>(req), err );
+        MPI_Fint req;
+        mpi_irecv_( buf, count, datatype, source, tag, comm, &req, err );
 
-        if( status == MPI_F_STATUS_IGNORE ) {
-           using ticket_t = Ticket<Fortran::request,Fortran::ignored_status,1>;
-           ticket_t ticket( {req}, *err );
+	// TODO: copy back status information when not ignored
+        //if( status == MPI_F_STATUS_IGNORE ) {
+           Fortran::Ticket ticket( req );
            ticket.wait();
-           *err = ticket.getReturnError();
-        } else {
-           using ticket_t = Ticket<Fortran::request,Fortran::status,1>;
-           ticket_t ticket( {req}, *err );
-           ticket.wait();
-           *err = ticket.getReturnError();
-        }
+        //} else {
+        //}
     }
 } // extern C
 

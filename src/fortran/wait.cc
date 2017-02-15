@@ -26,26 +26,17 @@
 
 using namespace nanos::mpi;
 
+   extern "C" {
+      void mpi_wait_( MPI_Fint *request, MPI_Fint *status, MPI_Fint *err )
+      {
+         nanos::log::intercepted_call( __func__ );
 
-extern "C" {
-    void mpi_wait_( MPI_Fint *request, MPI_Fint *status, MPI_Fint *err )
-    {
-        print::intercepted_call( __func__ );
-    
-        if( status == MPI_F_STATUS_IGNORE ) {
-            using ticket_t = Ticket<Fortran::request,Fortran::ignored_status,1>;
-
-            ticket_t ticket({*request}, *err );
-            ticket.wait();
-            *err = ticket.getReturnError();
-        } else {
-            using ticket_t = Ticket<Fortran::request,Fortran::status,1>;
-
-            ticket_t ticket({*request}, *err );
-            ticket.wait();
-            *err = ticket.getReturnError();
-            reinterpret_cast<Fortran::status&>(*status) = ticket.getStatuses()[0];
-        }
-    }
-} // extern C
+         // TODO: copy back status information when not ignored
+         //if( status == MPI_F_STATUS_IGNORE ) {
+         Fortran::Ticket ticket(*request );
+         ticket.wait();
+         //} else {
+         //}
+      }
+   } // extern C
 

@@ -27,7 +27,6 @@
 #include "print.h"
 
 using namespace nanos::mpi;
-using ticket_t = Ticket<Fortran::request,Fortran::ignored_status,1>;
 
 extern "C" {
     void mpi_ialltoall_( const void *sendbuf, MPI_Fint *sendcount,
@@ -40,16 +39,15 @@ extern "C" {
                         MPI_Fint *recvcount, MPI_Fint *recvtype,
                         MPI_Fint *comm, MPI_Fint *ierror )
     {
-        print::intercepted_call( __func__ );
+        nanos::log::intercepted_call( __func__ );
 
-        Fortran::request req;
+        MPI_Fint req;
         mpi_ialltoall_( sendbuf, sendcount, sendtype,
                         recvbuf, recvcount, recvtype,
-                        comm, &static_cast<MPI_Fint&>(req), ierror );
+                        comm, &req, ierror );
 
-        ticket_t ticket( {req}, *ierror );
+        Fortran::Ticket ticket( req );
         ticket.wait();
-        *ierror = ticket.getReturnError();
     }
 }
 

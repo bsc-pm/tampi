@@ -5,45 +5,44 @@
 
 #include "environment.h"
 
+#ifdef HAVE_EXTRAE_H
+#include <extrae.h>
+#endif
+
 namespace nanos {
 namespace mpi {
 
-inline Ticket::Ticket( MPI_Request req ) :
-   _waiter(nullptr),
-   _pending(0)
+namespace C {
+
+inline Ticket::Ticket( Request& r ) :
+   TicketBase(r)
 {
-   int completed;
-   int err = PMPI_Test( &req, &completed, MPI_STATUS_IGNORE );
-   if( !completed ) {
-      _pending = 1;
-      environment::getQueue().add(*this, req);
-   }
+   environment::getQueue().add(*this, r);
 }
 
-// typedef MPI_Request* InputIt
-inline Ticket::Ticket( MPI_Request* first, MPI_Request* last ) :
-   _waiter(nullptr),
-   _pending(0)
+inline Ticket::Ticket( Request* first, Request* last ) :
+   TicketBase(first, last)
 {
-   int size = std::distance(first,last);
-   int completed = 0;
-   int indices[size];
-   int err = PMPI_Testsome( size, first, indices, &completed, MPI_STATUSES_IGNORE );
-
-   _pending = size - completed;
-   if( !finished() ) {
-      environment::getQueue().add(*this, first, last);
-   }
+   environment::getQueue().add(*this, first, last);
 }
 
-inline void Ticket::wait() {
-   environment::getQueue().poll();
+} // namespace C
 
-   if( !finished() ) { 
-      _waiter = nanos_get_current_task();
-      nanos_block_current_task();
-   }
+namespace Fortran {
+
+inline Ticket::Ticket( Request& r ) :
+   TicketBase(r)
+{
+   environment::getQueue().add(*this, r);
 }
+
+inline Ticket::Ticket( Request* first, Request* last ) :
+   TicketBase(first, last)
+{
+   environment::getQueue().add(*this, first, last);
+}
+
+} // namespace Fortran
 
 } // namespace mpi
 } // namespace nanos

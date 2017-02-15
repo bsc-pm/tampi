@@ -2,6 +2,7 @@
 #define TIQUET_QUEUE_H
 
 #include "array_utils.h"
+#include "mpi/request.h"
 #include "spin_mutex.h"
 #include "ticket_decl.h"
 
@@ -13,11 +14,44 @@
 namespace nanos {
 namespace mpi {
 
+template < typename Ticket >
+int test( typename Ticket::Request* req, int* completed );
+
+template< typename Ticket >
+int testsome( int count, typename Ticket::Request* requests, int* completed, int* indices );
+
+template<>
+inline int test<C::Ticket>( MPI_Request* req, int* completed ) {
+   return PMPI_Test( req, completed, MPI_STATUS_IGNORE );
+}
+
+template<>
+inline int testsome<C::Ticket>( int count, MPI_Request* requests, int* completed, int* indices ) {
+   return PMPI_Testsome( count, requests, indices, completed, MPI_STATUSES_IGNORE );
+}
+
+template<>
+inline int test<Fortran::Ticket>( MPI_Fint* req, int* completed ) {
+   MPI_Fint err;
+   pmpi_test_( req, completed, MPI_F_STATUS_IGNORE, &err );
+   return err;
+}
+
+template<>
+inline int testsome<Fortran::Ticket>( int count, MPI_Fint* requests, int* completed, int* indices ) {
+   MPI_Fint err;
+   pmpi_testsome_( &count, requests, indices, completed, MPI_F_STATUSES_IGNORE, &err );
+   return err;
+}
+
+template < typename Ticket >
 class TicketQueue {
    private:
-      std::vector<MPI_Request> _requests;
-      std::vector<Ticket*>     _tickets;
-      mutable spin_mutex       _mutex;
+      typedef typename Ticket::Request Request;
+
+      std::vector<Request> _requests;
+      std::vector<Ticket*> _tickets;
+      mutable spin_mutex   _mutex;
 
    public:
       TicketQueue() :
@@ -35,28 +69,40 @@ class TicketQueue {
          return _requests.empty();
       }
 
-      void add( Ticket& ticket, MPI_Request req )
+      void add( Ticket& ticket, Request& req )
       {
-         std::lock_guard<spin_mutex> guard( _mutex );
-         _requests.push_back( req );
-         _tickets.push_back( &ticket );
+         int completed = 0;
+         int err = test<Ticket>( &req, &completed );
+         if( !completed ) {
+            std::lock_guard<spin_mutex> guard( _mutex );
+            _requests.push_back( req );
+            _tickets.push_back( &ticket );
+         } else {
+            ticket.notifyCompletion();
+         }
       }
 
-      void add( Ticket& ticket, MPI_Request* first, MPI_Request* last )
+      void add( Ticket& ticket, Request* first, Request* last )
       {
-         const size_t count = std::distance(first,last);
-         std::lock_guard<spin_mutex> guard( _mutex );
+         int count = std::distance(first,last);
+         int indices[count];
+         int completed = 0;
 
-         const size_t capacity = _requests.capacity() - _requests.size() + count;
-         _requests.reserve(capacity);
-         _tickets.reserve(capacity);
+         testsome<Ticket>( count, first, indices, &completed );
+         ticket.notifyCompletion(completed);
 
-         while( first != last ) {
-            if( *first != MPI_REQUEST_NULL ) {
-               _requests.push_back( *first );
+         if( count > completed ) {
+            std::lock_guard<spin_mutex> guard( _mutex );
+
+            const size_t capacity = _requests.capacity() - _requests.size() + count - completed;
+
+            _requests.reserve(capacity);
+            _tickets.reserve(capacity);
+
+            for( int i : indices ) {
+               _requests.push_back( first[i] );
                _tickets.push_back( &ticket );
             }
-            ++first;
          }
       }
 
@@ -67,8 +113,7 @@ class TicketQueue {
                int count = _requests.size();
                int completed = 0;
                int indices[count];
-               int err = PMPI_Testsome( count, _requests.data(), &completed,
-                                       indices, MPI_STATUSES_IGNORE );
+               int err = testsome<Ticket>( count, _requests.data(), &completed, indices );
 
                if( completed == MPI_UNDEFINED ) {
                   // All requests are already released.

@@ -27,8 +27,6 @@
 #include "print.h"
 
 using namespace nanos::mpi;
-using ticket_t = Ticket;
-// using ticket_t = Ticket<C::request,C::ignored_status,1>;
 
 extern "C" {
     int MPI_Alltoallv( const void *sendbuf, const int sendcounts[],
@@ -39,12 +37,12 @@ extern "C" {
     {
         nanos::log::intercepted_call( __func__ );
 
-        C::request req;
+        MPI_Request req;
         int err = MPI_Ialltoallv( sendbuf, sendcounts, sdispls, sendtype,
                                 recvbuf, recvcounts, rdispls, recvtype,
-                                comm, &static_cast<MPI_Request&>(req) );
+                                comm, &req );
 
-        ticket_t ticket( req );
+        C::Ticket ticket( req );
         ticket.wait();
         return err;
     }
