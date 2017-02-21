@@ -20,22 +20,24 @@ namespace detail {
 
 class TicketBase {
 private:
-   nanos_wd_t _waiter;
-   int        _pending;
+   nanos_wait_cond_t _waiter;
+   int               _pending;
 
 public:
    template < typename Request >
    TicketBase( Request& req ) :
-      _waiter(nullptr),
+      _waiter(),
       _pending(1)
    {
+      nanos_create_wait_condition(&_waiter);
    }
 
    template < typename Request >
    TicketBase( Request* first, Request* last ) :
-      _waiter(nullptr),
+      _waiter(),
       _pending(std::distance(first,last))
    {
+      nanos_create_wait_condition(&_waiter);
    }
 
    TicketBase( const TicketBase & gt ) = delete;
@@ -52,7 +54,7 @@ public:
       _pending -= num;
 
       if( finished() && _waiter )
-         nanos_unblock_task(_waiter);
+         nanos_signal_wait_condition(&_waiter);
    }
 
    bool finished() const {
@@ -61,8 +63,7 @@ public:
 
    void wait() {
       if( !finished() ) {
-         _waiter = nanos_get_current_task();
-         nanos_block_current_task();
+         nanos_block_current_task(&_waiter);
       }
    }
 };

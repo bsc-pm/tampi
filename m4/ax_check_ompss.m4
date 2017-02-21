@@ -89,8 +89,9 @@ AS_IF([test "$ac_cv_header_nanox_nanos_h" = "yes"],[
 m4_foreach([function],
            [nanos_register_polling_service,
             nanos_unregister_polling_service,
+            nanos_create_wait_condition,
             nanos_block_current_task,
-            nanos_unblock_task],
+            nanos_signal_wait_condition],
            [
              AS_IF([test "$ompss" = "yes"],[
                AC_SEARCH_LIBS(function,
