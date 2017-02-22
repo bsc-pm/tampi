@@ -30,7 +30,7 @@ TicketQueue<Fortran::Ticket>* Fortran::environment::_queue = nullptr;
 
 extern "C" {
 
-void mpi_init_( MPI_Fint * arg)
+void mpi_init_( MPI_Fint * err )
 {
    // Look for next defined MPI_Init
    // Used to support other profiling tools
@@ -42,10 +42,10 @@ void mpi_init_( MPI_Fint * arg)
    Fortran::environment::initialize();
 
    // Call MPI_Init
-   mpi_init_fn(arg);
+   mpi_init_fn(err);
 }
 
-void mpi_init_thread_( MPI_Fint * arg1, MPI_Fint * arg2, MPI_Fint * arg3 )
+void mpi_init_thread_( MPI_Fint * required, MPI_Fint * provided, MPI_Fint * err )
 {
    // Look for next defined MPI_Init
    // Used to support other profiling tools
@@ -57,10 +57,10 @@ void mpi_init_thread_( MPI_Fint * arg1, MPI_Fint * arg2, MPI_Fint * arg3 )
    Fortran::environment::initialize();
 
    // Call MPI_Init_thread
-   mpi_init_thread_fn(arg1, arg2, arg2);
+   mpi_init_thread_fn(required, provided, err);
 }
 
-void mpi_finalize_( MPI_Fint * arg )
+void mpi_finalize_( MPI_Fint * err )
 {
    // Look for next defined MPI_Finalize
    // Used to support other profiling tools
@@ -69,7 +69,7 @@ void mpi_finalize_( MPI_Fint * arg )
    assert(mpi_finalize_fn != 0);
 
    // Call MPI_Finalize
-   mpi_finalize_fn(arg);
+   mpi_finalize_fn(err);
 
    // Finalize the environment
    Fortran::environment::finalize();
