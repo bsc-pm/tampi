@@ -34,7 +34,6 @@
 
 #ifdef HAVE_NANOS6_H
 #include <nanos6.h>
-typedef void* nanos_wait_cond_t;
 #endif
 
 namespace nanos {
@@ -71,7 +70,7 @@ struct WaitProperties {
 
 class TicketBase {
 private:
-   nanos_wait_cond_t _waiter;
+   void             *_waiter;
    int               _pending;
    WaitProperties    _waitMode;
 
@@ -81,8 +80,7 @@ public:
       _pending(0),
       _waitMode()
    {
-      nanos_create_wait_condition(&_waiter);
-
+      _waiter = nanos_get_current_blocking_context();
       const tls_view task_local_storage;
       task_local_storage.load( _waitMode );
    }
@@ -116,7 +114,7 @@ public:
    void notifyCompletion() {
       removePendingRequest();
       if( finished() ) {
-         nanos_signal_wait_condition(&_waiter);
+         nanos_unblock_task(_waiter);
       }
    }
 
@@ -125,7 +123,7 @@ public:
    }
 
    void blockTask() {
-      nanos_block_current_task( &_waiter );
+      nanos_block_current_task( _waiter );
    }
 };
 
