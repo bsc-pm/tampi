@@ -18,7 +18,7 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 #ifndef TICKET_QUEUE_H
-#define TIQUET_QUEUE_H
+#define TICKET_QUEUE_H
 
 #include "array_view.h"
 #include "request.h"
