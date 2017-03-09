@@ -15,6 +15,10 @@ AC_ARG_VAR(OMPI_CXX, [OpenMPI C++ backend compiler])
 AC_ARG_VAR(MPICH_CXX,[MPICH C++ backend compiler])
 AC_ARG_VAR(I_MPI_CXX,[Intel MPI C++ backend compiler])
 
+AM_CONDITIONAL(DEFINES_OMPI_CXX, test x"${OMPI_CXX}" != x"")
+AM_CONDITIONAL(DEFINES_MPICH_CXX, test x"${MPICH_CXX}" != x"")
+AM_CONDITIONAL(DEFINES_I_MPI_CXX, test x"${I_MPI_CXX}" != x"")
+
 # Prefix API
 AC_ARG_VAR(API_PREFIX,[Prepend MPI API with a given value.])
 AS_IF([ test "$API_PREFIX" != "" ],[

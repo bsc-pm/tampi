@@ -21,9 +21,15 @@ endif
 AM_LDFLAGS=@extraelib@ @ompsslib@ -ldl $(LDFLAGS)
 LIBS=@extraelibs@ @ompsslibs@
 
+if DEFINES_I_MPI_CXX
 export I_MPI_CXX=@I_MPI_CXX@
+endif
+if DEFINES_OMPI_CXX
 export OMPI_CXX=@OMPI_CXX@
+endif
+if DEFINES_MPICH_CXX
 export MPICH_CXX=@MPICH_CXX@
+endif
 
 pkginclude_HEADERS= # This library does not provide any additional header
 
