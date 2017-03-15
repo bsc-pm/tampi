@@ -15,6 +15,14 @@ AC_ARG_VAR(OMPI_CXX, [OpenMPI C++ backend compiler])
 AC_ARG_VAR(MPICH_CXX,[MPICH C++ backend compiler])
 AC_ARG_VAR(I_MPI_CXX,[Intel MPI C++ backend compiler])
 
+# Prefix API
+AC_ARG_VAR(API_PREFIX,[Prepend MPI API with a given value.])
+AS_IF([ test "$API_PREFIX" != "" ],[
+  AC_DEFINE_UNQUOTED( [API_PREFIX], [$API_PREFIX],[
+    Prefix value that will precede MPI API function name.
+  ])
+])
+
 # Check if debug mode is enabled
 AX_DEBUG_MODE
 

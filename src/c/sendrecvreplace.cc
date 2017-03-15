@@ -21,13 +21,24 @@
 
 #include "mpi/status.h"
 #include "print.h"
+#include "api_def.h"
 
 extern "C" {
 
-int MPI_Sendrecv_replace( void *buf, int count, MPI_Datatype datatype,
-                       int dest, int sendtag,
-                       int source, int recvtag,
-                       MPI_Comm comm, MPI_Status *status)
+   API_DECL( int, MPI_Sendrecv,
+              ( MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
+                int dest, int sendtag,
+                void *recvbuf, int recvcount, MPI_Datatype recvtype,
+                int source, int recvtag,
+                MPI_Comm comm, MPI_Status *status )
+            );
+
+    API_DEF( int, MPI_Sendrecv_replace,
+               ( void *buf, int count, MPI_Datatype datatype,
+                 int dest, int sendtag,
+                 int source, int recvtag,
+                 MPI_Comm comm, MPI_Status *status )
+             )
 {
     /*
      * Note: this implementation tries to mimic OpenMPI's:
@@ -54,7 +65,7 @@ int MPI_Sendrecv_replace( void *buf, int count, MPI_Datatype datatype,
 
         /* recv into temporary buffer */
         if ( err == MPI_SUCCESS  && alloc == MPI_SUCCESS ) {
-            err = MPI_Sendrecv( buf, count, datatype, dest, sendtag,
+            err = API_CALL( MPI_Sendrecv ) ( buf, count, datatype, dest, sendtag,
                            helperbuf, packed_size, MPI_BYTE, source, recvtag,
                            comm, status);
         }

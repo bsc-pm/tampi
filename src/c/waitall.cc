@@ -24,13 +24,16 @@
 #include "mpi/status.h"
 #include "ticket.h"
 #include "print.h"
+#include "api_def.h"
 
 using namespace nanos::mpi;
 using namespace nanos::utils;
 
 extern "C" {
-   int MPI_Waitall(int count, MPI_Request array_of_requests[],
-         MPI_Status array_of_statuses[])
+   API_DEF( int, MPI_Waitall,
+              ( int count, MPI_Request array_of_requests[],
+                MPI_Status array_of_statuses[] )
+            )
    {
       nanos::log::intercepted_call( __func__ );
 

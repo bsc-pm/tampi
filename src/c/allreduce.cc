@@ -25,12 +25,15 @@
 #include "mpi/status.h"
 #include "ticket.h"
 #include "print.h"
+#include "api_def.h"
 
 using namespace nanos::mpi;
 
 extern "C" {
-    int MPI_Allreduce( const void *sendbuf, void *recvbuf, int count,
-                   MPI_Datatype datatype, MPI_Op op, MPI_Comm comm )
+    API_DEF( int,  MPI_Allreduce, 
+               ( const void *sendbuf, void *recvbuf, int count,
+                 MPI_Datatype datatype, MPI_Op op, MPI_Comm comm )
+             )
     {
         nanos::log::intercepted_call( __func__ );
 

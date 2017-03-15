@@ -25,14 +25,16 @@
 #include "mpi/status.h"
 #include "ticket.h"
 #include "print.h"
+#include "api_def.h"
 
 using namespace nanos::mpi;
 
 extern "C" {
-    int MPI_Gatherv( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
-        void *recvbuf, const int recvcounts[], const int displs[], MPI_Datatype
-    recvtype,
-        int root, MPI_Comm comm )
+    API_DEF( int, MPI_Gatherv,
+               ( const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+                 void *recvbuf, const int recvcounts[], const int displs[],
+                 MPI_Datatype recvtype, int root, MPI_Comm comm )
+             )
     {
         nanos::log::intercepted_call( __func__ );
 

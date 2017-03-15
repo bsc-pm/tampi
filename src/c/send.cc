@@ -24,12 +24,15 @@
 #include "mpi/request.h"
 #include "ticket.h"
 #include "print.h"
+#include "api_def.h"
 
 using namespace nanos::mpi;
 
 extern "C" {
-    int MPI_Send( MPI3CONST void *buf, int count, MPI_Datatype datatype,
-        int dest, int tag, MPI_Comm comm )
+    API_DEF( int, MPI_Send,
+               ( MPI3CONST void *buf, int count, MPI_Datatype datatype,
+                 int dest, int tag, MPI_Comm comm )
+             )
     {
         nanos::log::intercepted_call( __func__ );
 
