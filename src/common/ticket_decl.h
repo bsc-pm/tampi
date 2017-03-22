@@ -10,7 +10,7 @@
 
 #ifdef HAVE_NANOS6_H
 #include <nanos6.h>
-typedef void* nanos_wd_t;
+typedef void* nanos_wait_cond_t;
 #endif
 
 namespace nanos {
@@ -71,22 +71,48 @@ public:
 } // namespace detail
 
 namespace C {
-   struct Ticket : public detail::TicketBase {
-      typedef MPI_Request Request;
+struct Ticket : public detail::TicketBase {
+   typedef MPI_Request Request;
+   typedef MPI_Status  Status;
 
-      Ticket( Request& r );
+   private:
+      Status* _first_status;
 
-      Ticket( Request* first, Request* last );
-   };
+   public:
+      Ticket( Request& r, Status* s = MPI_STATUS_IGNORE );
+
+      Ticket( Request* first_req, Request* last_req, Status* first_status = MPI_STATUSES_IGNORE );
+
+      Status* getStatus() { return _first_status; }
+
+      bool ignoreStatus() const;
+
+      using TicketBase::notifyCompletion;
+
+      void notifyCompletion( int status_pos, const Status& status );
+};
 } // namespace C
 
 namespace Fortran {
-   struct Ticket : public detail::TicketBase {
-      typedef MPI_Request Request;
+struct Ticket : public detail::TicketBase {
+   typedef MPI_Fint  Request;
+   typedef std::array<MPI_Fint,sizeof(MPI_Status)/sizeof(int)> Status;
 
-      Ticket( Request& r );
+   private:
+      MPI_Fint* _first_status;
 
-      Ticket( Request* first, Request* last );
+   public:
+      Ticket( Request& r, MPI_Fint* s = MPI_F_STATUS_IGNORE );
+
+      Ticket( Request* first_req, Request* last_req, MPI_Fint* first_status = MPI_F_STATUSES_IGNORE );
+
+      MPI_Fint* getStatus() { return _first_status; }
+
+      bool ignoreStatus() const;
+
+      using TicketBase::notifyCompletion;
+
+      void notifyCompletion( int status_pos, const Status& status );
    };
 } // namespace Fortran
 
