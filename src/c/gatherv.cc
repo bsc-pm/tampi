@@ -44,7 +44,7 @@ extern "C" {
                                 root, comm, &req );
         C::Ticket ticket( req );
         ticket.wait();
-        err;
+        return err;
     }
 } // extern C
 

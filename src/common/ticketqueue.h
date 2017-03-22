@@ -76,8 +76,8 @@ template<>
 inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, C::Ticket::Request* first, C::Ticket::Request* last )
 {
    int count = std::distance(first,last);
-   int indices[count];
-   int completed = 0;
+   int indices[count]; // Array positions for completed requests
+   int completed = 0;  // Number of completed requests
 
    int err = PMPI_Testsome( count, first, indices, &completed, MPI_STATUSES_IGNORE );
    ticket.notifyCompletion(completed);
@@ -85,14 +85,22 @@ inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, C::Ticket::Request* 
    if( count > completed ) {
       std::lock_guard<spin_mutex> guard( _mutex );
 
-      const size_t capacity = _requests.capacity() - _requests.size() + count - completed;
+      const size_t capacity = _requests.capacity() - _requests.size() + (count - completed);
 
       _requests.reserve(capacity);
       _tickets.reserve(capacity);
 
-      for( int i : indices ) {
-         _requests.push_back( first[i] );
-         _tickets.push_back( &ticket );
+      // Insert each uncompleted request
+      // (request not present in indices array)
+      int c = 0;
+      for( int u = 0; u < count; ++u ) {
+         if (c < completed && u == indices[c]) {
+            c++;
+        } else {
+            _requests.push_back( *first );
+            _tickets.emplace_back( &ticket, u );
+        }
+        ++first;
       }
    }
 }
@@ -100,26 +108,33 @@ inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, C::Ticket::Request* 
 template<>
 inline void TicketQueue<Fortran::Ticket>::add( Fortran::Ticket& ticket, Fortran::Ticket::Request* first, Fortran::Ticket::Request* last )
 {
-   int count = std::distance(first,last);
-   int indices[count];
-   int completed = 0;
-   int err = MPI_SUCCESS;
+   MPI_Fint count = std::distance(first,last);
+   MPI_Fint indices[count];
+   MPI_Fint completed = 0;
+   MPI_Fint err = MPI_SUCCESS;
 
    pmpi_testsome_( &count, first, indices, &completed, MPI_F_STATUSES_IGNORE, &err );
    ticket.notifyCompletion(completed);
 
-   if( count > completed ) {
+   if( !ticket.finished() ) {
       std::lock_guard<spin_mutex> guard( _mutex );
 
-      const size_t capacity = _requests.capacity() - _requests.size() + count - completed;
+      const size_t capacity = _requests.capacity() - _requests.size() + (count - completed);
 
       _requests.reserve(capacity);
       _tickets.reserve(capacity);
 
-      for( int i : indices ) {
-         // Fortran index values are 1 unit greater than their C/C++ respective values
-         _requests.push_back( first[i-1] );
-         _tickets.push_back( &ticket );
+      // Insert each uncompleted request
+      // (request not present in indices array)
+      int c = 0;
+      for( int u = 0; u < count; ++u ) {
+         if (c < completed && u == indices[c]) {
+            c++;
+        } else {
+            _requests.push_back( *first );
+            _tickets.emplace_back( &ticket, u );
+        }
+        ++first;
       }
    }
 }
