@@ -63,6 +63,7 @@ inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, C::Ticket::Request& 
    if( !completed ) {
       std::lock_guard<spin_mutex> guard( _mutex );
       _requests.push_back( req );
+      _statuses.emplace_back();
       _tickets.emplace_back( &ticket, 0 );
    } else {
       ticket.notifyCompletion(1);
@@ -79,6 +80,7 @@ inline void TicketQueue<Fortran::Ticket>::add( Fortran::Ticket& ticket, Fortran:
    if( !completed ) {
       std::lock_guard<spin_mutex> guard( _mutex );
       _requests.push_back( req );
+      _statuses.emplace_back();
       _tickets.emplace_back( &ticket, 0 );
    } else {
       ticket.TicketBase::notifyCompletion(1);
