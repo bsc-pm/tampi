@@ -22,12 +22,14 @@ class TicketBase {
 private:
    nanos_wait_cond_t _waiter;
    int               _pending;
+   bool              _waiting;
 
 public:
    template < typename Request >
    TicketBase( Request& req ) :
       _waiter(),
-      _pending(1)
+      _pending(1),
+      _waiting(false)
    {
       nanos_create_wait_condition(&_waiter);
    }
@@ -35,7 +37,8 @@ public:
    template < typename Request >
    TicketBase( Request* first, Request* last ) :
       _waiter(),
-      _pending(std::distance(first,last))
+      _pending(std::distance(first,last)),
+      _waiting(false)
    {
       nanos_create_wait_condition(&_waiter);
    }
@@ -53,8 +56,9 @@ public:
       assert( _pending >= num );
       _pending -= num;
 
-      if( finished() && _waiter )
+      if( finished() && _waiting ) {
          nanos_signal_wait_condition(&_waiter);
+      }
    }
 
    bool finished() const {
@@ -63,8 +67,10 @@ public:
 
    void wait() {
       if( !finished() ) {
+         _waiting = true;
          nanos_block_current_task(&_waiter);
       }
+      _waiting = false;
    }
 };
 
