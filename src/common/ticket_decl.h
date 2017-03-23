@@ -85,11 +85,21 @@ struct Ticket : public detail::TicketBase {
 
       Status* getStatus() { return _first_status; }
 
-      bool ignoreStatus() const;
+      bool ignoreStatus() const {
+         return _first_status == MPI_STATUS_IGNORE | _first_status == MPI_STATUSES_IGNORE;
+      }
 
       using TicketBase::notifyCompletion;
 
-      void notifyCompletion( int status_pos, const Status& status );
+      void notifyCompletion( int status_pos, const Status& status ) {
+         if( !ignoreStatus() ) {
+            const Status* first = &status;
+            const Status* last  = std::next(first);
+            Status* out   = _first_status;
+            std::copy<const Status*,Status*>( first, last, out );
+         }
+         notifyCompletion();
+      }
 };
 } // namespace C
 
@@ -108,11 +118,22 @@ struct Ticket : public detail::TicketBase {
 
       MPI_Fint* getStatus() { return _first_status; }
 
-      bool ignoreStatus() const;
+      bool ignoreStatus() const {
+         // MPI fortran API decays status array to a pointer to integer
+         return _first_status == MPI_F_STATUS_IGNORE | _first_status == MPI_F_STATUSES_IGNORE;
+      }
 
       using TicketBase::notifyCompletion;
 
-      void notifyCompletion( int status_pos, const Status& status );
+      void notifyCompletion( int status_pos, const Status& status ) {
+         if( !ignoreStatus() ) {
+            const Status* first = &status;
+            const Status* last  = std::next(first);
+            Status* out   = reinterpret_cast<Status*>(_first_status);
+            std::copy<const Status*,Status*>( first, last, out );
+         }
+         notifyCompletion();
+      }
    };
 } // namespace Fortran
 
