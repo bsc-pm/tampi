@@ -52,6 +52,10 @@ public:
          log::fatal( "Destroying unfinished ticket" );
    }
 
+   int getPendingRequests() const {
+      return _pending;
+   }
+
    void notifyCompletion( int num = 1 ) {
       assert( _pending >= num );
       _pending -= num;
