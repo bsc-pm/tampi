@@ -56,7 +56,7 @@ AC_CHECK_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 
 # Turn off shared libraries.
-LT_INIT([shared static])
+LT_INIT([static])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

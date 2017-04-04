@@ -181,6 +181,7 @@ inline void TicketQueue<C::Ticket>::poll() {
             // indexed element positions are not changed after a deletion
             for( int* indexIt = &indices[completed-1]; indexIt != &indices[-1]; --indexIt )
             {
+               // Take care with index values. Fortran API returns values in 1..N range
                auto requestIt = std::next( _requests.begin(), *indexIt );
                auto statusIt  = std::next( _statuses.begin(), *indexIt );
                auto ticketIt  = std::next( _tickets.begin(),  *indexIt );
@@ -224,9 +225,9 @@ inline void TicketQueue<Fortran::Ticket>::poll() {
             for( int* indexIt = &indices[completed-1]; indexIt != &indices[-1]; --indexIt )
             {
                // Fortran index values are 1 unit greater than C/C++ ones
-               auto requestIt = std::next( _requests.begin(), *indexIt );
-               auto statusIt  = std::next( _statuses.begin(), *indexIt );
-               auto ticketIt  = std::next( _tickets.begin(),  *indexIt );
+               auto requestIt = std::next( _requests.begin(), *indexIt-1 );
+               auto statusIt  = std::next( _statuses.begin(), *indexIt-1 );
+               auto ticketIt  = std::next( _tickets.begin(),  *indexIt-1 );
 
                Fortran::Ticket* t = ticketIt->ticket;
                int pos   = ticketIt->request_position;
