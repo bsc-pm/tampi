@@ -56,6 +56,9 @@ fortran_api_sources= \
  src/fortran/sendrecvreplace.cc \
  src/fortran/init-finalize.cc
 
+common_sources = \
+ src/common/configuration.cc
+
 lib_LTLIBRARIES=libmpiompss-interop.la
-libmpiompss_interop_la_SOURCES=$(c_api_sources) $(fortran_api_sources)
+libmpiompss_interop_la_SOURCES=$(common_sources) $(c_api_sources) $(fortran_api_sources)
 

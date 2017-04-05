@@ -21,6 +21,7 @@
 #define TICKET_DECL_H
 
 #include "print.h"
+#include "task_local.h"
 
 #ifdef HAVE_NANOX_NANOS_H
 #include <nanox/nanos.h>
@@ -42,24 +43,35 @@ private:
    nanos_wait_cond_t _waiter;
    int               _pending;
    bool              _waiting;
+   bool              _spinNotYield;
 
 public:
    template < typename Request >
    TicketBase( Request& req ) :
       _waiter(),
       _pending(1),
-      _waiting(false)
+      _waiting(false),
+      _spinNotYield(false)
    {
       nanos_create_wait_condition(&_waiter);
+
+      const tls_view task_local_storage;
+      task_local_storage.load( _spinNotYield );
    }
 
    template < typename Request >
    TicketBase( Request* first, Request* last ) :
       _waiter(),
       _pending(std::distance(first,last)),
-      _waiting(false)
+      _waiting(false),
+      _spinNotYield(false)
    {
-      nanos_create_wait_condition(&_waiter);
+      const tls_view task_local_storage;
+      task_local_storage.load( _spinNotYield );
+
+      if( !_spinNotYield ) {
+         nanos_create_wait_condition(&_waiter);
+      }
    }
 
    TicketBase( const TicketBase & gt ) = delete;
@@ -88,11 +100,13 @@ public:
       return _pending == 0;
    }
 
-   void wait() {
-      if( !finished() ) {
-         _waiting = true;
-         nanos_block_current_task(&_waiter);
-      }
+   bool spinNotYield() const {
+      return _spinNotYield;
+   }
+
+   void blockTask() {
+      _waiting = true;
+      nanos_block_current_task( &_waiter );
       _waiting = false;
    }
 };
@@ -129,6 +143,8 @@ struct Ticket : public detail::TicketBase {
          }
          notifyCompletion();
       }
+
+      void wait();
 };
 } // namespace C
 
@@ -163,6 +179,8 @@ struct Ticket : public detail::TicketBase {
          }
          notifyCompletion();
       }
+
+      void wait();
    };
 } // namespace Fortran
 

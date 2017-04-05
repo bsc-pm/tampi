@@ -20,7 +20,9 @@
 #include <mpi.h>
 #include <dlfcn.h>
 #include <cassert>
+#include <stdarg.h>
 
+#include "configuration.h"
 #include "environment.h"
 
 using namespace nanos::mpi;
@@ -77,6 +79,29 @@ int MPI_Finalize()
     C::environment::finalize();
 
     return error;
+}
+
+int MPI_Pcontrol( int level, ... )
+{
+   va_list args;
+   va_start( args, level );
+
+   int task_level = va_arg( args, int );
+
+   config.reset(level);
+
+   // Store a bool indicating whether the task has to
+   // spin and not yield the execution.
+   // If the task_level value is 0, then interoperability
+   // is disabled, therefore the task has to spin until completion.
+   if( !config.tlsTuneDisabled() ) {
+      nanos::tls_view task_local_storage;
+      task_local_storage.store<bool>( task_level == 0 );
+   }
+
+   va_end( args );
+
+   return MPI_SUCCESS;
 }
 
 } // extern C

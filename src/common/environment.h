@@ -20,6 +20,7 @@
 #ifndef NANOS6_ENVIRONMENT_H
 #define NANOS6_ENVIRONMENT_H
 
+#include "configuration.h"
 #include "ticketqueue.h"
 
 #ifdef HAVE_NANOX_NANOS_H
@@ -40,6 +41,8 @@ namespace detail {
 template < typename Queue >
 class environment {
 public:
+	environment() = delete;
+
    static void initialize()
    {
       _queue = new Queue();

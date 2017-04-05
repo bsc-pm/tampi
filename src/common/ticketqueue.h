@@ -193,6 +193,7 @@ template<>
 inline void TicketQueue<C::Ticket>::poll() {
    if ( !_requests.empty() ) {
       std::unique_lock<spin_mutex> guard( _mutex, std::try_to_lock );
+
       if ( guard.owns_lock() && !_requests.empty() ) {
          int count = _requests.size();
          int completed = 0;
@@ -235,6 +236,7 @@ template<>
 inline void TicketQueue<Fortran::Ticket>::poll() {
    if ( !_requests.empty() ) {
       std::unique_lock<spin_mutex> guard( _mutex, std::try_to_lock );
+
       if ( guard.owns_lock() && !_requests.empty() ) {
          int count = _requests.size();
          int completed = 0;

@@ -47,6 +47,18 @@ inline Ticket::Ticket( Request* first, Request* last, Status* first_status ) :
    environment::getQueue().add(*this, first, last);
 }
 
+inline void Ticket::wait()
+{
+   if( spinNotYield() ) {
+      TicketQueue<Ticket>& queue = environment::getQueue();
+      while( !finished() ) {
+         queue.poll();
+      }
+   } else if( !finished() ) {
+      blockTask();
+   }
+}
+
 } // namespace C
 
 namespace Fortran {
@@ -63,6 +75,18 @@ inline Ticket::Ticket( Request* first, Request* last, MPI_Fint* first_status ) :
    _first_status(first_status)
 {
    environment::getQueue().add(*this, first, last);
+}
+
+inline void Ticket::wait()
+{
+   if( spinNotYield() ) {
+      TicketQueue<Ticket>& queue = environment::getQueue();
+      while( !finished() ) {
+         queue.poll();
+      }
+   } else if( !finished() ) {
+      blockTask();
+   }
 }
 
 } // namespace Fortran

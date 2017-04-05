@@ -21,7 +21,9 @@
 #include <dlfcn.h>
 #include <cassert>
 
+#include "configuration.h"
 #include "environment.h"
+#include "task_local.h"
 
 using namespace nanos::mpi;
 
@@ -73,6 +75,18 @@ void mpi_finalize_( MPI_Fint * err )
 
    // Finalize the environment
    Fortran::environment::finalize();
+}
+
+void mpi_pcontrol_( MPI_Fint* level, MPI_Fint* task_level, MPI_Fint* err )
+{
+   config.reset( *level );
+
+   if( !config.tlsTuneDisabled() ) {
+      nanos::tls_view task_local_storage;
+      task_local_storage.store<bool>( (*task_level) != 0 );
+   }
+
+   *err = MPI_SUCCESS;
 }
 
 } // extern C
