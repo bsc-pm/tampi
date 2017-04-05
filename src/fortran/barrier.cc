@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Barcelona Supercomputing Center. All rights
+ * Copyright (c) 2017 Barcelona Supercomputing Center. All rights
  *                    reserved.
  *
  * This file is part of OmpSs-MPI interoperability library.
