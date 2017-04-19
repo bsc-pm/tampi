@@ -19,7 +19,6 @@
  */
 #include <mpi.h>
 
-#include "array_utils.h"
 #include "mpi/request.h"
 #include "mpi/status.h"
 #include "ticket.h"
@@ -27,7 +26,6 @@
 #include "api_def.h"
 
 using namespace nanos::mpi;
-using namespace nanos::utils;
 
 extern "C" {
    API_DEF( int, MPI_Waitall,
@@ -38,12 +36,12 @@ extern "C" {
       nanos::log::intercepted_call( __func__ );
 
       int err = MPI_SUCCESS;
-      // TODO: copy back status info  when not ignored
-      //if( array_of_statuses == MPI_STATUSES_IGNORE ) {
-      C::Ticket ticket( array_of_requests, array_of_requests+count );
+
+      C::Ticket ticket( array_of_requests,
+		        array_of_requests+count,
+			array_of_statuses );
       ticket.wait();
-      //} else {
-      //}
+
       return err;
    }
 } // extern C

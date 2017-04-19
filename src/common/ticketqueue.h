@@ -20,7 +20,7 @@
 #ifndef TICKET_QUEUE_H
 #define TIQUET_QUEUE_H
 
-#include "array_utils.h"
+#include "array_view.h"
 #include "mpi/request.h"
 #include "spin_mutex.h"
 #include "ticket_decl.h"
@@ -72,6 +72,19 @@ class TicketQueue {
       void add( Ticket& ticket, Request* first, Request* last );
 
       void poll();
+
+      void requestCompleted( int position ) {
+         auto req_it  = std::next(_requests.begin(),position);
+         auto stat_it = std::next(_statuses.begin(),position);
+         auto tm_it   = std::next(_tickets.begin(),position);
+
+         TicketMapping tm = *tm_it;
+         tm.ticket->notifyCompletion( tm.request_position, _statuses[position] );
+
+         _requests.erase(req_it);
+         _statuses.erase(stat_it);
+         _tickets.erase(tm_it);
+      }
 };
 
 template<>
@@ -211,21 +224,10 @@ inline void TicketQueue<C::Ticket>::poll() {
             // Assumes indices array is sorted from lower to higher values
             // Iterate from the end to the beginning of the array to ensure
             // indexed element positions are not changed after a deletion
-            for( int* indexIt = &indices[completed-1]; indexIt != &indices[-1]; --indexIt )
+            for( int index : util::reverse(util::array_view<int>(indices,count) ) )
             {
                // Take care with index values. Fortran API returns values in 1..N range
-               auto requestIt = std::next( _requests.begin(), *indexIt );
-               auto statusIt  = std::next( _statuses.begin(), *indexIt );
-               auto ticketIt  = std::next( _tickets.begin(),  *indexIt );
-
-               C::Ticket* t = ticketIt->ticket;
-               int pos = ticketIt->request_position;
-
-               t->notifyCompletion( pos, *statusIt );
-
-               _requests.erase(requestIt);
-               _statuses.erase(statusIt);
-               _tickets.erase(ticketIt);
+               requestCompleted( index-1 );
             }
          }
       }
@@ -250,25 +252,16 @@ inline void TicketQueue<Fortran::Ticket>::poll() {
             // Consider skip deletion of completed requests and only clear
             // them whenever all of them are released.
             _requests.clear();
+            _statuses.clear();
             _tickets.clear();
          } else {
             // Assumes indices array is sorted from lower to higher values
             // Iterate from the end to the beginning of the array to ensure
             // indexed element positions are not changed after a deletion
-            for( int* indexIt = &indices[completed-1]; indexIt != &indices[-1]; --indexIt )
+            for( int index : util::reverse(util::array_view<int>(indices,count) ) )
             {
                // Fortran index values are 1 unit greater than C/C++ ones
-               auto requestIt = std::next( _requests.begin(), *indexIt-1 );
-               auto statusIt  = std::next( _statuses.begin(), *indexIt-1 );
-               auto ticketIt  = std::next( _tickets.begin(),  *indexIt-1 );
-
-               Fortran::Ticket* t = ticketIt->ticket;
-               int pos   = ticketIt->request_position;
-
-               t->notifyCompletion( pos, *statusIt );
-
-               _requests.erase(requestIt);
-               _tickets.erase(ticketIt);
+               requestCompleted( index-1 );
             }
          }
       }

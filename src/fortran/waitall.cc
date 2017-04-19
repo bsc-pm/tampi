@@ -19,7 +19,6 @@
  */
 #include <mpi.h>
 
-#include "array_utils.h"
 #include "mpi/common.h"
 #include "mpi/request.h"
 #include "mpi/status.h"
@@ -27,7 +26,6 @@
 #include "print.h"
 
 using namespace nanos::mpi;
-using namespace nanos::utils;
 
 extern "C" {
    void mpi_waitall_( MPI_Fint *count, MPI_Fint array_of_requests[],
@@ -35,12 +33,10 @@ extern "C" {
    {
       nanos::log::intercepted_call( __func__ );
 
-      // TODO: copy back status information when not ignored
-      //if( array_of_statuses == MPI_F_STATUSES_IGNORE ) {
-      Fortran::Ticket ticket( array_of_requests, array_of_requests+(*count) );
+      Fortran::Ticket ticket( array_of_requests,
+		              array_of_requests+(*count),
+			      array_of_statuses );
       ticket.wait();
-      //} else {
-      //}
    }
 } // extern C
 
