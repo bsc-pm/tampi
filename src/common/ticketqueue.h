@@ -224,10 +224,9 @@ inline void TicketQueue<C::Ticket>::poll() {
             // Assumes indices array is sorted from lower to higher values
             // Iterate from the end to the beginning of the array to ensure
             // indexed element positions are not changed after a deletion
-            for( int index : util::reverse(util::array_view<int>(indices,count) ) )
+            for( int index : util::reverse(util::array_view<int>(indices,completed) ) )
             {
-               // Take care with index values. Fortran API returns values in 1..N range
-               requestCompleted( index-1 );
+               requestCompleted( index );
             }
          }
       }
@@ -258,8 +257,9 @@ inline void TicketQueue<Fortran::Ticket>::poll() {
             // Assumes indices array is sorted from lower to higher values
             // Iterate from the end to the beginning of the array to ensure
             // indexed element positions are not changed after a deletion
-            for( int index : util::reverse(util::array_view<int>(indices,count) ) )
+            for( int index : util::reverse(util::array_view<int>(indices,completed) ) )
             {
+               // Take care with index values. Fortran API returns values in 1..N range
                // Fortran index values are 1 unit greater than C/C++ ones
                requestCompleted( index-1 );
             }
