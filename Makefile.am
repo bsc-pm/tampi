@@ -1,5 +1,9 @@
 ACLOCAL_AMFLAGS=-I m4
 
+EXTRA_DIST=\
+ src/common/*.h\
+ src/common/mpi/*.h
+
 AM_CPPFLAGS=\
  @extraeinc@ \
  @ompssinc@ \
