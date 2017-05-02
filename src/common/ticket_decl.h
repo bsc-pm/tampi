@@ -23,6 +23,8 @@
 #include "print.h"
 #include "task_local.h"
 
+#include <array>
+
 #ifdef HAVE_NANOX_NANOS_H
 #include <nanox/nanos.h>
 #define nanos_get_current_task nanos_current_wd

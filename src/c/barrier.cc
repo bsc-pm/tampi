@@ -21,8 +21,6 @@
 
 #if MPI_VERSION >=3
 
-#include "mpi/request.h"
-#include "mpi/status.h"
 #include "print.h"
 #include "ticket.h"
 #include "api_def.h"

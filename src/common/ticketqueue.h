@@ -21,7 +21,7 @@
 #define TIQUET_QUEUE_H
 
 #include "array_view.h"
-#include "mpi/request.h"
+#include "request.h"
 #include "spin_mutex.h"
 #include "ticket_decl.h"
 

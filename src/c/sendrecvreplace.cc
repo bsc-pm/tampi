@@ -19,7 +19,6 @@
  */
 #include <mpi.h>
 
-#include "mpi/status.h"
 #include "print.h"
 #include "api_def.h"
 

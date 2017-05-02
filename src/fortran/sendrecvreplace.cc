@@ -19,7 +19,7 @@
  */
 #include <mpi.h>
 
-#include "mpi/status.h"
+#include "api_def.h"
 #include "ticket.h"
 #include "print.h"
 

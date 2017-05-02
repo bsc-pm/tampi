@@ -2,6 +2,8 @@
 #ifndef TASK_LOCAL_H
 #define TASK_LOCAL_H
 
+#include <cassert>
+
 namespace nanos {
 
 class tls_view {

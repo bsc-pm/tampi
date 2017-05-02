@@ -19,9 +19,6 @@
  */
 #include <mpi.h>
 
-#include "mpi/common.h"
-#include "mpi/status.h"
-#include "mpi/request.h"
 #include "ticket.h"
 #include "print.h"
 #include "api_def.h"

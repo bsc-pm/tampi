@@ -6,6 +6,15 @@
  * so that he is able to fine tune the program in case
  * interoperability is not worth it.
  */
+#ifndef API_DEF_H
+#define API_DEF_H
+
+//! Read only buffers must be defined as const in versions MPI 3.0 and later.
+#if MPI_VERSION >= 3
+    #define MPI3CONST const
+#else
+    #define MPI3CONST
+#endif
 
 #ifdef API_PREFIX
 
@@ -35,4 +44,6 @@
        name
 
 #endif
+
+#endif // API_DEF_H
 
