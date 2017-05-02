@@ -133,12 +133,14 @@ inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, C::Ticket::Request* 
    if( !ticket.finished() ) {
       std::lock_guard<spin_mutex> guard( _mutex );
 
-      const size_t capacity = _requests.capacity() - _requests.size()
-                              + (ticket.getPendingRequests() - completed);
-
-      _requests.reserve(capacity);
-      _statuses.reserve(capacity);
-      _tickets.reserve(capacity);
+      // Amortize cost of realloc when not enough capacity
+      const size_t capacity = _requests.capacity();
+      const size_t required_capacity = _requests.size() + (ticket.getPendingRequests() - completed);
+      if( required_capacity > capacity ) {
+         _requests.reserve( 2 * required_capacity );
+         _statuses.reserve( 2 * required_capacity );
+         _tickets.reserve ( 2 * required_capacity );
+      }
 
       // Insert each uncompleted request
       // (request not present in indices array)
@@ -147,14 +149,13 @@ inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, C::Ticket::Request* 
          if (c < completed && u == indices[c]) {
             c++;
         } else {
-            // It is possible that this request has been completed
-            // in previous tests. Check whether it has been released.
             C::Ticket::Request* req = std::next(first,u);
-            if( *req != MPI_REQUEST_NULL ) {
-               _requests.push_back( *req );
-               _statuses.emplace_back();
-               _tickets.emplace_back( &ticket, u );
-            }
+            // We assume that requests are never equal to MPI_REQUEST_NULL
+            assert( *req != MPI_REQUEST_NULL );
+
+            _requests.push_back( *req );
+            _statuses.emplace_back();
+            _tickets.emplace_back( &ticket, u );
         }
       }
    }
@@ -174,12 +175,14 @@ inline void TicketQueue<Fortran::Ticket>::add( Fortran::Ticket& ticket, Fortran:
    if( !ticket.finished() ) {
       std::lock_guard<spin_mutex> guard( _mutex );
 
-      const size_t capacity = _requests.capacity() - _requests.size()
-                              + (ticket.getPendingRequests() - completed);
-
-      _requests.reserve(capacity);
-      _statuses.reserve(capacity);
-      _tickets.reserve(capacity);
+      // Amortize cost of realloc when not enough capacity
+      const size_t capacity = _requests.capacity();
+      const size_t required_capacity = _requests.size() + (ticket.getPendingRequests() - completed);
+      if( required_capacity > capacity ) {
+         _requests.reserve( 2 * required_capacity );
+         _statuses.reserve( 2 * required_capacity );
+         _tickets.reserve ( 2 * required_capacity );
+      }
 
       // Insert each uncompleted request
       // (request not present in indices array)
@@ -189,14 +192,12 @@ inline void TicketQueue<Fortran::Ticket>::add( Fortran::Ticket& ticket, Fortran:
          if (c < completed && u == (indices[c]-1) ) {
             c++;
         } else {
-            // It is possible that this request has been completed
-            // in previous tests. Check whether it has been released.
-            Fortran::Ticket::Request* req = std::next(first,u);
-            if( MPI_Request_f2c(*req) != MPI_REQUEST_NULL ) {
-               _requests.push_back( *req );
-               _statuses.emplace_back();
-               _tickets.emplace_back( &ticket, u );
-            }
+           Fortran::Ticket::Request* req = std::next(first,u);
+           // We assume that requests are never equal to MPI_REQUEST_NULL
+           assert( MPI_Request_f2c(*req) != MPI_REQUEST_NULL );
+           _requests.push_back( *req );
+           _statuses.emplace_back();
+           _tickets.emplace_back( &ticket, u );
         }
       }
    }

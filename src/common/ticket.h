@@ -34,14 +34,14 @@ namespace mpi {
 namespace C {
 
 inline Ticket::Ticket( Request& r, Status* s  ) :
-   TicketBase(r),
+   TicketBase(1),
    _first_status(s)
 {
    environment::getQueue().add(*this, r);
 }
 
 inline Ticket::Ticket( Request* first, Request* last, Status* first_status ) :
-   TicketBase(first, last),
+   TicketBase( std::distance(first, last) ),
    _first_status(first_status)
 {
    environment::getQueue().add(*this, first, last);
@@ -64,14 +64,14 @@ inline void Ticket::wait()
 namespace Fortran {
 
 inline Ticket::Ticket( Request& r, MPI_Fint* s ) :
-   TicketBase(r),
+   TicketBase(1),
    _first_status(s)
 {
    environment::getQueue().add(*this, r);
 }
 
 inline Ticket::Ticket( Request* first, Request* last, MPI_Fint* first_status ) :
-   TicketBase(first, last),
+   TicketBase( std::distance(first, last) ),
    _first_status(first_status)
 {
    environment::getQueue().add(*this, first, last);

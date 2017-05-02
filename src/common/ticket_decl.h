@@ -44,28 +44,12 @@ class TicketBase {
 private:
    nanos_wait_cond_t _waiter;
    int               _pending;
-   bool              _waiting;
    bool              _spinNotYield;
 
 public:
-   template < typename Request >
-   TicketBase( Request& req ) :
+   TicketBase( int pending ) :
       _waiter(),
-      _pending(1),
-      _waiting(false),
-      _spinNotYield(false)
-   {
-      nanos_create_wait_condition(&_waiter);
-
-      const tls_view task_local_storage;
-      task_local_storage.load( _spinNotYield );
-   }
-
-   template < typename Request >
-   TicketBase( Request* first, Request* last ) :
-      _waiter(),
-      _pending(std::distance(first,last)),
-      _waiting(false),
+      _pending(pending),
       _spinNotYield(false)
    {
       const tls_view task_local_storage;
@@ -81,17 +65,14 @@ public:
    TicketBase& operator=( const TicketBase & gt ) = delete;
 
    ~TicketBase() {
-      if( _pending > 0 )
+      if( !finished() )
          log::fatal( "Destroying unfinished ticket" );
    }
 
-   int getPendingRequests() const {
-      return _pending;
-   }
+   void notifyCompletion() {
+      assert( _pending >= 1 );
 
-   void notifyCompletion( int num = 1 ) {
-      assert( _pending >= num );
-      _pending -= num;
+      _pending--;
 
       if( finished() && _waiting ) {
          nanos_signal_wait_condition(&_waiter);
@@ -107,9 +88,7 @@ public:
    }
 
    void blockTask() {
-      _waiting = true;
       nanos_block_current_task( &_waiter );
-      _waiting = false;
    }
 };
 
@@ -134,8 +113,6 @@ struct Ticket : public detail::TicketBase {
          return _first_status == MPI_STATUS_IGNORE | _first_status == MPI_STATUSES_IGNORE;
       }
 
-      using TicketBase::notifyCompletion;
-
       void notifyCompletion( int status_pos, const Status& status ) {
          if( !ignoreStatus() ) {
             const Status* first = &status;
@@ -143,7 +120,7 @@ struct Ticket : public detail::TicketBase {
             Status* out   = _first_status;
             std::copy<const Status*,Status*>( first, last, out );
          }
-         notifyCompletion();
+         TicketBase::notifyCompletion();
       }
 
       void wait();
@@ -170,8 +147,6 @@ struct Ticket : public detail::TicketBase {
          return _first_status == MPI_F_STATUS_IGNORE | _first_status == MPI_F_STATUSES_IGNORE;
       }
 
-      using TicketBase::notifyCompletion;
-
       void notifyCompletion( int status_pos, const Status& status ) {
          if( !ignoreStatus() ) {
             const Status* first = &status;
@@ -179,7 +154,7 @@ struct Ticket : public detail::TicketBase {
             Status* out   = reinterpret_cast<Status*>(_first_status);
             std::copy<const Status*,Status*>( first, last, out );
          }
-         notifyCompletion();
+         TicketBase::notifyCompletion();
       }
 
       void wait();
