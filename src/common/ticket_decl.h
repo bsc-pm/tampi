@@ -21,6 +21,7 @@
 #define TICKET_DECL_H
 
 #include "array_view.h"
+#include "configuration.h"
 #include "print.h"
 #include "task_local.h"
 
@@ -41,22 +42,61 @@ namespace mpi {
 
 namespace detail {
 
+struct WaitProperties {
+   bool _spinForever;
+   int  _numSpins;
+
+   // If the task_level value is 0, then interoperability
+   // is disabled, therefore the task has to spin until completion.
+   WaitProperties( int task_level, int num_spins ) :
+      _spinForever( task_level == 0 ),
+      _numSpins(num_spins)
+   {
+   }
+
+   WaitProperties() :
+      _spinForever( config.disabled() ),
+      _numSpins(0)
+   {
+   }
+
+   bool spinNotYield() {
+      return _spinForever | (_numSpins--) > 0;
+   }
+
+   bool spinForever() const {
+      return _spinForever;
+   }
+};
+
 class TicketBase {
 private:
    nanos_wait_cond_t _waiter;
    int               _pending;
-   bool              _spinNotYield;
+   WaitProperties    _waitMode;
 
 public:
    TicketBase( int pending ) :
       _waiter(),
       _pending(1),
-      _spinNotYield(false)
+      _waitMode()
+   {
+      nanos_create_wait_condition(&_waiter);
+
+      const tls_view task_local_storage;
+      task_local_storage.load( _waitMode );
+   }
+
+   template < typename Request >
+   TicketBase( Request* first, Request* last ) :
+      _waiter(),
+      _pending(std::distance(first,last)),
+      _waitMode()
    {
       const tls_view task_local_storage;
-      task_local_storage.load( _spinNotYield );
+      task_local_storage.load( _waitMode );
 
-      if( !_spinNotYield ) {
+      if( !_waitMode.spinForever() ) {
          nanos_create_wait_condition(&_waiter);
       }
    }
@@ -94,8 +134,8 @@ public:
       }
    }
 
-   bool spinNotYield() const {
-      return _spinNotYield;
+   bool spinNotYield() {
+      return _waitMode.spinNotYield();
    }
 
    void blockTask() {

@@ -52,12 +52,11 @@ inline void Ticket::wait()
    // Remove initial pending request to avoid early wait condition signal
    removePendingRequest();
 
-   if( spinNotYield() ) {
-      TicketQueue<Ticket>& queue = environment::getQueue();
-      while( !finished() ) {
-         queue.poll();
-      }
-   } else if( !finished() ) {
+   TicketQueue<Ticket>& queue = environment::getQueue();
+   while( spinNotYield() && !finished() ) {
+      queue.poll();
+   }
+   if( !finished() ) {
       blockTask();
    }
 }
@@ -85,12 +84,11 @@ inline void Ticket::wait()
    // Remove initial pending request to avoid early wait condition signal
    removePendingRequest();
 
-   if( spinNotYield() ) {
-      TicketQueue<Ticket>& queue = environment::getQueue();
-      while( !finished() ) {
-         queue.poll();
-      }
-   } else if( !finished() ) {
+   TicketQueue<Ticket>& queue = environment::getQueue();
+   while( spinNotYield() && !finished() ) {
+      queue.poll();
+   }
+   if( !finished() ) {
       blockTask();
    }
 }

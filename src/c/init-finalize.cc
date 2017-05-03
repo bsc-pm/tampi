@@ -87,16 +87,14 @@ int MPI_Pcontrol( int level, ... )
    va_start( args, level );
 
    int task_level = va_arg( args, int );
+   int num_spins  = va_arg( args, int );
 
    config.reset(level);
 
-   // Store a bool indicating whether the task has to
-   // spin and not yield the execution.
-   // If the task_level value is 0, then interoperability
-   // is disabled, therefore the task has to spin until completion.
    if( !config.tlsTuneDisabled() ) {
       nanos::tls_view task_local_storage;
-      task_local_storage.store<bool>( task_level == 0 );
+      detail::WaitProperties waitMode( task_level, num_spins );
+      task_local_storage.store( waitMode );
    }
 
    va_end( args );
