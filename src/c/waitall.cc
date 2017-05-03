@@ -35,8 +35,7 @@ extern "C" {
 
       int err = MPI_SUCCESS;
 
-      C::Ticket ticket( array_of_requests,
-		        array_of_requests+count,
+      C::Ticket ticket( {array_of_requests, count},
 			array_of_statuses );
       ticket.wait();
 

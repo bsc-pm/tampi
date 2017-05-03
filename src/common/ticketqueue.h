@@ -43,8 +43,8 @@ class TicketQueue {
          Ticket* ticket;
          int     request_position;
 
-         TicketMapping( Ticket* t, int pos ) :
-            ticket(t), request_position(pos)
+         TicketMapping( Ticket& t, int pos = 0 ) :
+            ticket(&t), request_position(pos)
          {
          }
       };
@@ -69,7 +69,7 @@ class TicketQueue {
 
       void add( Ticket& ticket, Request& req );
 
-      void add( Ticket& ticket, Request* first, Request* last );
+      void add( Ticket& ticket, util::array_view<Request> t_requests );
 
       void poll();
 
@@ -94,11 +94,10 @@ inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, C::Ticket::Request& 
    int err = PMPI_Test( &req, &completed, ticket.getStatus() );
    if( !completed ) {
       std::lock_guard<spin_mutex> guard( _mutex );
+      ticket.addPendingRequest();
       _requests.push_back( req );
       _statuses.emplace_back();
-      _tickets.emplace_back( &ticket, 0 );
-   } else {
-      ticket.notifyCompletion(1);
+      _tickets.emplace_back( ticket );
    }
 }
 
@@ -113,24 +112,23 @@ inline void TicketQueue<Fortran::Ticket>::add( Fortran::Ticket& ticket, Fortran:
       std::lock_guard<spin_mutex> guard( _mutex );
       _requests.push_back( req );
       _statuses.emplace_back();
-      _tickets.emplace_back( &ticket, 0 );
+      _tickets.emplace_back( ticket, 0 );
    } else {
-      ticket.TicketBase::notifyCompletion(1);
+      ticket.removePendingRequest();
    }
 }
 
 template<>
-inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, C::Ticket::Request* first, C::Ticket::Request* last )
+inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, util::array_view<C::Ticket::Request> t_requests )
 {
-   int count = std::distance(first,last);
+   int count = t_requests.size();
    int indices[count]; // Array positions for completed requests
    int completed = 0;  // Number of completed requests
    int err = MPI_SUCCESS;
 
-   err = PMPI_Testsome( count, first, indices, &completed, ticket.getStatus() );
-   ticket.notifyCompletion(completed);
+   err = PMPI_Testsome( count, t_requests.data(), indices, &completed, ticket.getStatus() );
 
-   if( !ticket.finished() ) {
+   if( completed < count ) {
       std::lock_guard<spin_mutex> guard( _mutex );
 
       // Amortize cost of realloc when not enough capacity
@@ -143,36 +141,40 @@ inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, C::Ticket::Request* 
       }
 
       // Insert each uncompleted request
-      // (request not present in indices array)
+      // (requests not present in indices array)
+      // only when its value is not MPI_REQUEST_NULL
+      // (MPI_Testsome does not report inactive requests
+      // as completed)
       int c = 0;
       for( int u = 0; u < count; ++u ) {
          if (c < completed && u == indices[c]) {
             c++;
         } else {
-            C::Ticket::Request* req = std::next(first,u);
-            // We assume that requests are never equal to MPI_REQUEST_NULL
-            assert( *req != MPI_REQUEST_NULL );
-
-            _requests.push_back( *req );
-            _statuses.emplace_back();
-            _tickets.emplace_back( &ticket, u );
+            int flag;
+            C::Ticket::Request& req = t_requests[u];
+	    err = PMPI_Request_get_status( req, &flag, MPI_STATUS_IGNORE);
+            if( flag == 0 ) {
+	       ticket.addPendingRequest();
+               _requests.push_back( req );
+               _statuses.emplace_back();
+               _tickets.emplace_back( ticket, u );
+	    }
         }
       }
    }
 }
 
 template<>
-inline void TicketQueue<Fortran::Ticket>::add( Fortran::Ticket& ticket, Fortran::Ticket::Request* first, Fortran::Ticket::Request* last )
+inline void TicketQueue<Fortran::Ticket>::add( Fortran::Ticket& ticket, util::array_view<Fortran::Ticket::Request> t_requests )
 {
-   MPI_Fint count = std::distance(first,last);
+   MPI_Fint count = t_requests.size();
    MPI_Fint indices[count];
    MPI_Fint completed = 0;
    MPI_Fint err = MPI_SUCCESS;
 
-   pmpi_testsome_( &count, first, indices, &completed, reinterpret_cast<MPI_Fint*>(ticket.getStatus()), &err );
-   ticket.notifyCompletion(completed);
+   pmpi_testsome_( &count, t_requests.data(), indices, &completed, reinterpret_cast<MPI_Fint*>(ticket.getStatus()), &err );
 
-   if( !ticket.finished() ) {
+   if( completed < count ) {
       std::lock_guard<spin_mutex> guard( _mutex );
 
       // Amortize cost of realloc when not enough capacity
@@ -185,19 +187,24 @@ inline void TicketQueue<Fortran::Ticket>::add( Fortran::Ticket& ticket, Fortran:
       }
 
       // Insert each uncompleted request
-      // (request not present in indices array)
-      // Remember to adjust Fortran indices for C (1..N to 0..N-1)
+      // (requests not present in indices array)
+      // only when its value is not MPI_REQUEST_NULL
+      // (MPI_Testsome does not report inactive requests
+      // as completed)
       int c = 0;
       for( int u = 0; u < count; ++u ) {
-         if (c < completed && u == (indices[c]-1) ) {
+         if (c < completed && u == (indices[c]-1)) {
             c++;
         } else {
-           Fortran::Ticket::Request* req = std::next(first,u);
-           // We assume that requests are never equal to MPI_REQUEST_NULL
-           assert( MPI_Request_f2c(*req) != MPI_REQUEST_NULL );
-           _requests.push_back( *req );
-           _statuses.emplace_back();
-           _tickets.emplace_back( &ticket, u );
+           int flag;
+           Fortran::Ticket::Request& req = t_requests[u];
+	    pmpi_request_get_status_( &req, &flag, MPI_F_STATUS_IGNORE, &err );
+           if( flag == 0 ) {
+	       ticket.addPendingRequest();
+              _requests.push_back( req );
+              _statuses.emplace_back();
+              _tickets.emplace_back( ticket, u );
+	    }
         }
       }
    }

@@ -20,6 +20,7 @@
 #ifndef TICKET_DECL_H
 #define TICKET_DECL_H
 
+#include "array_view.h"
 #include "print.h"
 #include "task_local.h"
 
@@ -49,7 +50,7 @@ private:
 public:
    TicketBase( int pending ) :
       _waiter(),
-      _pending(pending),
+      _pending(1),
       _spinNotYield(false)
    {
       const tls_view task_local_storage;
@@ -69,18 +70,28 @@ public:
          log::fatal( "Destroying unfinished ticket" );
    }
 
-   void notifyCompletion() {
-      assert( _pending >= 1 );
-
-      _pending--;
-
-      if( finished() && _waiting ) {
-         nanos_signal_wait_condition(&_waiter);
-      }
-   }
-
    bool finished() const {
       return _pending == 0;
+   }
+
+   void addPendingRequest() {
+      _pending++;
+   }
+
+   void removePendingRequest() {
+      assert( _pending > 0 );
+      _pending--;
+   }
+
+   int getPendingRequests() const {
+      return _pending;
+   }
+
+   void notifyCompletion() {
+      removePendingRequest();
+      if( finished() ) {
+         nanos_signal_wait_condition(&_waiter);
+      }
    }
 
    bool spinNotYield() const {
@@ -105,7 +116,7 @@ struct Ticket : public detail::TicketBase {
    public:
       Ticket( Request& r, Status* s = MPI_STATUS_IGNORE );
 
-      Ticket( Request* first_req, Request* last_req, Status* first_status = MPI_STATUSES_IGNORE );
+      Ticket( util::array_view<Request> t_requests, Status* first_status = MPI_STATUSES_IGNORE );
 
       Status* getStatus() { return _first_status; }
 
@@ -120,7 +131,7 @@ struct Ticket : public detail::TicketBase {
             Status* out   = _first_status;
             std::copy<const Status*,Status*>( first, last, out );
          }
-         TicketBase::notifyCompletion();
+         removePendingRequest();
       }
 
       void wait();
@@ -138,7 +149,7 @@ struct Ticket : public detail::TicketBase {
    public:
       Ticket( Request& r, MPI_Fint* s = MPI_F_STATUS_IGNORE );
 
-      Ticket( Request* first_req, Request* last_req, MPI_Fint* first_status = MPI_F_STATUSES_IGNORE );
+      Ticket( util::array_view<Request> t_requests, MPI_Fint* first_status = MPI_F_STATUSES_IGNORE );
 
       MPI_Fint* getStatus() { return _first_status; }
 
@@ -154,7 +165,7 @@ struct Ticket : public detail::TicketBase {
             Status* out   = reinterpret_cast<Status*>(_first_status);
             std::copy<const Status*,Status*>( first, last, out );
          }
-         TicketBase::notifyCompletion();
+         removePendingRequest();
       }
 
       void wait();

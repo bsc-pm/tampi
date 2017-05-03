@@ -33,22 +33,25 @@ namespace mpi {
 
 namespace C {
 
-inline Ticket::Ticket( Request& r, Status* s  ) :
+inline Ticket::Ticket( Request& r, Status *s  ) :
    TicketBase(1),
    _first_status(s)
 {
    environment::getQueue().add(*this, r);
 }
 
-inline Ticket::Ticket( Request* first, Request* last, Status* first_status ) :
-   TicketBase( std::distance(first, last) ),
+inline Ticket::Ticket( util::array_view<Request> t_requests, Status *first_status ) :
+   TicketBase(1),
    _first_status(first_status)
 {
-   environment::getQueue().add(*this, first, last);
+   environment::getQueue().add(*this, t_requests);
 }
 
 inline void Ticket::wait()
 {
+   // Remove initial pending request to avoid early wait condition signal
+   removePendingRequest();
+
    if( spinNotYield() ) {
       TicketQueue<Ticket>& queue = environment::getQueue();
       while( !finished() ) {
@@ -70,15 +73,18 @@ inline Ticket::Ticket( Request& r, MPI_Fint* s ) :
    environment::getQueue().add(*this, r);
 }
 
-inline Ticket::Ticket( Request* first, Request* last, MPI_Fint* first_status ) :
-   TicketBase( std::distance(first, last) ),
+inline Ticket::Ticket( util::array_view<Request> t_requests, MPI_Fint* first_status ) :
+   TicketBase(1),
    _first_status(first_status)
 {
-   environment::getQueue().add(*this, first, last);
+   environment::getQueue().add(*this, t_requests);
 }
 
 inline void Ticket::wait()
 {
+   // Remove initial pending request to avoid early wait condition signal
+   removePendingRequest();
+
    if( spinNotYield() ) {
       TicketQueue<Ticket>& queue = environment::getQueue();
       while( !finished() ) {

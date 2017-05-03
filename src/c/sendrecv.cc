@@ -43,12 +43,15 @@ extern "C" {
       err = MPI_Isend( sendbuf, sendcount, sendtype, dest, sendtag, comm,
             reqs.begin() );
 
-      // TODO: copy back status information if not ignored
-      //if( status == MPI_STATUS_IGNORE ) {
-      C::Ticket ticket( std::begin(reqs), std::end(reqs) );
-      ticket.wait();
-      //} else {
-      //}
+      if( status != MPI_STATUS_IGNORE ) {
+         MPI_Status statuses[2];
+         C::Ticket ticket( {std::begin(reqs), std::end(reqs)}, statuses );
+         ticket.wait();
+	 *status = statuses[0];
+      } else {
+         C::Ticket ticket( {std::begin(reqs), std::end(reqs)} );
+         ticket.wait();
+      }
       return err;
    }
 } // extern C

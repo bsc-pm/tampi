@@ -30,9 +30,8 @@ extern "C" {
    {
       nanos::log::intercepted_call( __func__ );
 
-      Fortran::Ticket ticket( array_of_requests,
-		              array_of_requests+(*count),
-			      array_of_statuses );
+      Fortran::Ticket ticket( {array_of_requests, *count},
+			       array_of_statuses );
       ticket.wait();
    }
 } // extern C

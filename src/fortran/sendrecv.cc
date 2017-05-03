@@ -47,7 +47,7 @@ extern "C" {
 
 	// TODO: copy back status information when not ignored
         //if( status == MPI_F_STATUS_IGNORE ) {
-           Fortran::Ticket ticket( reqs.begin(), reqs.end() );
+           Fortran::Ticket ticket( {reqs.begin(), reqs.end()} );
            ticket.wait();
         //} else {
         //}

@@ -26,6 +26,9 @@
 // MPI Test fortran specializations
 extern "C" {
 
+//! MPI_Request_get_status Fortran API declaration
+void pmpi_request_get_status_( MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint* );
+
 //! MPI_Test Fortran API declaration
 void pmpi_test_( MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint* );
 
