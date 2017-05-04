@@ -157,7 +157,7 @@ struct Ticket : public detail::TicketBase {
             Status* out   = _first_status;
             std::copy<const Status*,Status*>( first, last, out );
          }
-         removePendingRequest();
+	 TicketBase::notifyCompletion();
       }
 
       void wait();
@@ -191,7 +191,7 @@ struct Ticket : public detail::TicketBase {
             Status* out   = reinterpret_cast<Status*>(_first_status);
             std::copy<const Status*,Status*>( first, last, out );
          }
-         removePendingRequest();
+	 TicketBase::notifyCompletion();
       }
 
       void wait();

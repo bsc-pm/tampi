@@ -92,7 +92,7 @@ inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, C::Ticket::Request& 
 {
    int completed = 0;
    int err = PMPI_Test( &req, &completed, ticket.getStatus() );
-   if( completed != 0 ) {
+   if( completed == 0 ) {
       std::lock_guard<spin_mutex> guard( _mutex );
       ticket.addPendingRequest();
       _requests.push_back( req );
@@ -108,7 +108,7 @@ inline void TicketQueue<Fortran::Ticket>::add( Fortran::Ticket& ticket, Fortran:
    MPI_Fint err = MPI_SUCCESS;
    pmpi_test_( &req, &completed, reinterpret_cast<MPI_Fint*>(ticket.getStatus()), &err );
 
-   if( completed != 0 ) {
+   if( completed == 0 ) {
       std::lock_guard<spin_mutex> guard( _mutex );
       ticket.addPendingRequest();
       _requests.push_back( req );
@@ -132,7 +132,7 @@ inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, util::array_view<C::
 
       // Amortize cost of realloc when not enough capacity
       const size_t capacity = _requests.capacity();
-      const size_t required_capacity = _requests.size() + (ticket.getPendingRequests() - completed);
+      const size_t required_capacity = _requests.size() + (count - completed);
       if( required_capacity > capacity ) {
          _requests.reserve( 2 * required_capacity );
          _statuses.reserve( 2 * required_capacity );
@@ -178,7 +178,7 @@ inline void TicketQueue<Fortran::Ticket>::add( Fortran::Ticket& ticket, util::ar
 
       // Amortize cost of realloc when not enough capacity
       const size_t capacity = _requests.capacity();
-      const size_t required_capacity = _requests.size() + (ticket.getPendingRequests() - completed);
+      const size_t required_capacity = _requests.size() + (count - completed);
       if( required_capacity > capacity ) {
          _requests.reserve( 2 * required_capacity );
          _statuses.reserve( 2 * required_capacity );

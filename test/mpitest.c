@@ -1,7 +1,7 @@
 #include <mpi.h>
 #include <unistd.h>
-#include <iostream>
-#include <cassert>
+#include <assert.h>
+#include <stdio.h>
 
 
 #pragma omp task label(master)
@@ -12,6 +12,7 @@ void do_master( int rank, int sendMsg ) {
 
     usleep(10000000);
     MPI_Send( &sendMsg, 1, MPI_INT, 1, 0, MPI_COMM_WORLD );
+    printf("Message sent. Value=%d\n",sendMsg);
 }
 
 #pragma omp task label(slave)
@@ -21,12 +22,12 @@ void do_slave( int rank, int *recvMsg ) {
     MPI_Request request;
 
     MPI_Recv( recvMsg, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status );
-    std::cout << "[R" << rank << "]: Slave received. Value=" << *recvMsg << std::endl;
+    printf("Slave received. Value=%d\n",*recvMsg);
 }
 
 #pragma omp task label(dummy)
 void dummy( int rank ) {
-	std::cout <<"[R" << rank <<  "]: I'm doing something!" << std::endl;
+    printf("I'm doing something\n");
     usleep(1000000);
 }
  
