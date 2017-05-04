@@ -34,14 +34,14 @@ namespace mpi {
 namespace C {
 
 inline Ticket::Ticket( Request& r, Status *s  ) :
-   TicketBase(1),
+   TicketBase(),
    _first_status(s)
 {
    environment::getQueue().add(*this, r);
 }
 
 inline Ticket::Ticket( util::array_view<Request> t_requests, Status *first_status ) :
-   TicketBase(1),
+   TicketBase(),
    _first_status(first_status)
 {
    environment::getQueue().add(*this, t_requests);
@@ -49,9 +49,6 @@ inline Ticket::Ticket( util::array_view<Request> t_requests, Status *first_statu
 
 inline void Ticket::wait()
 {
-   // Remove initial pending request to avoid early wait condition signal
-   removePendingRequest();
-
    TicketQueue<Ticket>& queue = environment::getQueue();
    while( spinNotYield() && !finished() ) {
       queue.poll();
@@ -66,14 +63,14 @@ inline void Ticket::wait()
 namespace Fortran {
 
 inline Ticket::Ticket( Request& r, MPI_Fint* s ) :
-   TicketBase(1),
+   TicketBase(),
    _first_status(s)
 {
    environment::getQueue().add(*this, r);
 }
 
 inline Ticket::Ticket( util::array_view<Request> t_requests, MPI_Fint* first_status ) :
-   TicketBase(1),
+   TicketBase(),
    _first_status(first_status)
 {
    environment::getQueue().add(*this, t_requests);
@@ -81,9 +78,6 @@ inline Ticket::Ticket( util::array_view<Request> t_requests, MPI_Fint* first_sta
 
 inline void Ticket::wait()
 {
-   // Remove initial pending request to avoid early wait condition signal
-   removePendingRequest();
-
    TicketQueue<Ticket>& queue = environment::getQueue();
    while( spinNotYield() && !finished() ) {
       queue.poll();

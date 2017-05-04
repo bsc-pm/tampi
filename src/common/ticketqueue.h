@@ -92,7 +92,7 @@ inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, C::Ticket::Request& 
 {
    int completed = 0;
    int err = PMPI_Test( &req, &completed, ticket.getStatus() );
-   if( !completed ) {
+   if( completed != 0 ) {
       std::lock_guard<spin_mutex> guard( _mutex );
       ticket.addPendingRequest();
       _requests.push_back( req );
@@ -108,13 +108,12 @@ inline void TicketQueue<Fortran::Ticket>::add( Fortran::Ticket& ticket, Fortran:
    MPI_Fint err = MPI_SUCCESS;
    pmpi_test_( &req, &completed, reinterpret_cast<MPI_Fint*>(ticket.getStatus()), &err );
 
-   if( !completed ) {
+   if( completed != 0 ) {
       std::lock_guard<spin_mutex> guard( _mutex );
+      ticket.addPendingRequest();
       _requests.push_back( req );
       _statuses.emplace_back();
-      _tickets.emplace_back( ticket, 0 );
-   } else {
-      ticket.removePendingRequest();
+      _tickets.emplace_back( ticket );
    }
 }
 
@@ -149,17 +148,17 @@ inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, util::array_view<C::
       for( int u = 0; u < count; ++u ) {
          if (c < completed && u == indices[c]) {
             c++;
-        } else {
+         } else {
             int flag;
             C::Ticket::Request& req = t_requests[u];
-	    err = PMPI_Request_get_status( req, &flag, MPI_STATUS_IGNORE);
+            err = PMPI_Request_get_status( req, &flag, MPI_STATUS_IGNORE);
             if( flag == 0 ) {
-	       ticket.addPendingRequest();
+               ticket.addPendingRequest();
                _requests.push_back( req );
                _statuses.emplace_back();
                _tickets.emplace_back( ticket, u );
-	    }
-        }
+            }
+         }
       }
    }
 }
@@ -198,13 +197,13 @@ inline void TicketQueue<Fortran::Ticket>::add( Fortran::Ticket& ticket, util::ar
         } else {
            int flag;
            Fortran::Ticket::Request& req = t_requests[u];
-	    pmpi_request_get_status_( &req, &flag, MPI_F_STATUS_IGNORE, &err );
+           pmpi_request_get_status_( &req, &flag, MPI_F_STATUS_IGNORE, &err );
            if( flag == 0 ) {
-	       ticket.addPendingRequest();
+              ticket.addPendingRequest();
               _requests.push_back( req );
               _statuses.emplace_back();
               _tickets.emplace_back( ticket, u );
-	    }
+           }
         }
       }
    }

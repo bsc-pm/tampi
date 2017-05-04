@@ -76,29 +76,15 @@ private:
    WaitProperties    _waitMode;
 
 public:
-   TicketBase( int pending ) :
+   TicketBase() :
       _waiter(),
-      _pending(1),
+      _pending(0),
       _waitMode()
    {
       nanos_create_wait_condition(&_waiter);
 
       const tls_view task_local_storage;
       task_local_storage.load( _waitMode );
-   }
-
-   template < typename Request >
-   TicketBase( Request* first, Request* last ) :
-      _waiter(),
-      _pending(std::distance(first,last)),
-      _waitMode()
-   {
-      const tls_view task_local_storage;
-      task_local_storage.load( _waitMode );
-
-      if( !_waitMode.spinForever() ) {
-         nanos_create_wait_condition(&_waiter);
-      }
    }
 
    TicketBase( const TicketBase & gt ) = delete;
