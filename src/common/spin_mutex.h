@@ -34,8 +34,11 @@ public:
    }
 
    void lock() {
-      while( !try_lock() )
+      while( !try_lock() ) {
+#ifdef X86_64_ARCH
          __asm__("pause" ::: "memory");
+#endif
+      }
    }
 
    void unlock() {

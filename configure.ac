@@ -62,6 +62,13 @@ AC_TYPE_SIZE_T
 # Turn off shared libraries.
 LT_INIT([static])
 
+# Enable/disable architecture specific code
+AS_CASE([$host],
+  [x86_64*],[ARCH=x86_64])
+AS_IF([test "$ARCH" = "x86_64"],[
+  AC_DEFINE([X86_64_ARCH],[1],[Compiling for x86_64 host])
+])
+
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 
