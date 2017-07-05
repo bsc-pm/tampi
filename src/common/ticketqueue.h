@@ -42,26 +42,16 @@ class TicketQueue {
       struct TicketMapping {
          Ticket* ticket;
          int     request_position;
-
-         TicketMapping( Ticket& t, int pos = 0 ) :
-            ticket(&t), request_position(pos)
-         {
-         }
+         TicketMapping( Ticket& t, int pos = 0 ) : ticket(&t), request_position(pos) { }
       };
 
       std::vector<Request>       _requests;
       std::vector<Status>        _statuses;
       std::vector<TicketMapping> _tickets;
-      mutable spin_mutex   _mutex;
+      mutable spin_mutex         _mutex;
 
    public:
-      TicketQueue() :
-         _mutex(),
-         _requests(),
-         _statuses(),
-         _tickets()
-      {
-      }
+      TicketQueue() : _requests(), _statuses(), _tickets(), _mutex() { }
 
       TicketQueue ( const TicketQueue & ) = delete;
 
@@ -231,9 +221,11 @@ inline void TicketQueue<C::Ticket>::poll() {
             // Assumes indices array is sorted from lower to higher values
             // Iterate from the end to the beginning of the array to ensure
             // indexed element positions are not changed after a deletion
-            for( int index : util::reverse(util::array_view<int>(indices,completed) ) )
+            // for( int index : util::reverse(util::array_view<int>(indices,completed) ) )
+               // requestCompleted( index );
+            for( int index = completed; index > 0; index-- )
             {
-               requestCompleted( index );
+               requestCompleted( indices[index-1] );
             }
          }
       }
@@ -244,6 +236,7 @@ template<>
 inline void TicketQueue<Fortran::Ticket>::poll() {
    if ( !_requests.empty() ) {
       std::unique_lock<spin_mutex> guard( _mutex, std::try_to_lock );
+
 
       if ( guard.owns_lock() && !_requests.empty() ) {
          int count = _requests.size();
