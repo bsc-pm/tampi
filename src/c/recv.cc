@@ -41,7 +41,9 @@ extern "C" {
       // TODO: copy back status information
       //if( status == MPI_STATUS_IGNORE ) {
       C::Ticket ticket( req );
+nanos::log::verbose_output("before wait");
       ticket.wait();
+nanos::log::verbose_output("after wait");
       //} else {
       //}
       return err;

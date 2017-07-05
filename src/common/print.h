@@ -60,7 +60,7 @@ namespace log {
    template <typename...Ts>
    inline void debug( const Ts&... msg )
    {
-#ifdef DEBUG_ENABLED
+#ifdef DEBUG_MODE
       std::ostream::sentry sentry(std::cout);
       join( std::cout, msg... );
 #endif
@@ -74,6 +74,11 @@ namespace log {
    inline void intercepted_call( const char* function_name )
    {
       debug( "[MPI interoperability] Debug: Intercepted ", function_name );
+   }
+
+   inline void verbose_output( const char* msg )
+   {
+      debug( "[MPI interoperability] Debug: ", msg );
    }
 
 } // namespace log

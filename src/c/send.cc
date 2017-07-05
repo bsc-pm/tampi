@@ -38,7 +38,9 @@ extern "C" {
                              &req );
 
         C::Ticket ticket( req );
+nanos::log::verbose_output("before wait");
         ticket.wait();
+nanos::log::verbose_output("after wait");
         return err;
     }
 } // extern C

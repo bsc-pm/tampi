@@ -23,6 +23,7 @@
 #include "ticket_decl.h"
 
 #include "environment.h"
+#include "print.h"
 
 #ifdef HAVE_EXTRAE_H
 #include <extrae.h>
@@ -54,7 +55,9 @@ inline void Ticket::wait()
       queue.poll();
    }
    if( !finished() ) {
+      nanos::log::verbose_output( "blocking task" );
       blockTask();
+      nanos::log::verbose_output( "unblocking task" );
    }
 }
 
@@ -83,7 +86,9 @@ inline void Ticket::wait()
       queue.poll();
    }
    if( !finished() ) {
+      nanos::log::verbose_output( "blocking task" );
       blockTask();
+      nanos::log::verbose_output( "unblocking task" );
    }
 }
 
