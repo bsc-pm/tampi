@@ -118,6 +118,8 @@ m4_foreach([function],
 
 ompsslibs=$LIBS
 
+AC_CHECK_FUNCS(nanos_get_task_local_storage)
+
 AX_VAR_POPVALUE([CPPFLAGS])
 AX_VAR_POPVALUE([CXXFLAGS])
 AX_VAR_POPVALUE([LDFLAGS])

@@ -17,13 +17,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <mpi.h>
 #include <dlfcn.h>
 #include <cassert>
 
 #include "configuration.h"
 #include "environment.h"
+
+#if HAVE_NANOS_GET_TASK_LOCAL_STORAGE
 #include "task_local.h"
+#endif
+
 
 using namespace nanos::mpi;
 
@@ -81,10 +90,12 @@ void mpi_pcontrol_( MPI_Fint* level, MPI_Fint* task_level, MPI_Fint* err )
 {
    config.reset( *level );
 
+#if HAVE_NANOS_GET_TASK_LOCAL_STORAGE
    if( !config.tlsTuneDisabled() ) {
       nanos::tls_view task_local_storage;
       task_local_storage.store<bool>( (*task_level) != 0 );
    }
+#endif
 
    *err = MPI_SUCCESS;
 }

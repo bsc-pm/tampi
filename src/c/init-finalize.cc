@@ -91,11 +91,13 @@ int MPI_Pcontrol( int level, ... )
 
    config.reset(level);
 
+#if HAVE_NANOS_GET_TASK_LOCAL_STORAGE
    if( !config.tlsTuneDisabled() ) {
       nanos::tls_view task_local_storage;
       detail::WaitProperties waitMode( task_level, num_spins );
       task_local_storage.store( waitMode );
    }
+#endif
 
    va_end( args );
 

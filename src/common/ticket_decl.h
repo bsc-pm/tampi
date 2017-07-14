@@ -20,10 +20,17 @@
 #ifndef TICKET_DECL_H
 #define TICKET_DECL_H
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "array_view.h"
 #include "configuration.h"
 #include "print.h"
+
+#if HAVE_NANOS_GET_TASK_LOCAL_STORAGE
 #include "task_local.h"
+#endif
 
 #include <array>
 #include <cassert>
@@ -82,8 +89,11 @@ public:
       _waitMode()
    {
       _waiter = nanos_get_current_blocking_context();
+      
+#if HAVE_NANOS_GET_TASK_LOCAL_STORAGE
       const tls_view task_local_storage;
       task_local_storage.load( _waitMode );
+#endif
    }
 
    TicketBase( const TicketBase & gt ) = delete;
