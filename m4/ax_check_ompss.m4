@@ -49,6 +49,9 @@ AC_ARG_WITH(ompss-include,
 AC_ARG_WITH(ompss-lib,
 [AS_HELP_STRING([--with-ompss-lib=PATH],
                 [specify directory for the installed ompss library])])
+AC_ARG_WITH(runtime,
+[AS_HELP_STRING([--with-runtime=nanox|nanos6],
+		[force compilation for a specific runtime])])
 
 # Search for ompss by default
 AS_IF([test "$with_ompss" != yes],[
@@ -67,6 +70,26 @@ AS_IF([test "x$with_ompss_lib" != x],[
   ompsslib="-L$with_ompss_lib -Wl,-rpath,$with_ompss_lib"
 ])
 
+AC_MSG_CHECKING([which runtime to target])
+case "x${with_runtime}" in
+	"xnanox")
+		AC_MSG_RESULT([nanox])
+		ompss_check_headers="nanox/nanos.h"
+		;;
+	"xnanos6")
+		AC_MSG_RESULT([nanos6])
+		ompss_check_headers="nanos6.h"
+		;;
+	"x")
+		AC_MSG_RESULT([try nanox then nanos6])
+		ompss_check_headers="nanox/nanos.h nanos6.h"
+		;;
+	*)
+		AC_MSG_ERROR([unknown runtime ${with_runtime}])
+		;;
+esac
+
+
 # Tests if provided headers and libraries are usable and correct
 AX_VAR_PUSHVALUE([CPPFLAGS],[$CPPFLAGS $ompssinc])
 AX_VAR_PUSHVALUE([CXXFLAGS])
@@ -74,7 +97,7 @@ AX_VAR_PUSHVALUE([LDFLAGS],[$LDFLAGS $ompsslib])
 AX_VAR_PUSHVALUE([LIBS],[])
 
 # Check if nanos runtime header file exists and compiles
-AC_CHECK_HEADERS([nanox/nanos.h nanos6.h], 
+AC_CHECK_HEADERS([${ompss_check_headers}], 
                  [ompss=yes; break],
                  [ompss=no])
 
