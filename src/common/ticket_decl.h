@@ -26,6 +26,7 @@
 #include "task_local.h"
 
 #include <array>
+#include <cassert>
 
 #ifdef HAVE_NANOX_NANOS_H
 #include <nanox/nanos.h>
