@@ -74,15 +74,19 @@ AC_MSG_CHECKING([which runtime to target])
 case "x${with_runtime}" in
 	"xnanox")
 		AC_MSG_RESULT([nanox])
-		ompss_check_headers="nanox/nanos.h"
+		AC_CHECK_HEADERS([nanox/nanos.h], [ompss=yes; break], [ompss=no])
+  		search_lib=nanox-c
+  		required_libs="-lnanox -lnanox-ompss"
 		;;
 	"xnanos6")
 		AC_MSG_RESULT([nanos6])
-		ompss_check_headers="nanos6.h"
+		AC_CHECK_HEADERS([nanos6.h], [ompss=yes; break], [ompss=no])
+		search_lib=nanos6
+		required_libs=
 		;;
 	"x")
 		AC_MSG_RESULT([try nanox then nanos6])
-		ompss_check_headers="nanox/nanos.h nanos6.h"
+		AC_CHECK_HEADERS([nanox/nanos.h nanos6.h], [ompss=yes; break], [ompss=no])
 		;;
 	*)
 		AC_MSG_ERROR([unknown runtime ${with_runtime}])
@@ -95,19 +99,6 @@ AX_VAR_PUSHVALUE([CPPFLAGS],[$CPPFLAGS $ompssinc])
 AX_VAR_PUSHVALUE([CXXFLAGS])
 AX_VAR_PUSHVALUE([LDFLAGS],[$LDFLAGS $ompsslib])
 AX_VAR_PUSHVALUE([LIBS],[])
-
-# Check if nanos runtime header file exists and compiles
-AC_CHECK_HEADERS([${ompss_check_headers}], 
-                 [ompss=yes; break],
-                 [ompss=no])
-
-AS_IF([test "$ac_cv_header_nanox_nanos_h" = "yes"],[
-  search_lib=nanox-c
-  required_libs="-lnanox -lnanox-ompss"
-],[
-  search_lib=nanos6
-  required_libs=
-])
 
 m4_foreach([function],
            [nanos_register_polling_service,
