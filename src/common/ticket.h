@@ -54,11 +54,10 @@ inline void Ticket::wait()
    while( spinNotYield() && !finished() ) {
       queue.poll();
    }
-   if( !finished() ) {
-      nanos::log::verbose_output( "blocking task" );
-      blockTask();
-      nanos::log::verbose_output( "unblocking task" );
-   }
+   
+   nanos::log::verbose_output( "blocking task" );
+   blockTask();
+   nanos::log::verbose_output( "unblocking task" );
 }
 
 } // namespace C

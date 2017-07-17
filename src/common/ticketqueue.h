@@ -80,76 +80,50 @@ class TicketQueue {
 template<>
 inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, C::Ticket::Request& req )
 {
-   int completed = 0;
-   int err = PMPI_Test( &req, &completed, ticket.getStatus() );
-   if( completed == 0 ) {
-      std::lock_guard<spin_mutex> guard( _mutex );
-      ticket.addPendingRequest();
-      _requests.push_back( req );
-      _statuses.emplace_back();
-      _tickets.emplace_back( ticket );
-   }
+   std::lock_guard<spin_mutex> guard( _mutex );
+   ticket.addPendingRequest();
+   _requests.push_back( req );
+   _statuses.emplace_back();
+   _tickets.emplace_back( ticket );
 }
 
 template<>
 inline void TicketQueue<Fortran::Ticket>::add( Fortran::Ticket& ticket, Fortran::Ticket::Request& req )
 {
-   MPI_Fint completed = 0;
-   MPI_Fint err = MPI_SUCCESS;
-   pmpi_test_( &req, &completed, reinterpret_cast<MPI_Fint*>(ticket.getStatus()), &err );
-
-   if( completed == 0 ) {
-      std::lock_guard<spin_mutex> guard( _mutex );
-      ticket.addPendingRequest();
-      _requests.push_back( req );
-      _statuses.emplace_back();
-      _tickets.emplace_back( ticket );
-   }
+   std::lock_guard<spin_mutex> guard( _mutex );
+   ticket.addPendingRequest();
+   _requests.push_back( req );
+   _statuses.emplace_back();
+   _tickets.emplace_back( ticket );
 }
 
 template<>
 inline void TicketQueue<C::Ticket>::add( C::Ticket& ticket, util::array_view<C::Ticket::Request> t_requests )
 {
    int count = t_requests.size();
-   int indices[count]; // Array positions for completed requests
-   int completed = 0;  // Number of completed requests
-   int err = MPI_SUCCESS;
 
-   err = PMPI_Testsome( count, t_requests.data(), indices, &completed, ticket.getStatus() );
+   std::lock_guard<spin_mutex> guard( _mutex );
 
-   if( completed < count ) {
-      std::lock_guard<spin_mutex> guard( _mutex );
+   // Amortize cost of realloc when not enough capacity
+   const size_t capacity = _requests.capacity();
+   const size_t required_capacity = _requests.size() + count;
+   if( required_capacity > capacity ) {
+      _requests.reserve( 2 * required_capacity );
+      _statuses.reserve( 2 * required_capacity );
+      _tickets.reserve ( 2 * required_capacity );
+   }
 
-      // Amortize cost of realloc when not enough capacity
-      const size_t capacity = _requests.capacity();
-      const size_t required_capacity = _requests.size() + (count - completed);
-      if( required_capacity > capacity ) {
-         _requests.reserve( 2 * required_capacity );
-         _statuses.reserve( 2 * required_capacity );
-         _tickets.reserve ( 2 * required_capacity );
-      }
-
-      // Insert each uncompleted request
-      // (requests not present in indices array)
-      // only when its value is not MPI_REQUEST_NULL
-      // (MPI_Testsome does not report inactive requests
-      // as completed)
-      int c = 0;
-      for( int u = 0; u < count; ++u ) {
-         if (c < completed && u == indices[c]) {
-            c++;
-         } else {
-            int flag;
-            C::Ticket::Request& req = t_requests[u];
-            err = PMPI_Request_get_status( req, &flag, MPI_STATUS_IGNORE);
-            if( flag == 0 ) {
-               ticket.addPendingRequest();
-               _requests.push_back( req );
-               _statuses.emplace_back();
-               _tickets.emplace_back( ticket, u );
-            }
-         }
-      }
+   // Insert each uncompleted request
+   // (requests not present in indices array)
+   // only when its value is not MPI_REQUEST_NULL
+   // (MPI_Testsome does not report inactive requests
+   // as completed)
+   for( int u = 0; u < count; ++u ) {
+	   C::Ticket::Request& req = t_requests[u];
+	   ticket.addPendingRequest();
+	   _requests.push_back( req );
+	   _statuses.emplace_back();
+	   _tickets.emplace_back( ticket, u );
    }
 }
 
@@ -157,45 +131,29 @@ template<>
 inline void TicketQueue<Fortran::Ticket>::add( Fortran::Ticket& ticket, util::array_view<Fortran::Ticket::Request> t_requests )
 {
    MPI_Fint count = t_requests.size();
-   MPI_Fint indices[count];
-   MPI_Fint completed = 0;
-   MPI_Fint err = MPI_SUCCESS;
 
-   pmpi_testsome_( &count, t_requests.data(), indices, &completed, reinterpret_cast<MPI_Fint*>(ticket.getStatus()), &err );
+   std::lock_guard<spin_mutex> guard( _mutex );
 
-   if( completed < count ) {
-      std::lock_guard<spin_mutex> guard( _mutex );
+   // Amortize cost of realloc when not enough capacity
+   const size_t capacity = _requests.capacity();
+   const size_t required_capacity = _requests.size() + count;
+   if( required_capacity > capacity ) {
+      _requests.reserve( 2 * required_capacity );
+      _statuses.reserve( 2 * required_capacity );
+      _tickets.reserve ( 2 * required_capacity );
+   }
 
-      // Amortize cost of realloc when not enough capacity
-      const size_t capacity = _requests.capacity();
-      const size_t required_capacity = _requests.size() + (count - completed);
-      if( required_capacity > capacity ) {
-         _requests.reserve( 2 * required_capacity );
-         _statuses.reserve( 2 * required_capacity );
-         _tickets.reserve ( 2 * required_capacity );
-      }
-
-      // Insert each uncompleted request
-      // (requests not present in indices array)
-      // only when its value is not MPI_REQUEST_NULL
-      // (MPI_Testsome does not report inactive requests
-      // as completed)
-      int c = 0;
-      for( int u = 0; u < count; ++u ) {
-         if (c < completed && u == (indices[c]-1)) {
-            c++;
-        } else {
-           int flag;
-           Fortran::Ticket::Request& req = t_requests[u];
-           pmpi_request_get_status_( &req, &flag, MPI_F_STATUS_IGNORE, &err );
-           if( flag == 0 ) {
-              ticket.addPendingRequest();
-              _requests.push_back( req );
-              _statuses.emplace_back();
-              _tickets.emplace_back( ticket, u );
-           }
-        }
-      }
+   // Insert each uncompleted request
+   // (requests not present in indices array)
+   // only when its value is not MPI_REQUEST_NULL
+   // (MPI_Testsome does not report inactive requests
+   // as completed)
+   for( int u = 0; u < count; ++u ) {
+      Fortran::Ticket::Request& req = t_requests[u];
+      ticket.addPendingRequest();
+      _requests.push_back( req );
+      _statuses.emplace_back();
+      _tickets.emplace_back( ticket, u );
    }
 }
 
