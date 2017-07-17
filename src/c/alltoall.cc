@@ -21,7 +21,7 @@
 
 #if MPI_VERSION >=3
 
-#include "ticket.h"
+#include "process_request.h"
 #include "print.h"
 #include "api_def.h"
 
@@ -41,8 +41,8 @@ extern "C" {
                                 recvbuf, recvcount, recvtype,
                                 comm, &req );
 
-        C::Ticket ticket( req );
-        ticket.wait();
+        nanos::mpi::C::process_request( req );
+        
         return err;
     }
 }

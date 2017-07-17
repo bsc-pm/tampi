@@ -22,7 +22,7 @@
 #if MPI_VERSION >=3
 
 #include "print.h"
-#include "ticket.h"
+#include "process_request.h"
 #include "api_def.h"
 
 using namespace nanos::mpi;
@@ -36,8 +36,8 @@ extern "C" {
 
         MPI_Request req;
         int err = MPI_Ibarrier( comm, &req );
-        C::Ticket ticket( req );
-        ticket.wait();
+        nanos::mpi::C::process_request( req );
+        
         return err;
     }
 } // extern C

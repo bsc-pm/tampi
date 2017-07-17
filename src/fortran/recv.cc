@@ -20,7 +20,7 @@
 #include <mpi.h>
 
 #include "print.h"
-#include "ticket.h"
+#include "process_request.h"
 
 using namespace nanos::mpi;
 
@@ -39,8 +39,7 @@ extern "C" {
 
 	// TODO: copy back status information when not ignored
         //if( status == MPI_F_STATUS_IGNORE ) {
-           Fortran::Ticket ticket( req );
-           ticket.wait();
+           nanos::mpi::Fortran::process_request( req );
         //} else {
         //}
     }

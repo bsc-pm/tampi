@@ -19,7 +19,7 @@
  */
 #include <mpi.h>
 
-#include "ticket.h"
+#include "process_request.h"
 #include "print.h"
 #include "api_def.h"
 
@@ -37,10 +37,8 @@ extern "C" {
         int err = MPI_Isend( buf, count, datatype, dest, tag, comm,
                              &req );
 
-        C::Ticket ticket( req );
-nanos::log::verbose_output("before wait");
-        ticket.wait();
-nanos::log::verbose_output("after wait");
+        nanos::mpi::C::process_request( req );
+        
         return err;
     }
 } // extern C

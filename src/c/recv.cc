@@ -19,7 +19,7 @@
  */
 #include <mpi.h>
 
-#include "ticket.h"
+#include "process_request.h"
 #include "print.h"
 #include "api_def.h"
 
@@ -40,10 +40,7 @@ extern "C" {
 
       // TODO: copy back status information
       //if( status == MPI_STATUS_IGNORE ) {
-      C::Ticket ticket( req );
-nanos::log::verbose_output("before wait");
-      ticket.wait();
-nanos::log::verbose_output("after wait");
+      nanos::mpi::C::process_request( req );
       //} else {
       //}
       return err;

@@ -67,7 +67,8 @@ fortran_api_sources= \
  src/fortran/init-finalize.cc
 
 common_sources = \
- src/common/configuration.cc
+ src/common/configuration.cc \
+ src/common/process_request.h
 
 lib_LTLIBRARIES = libmpiompss-interop.la libmpiompss-c-interop.la libmpiompss-fortran-interop.la
 libmpiompss_interop_la_SOURCES=$(common_sources) $(c_api_sources) $(fortran_api_sources)

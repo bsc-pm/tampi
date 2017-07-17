@@ -22,7 +22,7 @@
 #if MPI_VERSION >=3
 
 #include "print.h"
-#include "ticket.h"
+#include "process_request.h"
 
 using namespace nanos::mpi;
 
@@ -36,8 +36,7 @@ extern "C" {
         MPI_Fint req;
         mpi_ibarrier_( comm, &req, err );
 
-        Fortran::Ticket ticket( req );
-        ticket.wait();
+        nanos::mpi::Fortran::process_request( req );
     }
 } // extern C
 

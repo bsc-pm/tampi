@@ -21,7 +21,7 @@
 
 #if MPI_VERSION >=3
 
-#include "ticket.h"
+#include "process_request.h"
 #include "print.h"
 
 using namespace nanos::mpi;
@@ -44,8 +44,7 @@ extern "C" {
                         recvbuf, recvcount, recvtype,
                         comm, &req, ierror );
 
-        Fortran::Ticket ticket( req );
-        ticket.wait();
+        nanos::mpi::Fortran::process_request( req );
     }
 }
 
