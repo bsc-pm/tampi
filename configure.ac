@@ -38,7 +38,7 @@ AC_PROG_CC([$CC $MPICC mpiicc mpicc])
 AM_PROG_AR
 
 # Automake initialization
-AM_INIT_AUTOMAKE([-Wall dist-bzip2 -Wno-portability subdir-objects silent-rules])
+AM_INIT_AUTOMAKE([foreign -Wall dist-bzip2 -Wno-portability subdir-objects silent-rules])
 AM_SILENT_RULES([yes])
 
 # Checks for header files.
