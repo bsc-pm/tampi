@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([MPI-OmpSs interoperability library], [0.1], [jbellon@bsc.es])
+AC_INIT([MPI-OmpSs interoperability library], [0.1], [pm-tools@bsc.es])
 
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src])
