@@ -30,9 +30,12 @@ AS_IF([ test "$API_PREFIX" != "" ],[
 # Check if debug mode is enabled
 AX_DEBUG_MODE
 
+# AC_PROG_CXX does not search for full paths,
+# to allow MPICXX to be paths we need to set CXX
+: ${CXX="$MPICXX"}
+
 # Look for a valid MPI compiler
 AC_PROG_CXX([$CXX $MPICXX mpiicpc mpicxx])
-AC_PROG_CC([$CC $MPICC mpiicc mpicc])
 
 # AM_PROG_AR must be called before LT_INIT or a warning ensues
 AM_PROG_AR
