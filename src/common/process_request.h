@@ -14,7 +14,7 @@ namespace mpi {
 namespace C {
 	static inline void process_request(C::Ticket::Request &request)
 	{
-		assert(request != nullptr);
+		assert(&request != nullptr);
 		
 		int finished = 0;
 		__attribute((unused)) int err = PMPI_Test(&request, &finished, MPI_STATUS_IGNORE);
@@ -49,7 +49,7 @@ namespace C {
 namespace Fortran {
 	static inline void process_request(Fortran::Ticket::Request &request)
 	{
-		assert(request != nullptr);
+		assert(&request != nullptr);
 		
 		int finished = 0;
 		int err = MPI_SUCCESS;
