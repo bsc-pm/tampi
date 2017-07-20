@@ -70,6 +70,12 @@ AS_IF([test "x$with_ompss_lib" != x],[
   ompsslib="-L$with_ompss_lib -Wl,-rpath,$with_ompss_lib"
 ])
 
+# Tests if provided headers and libraries are usable and correct
+AX_VAR_PUSHVALUE([CPPFLAGS],[$CPPFLAGS $ompssinc])
+AX_VAR_PUSHVALUE([CXXFLAGS])
+AX_VAR_PUSHVALUE([LDFLAGS],[$LDFLAGS $ompsslib])
+AX_VAR_PUSHVALUE([LIBS],[])
+
 AC_MSG_CHECKING([which runtime to target])
 case "x${with_runtime}" in
 	"xnanox")
@@ -93,12 +99,6 @@ case "x${with_runtime}" in
 		;;
 esac
 
-
-# Tests if provided headers and libraries are usable and correct
-AX_VAR_PUSHVALUE([CPPFLAGS],[$CPPFLAGS $ompssinc])
-AX_VAR_PUSHVALUE([CXXFLAGS])
-AX_VAR_PUSHVALUE([LDFLAGS],[$LDFLAGS $ompsslib])
-AX_VAR_PUSHVALUE([LIBS],[])
 
 m4_foreach([function],
            [nanos_register_polling_service,
