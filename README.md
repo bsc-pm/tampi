@@ -25,7 +25,7 @@ This function blocks the execution of the current task at least until a thread
 calls `nanos_unblock_task()` with its blocking context The runtime may choose
 to execute other tasks within the execution scope of this call.
 
-The `blocking_context` parameter is the value returned by a call to
+* The `blocking_context` parameter is the value returned by a call to
 `nanos_get_current_blocking_context()` performed within the task.
 
 
@@ -39,12 +39,12 @@ matching call to `nanos_block_current_task()`.  The return of this function
 does not guarantee that the blocked task has resumed yet its execution. It only
 guarantees that it will be resumed.
 
-The `blocking_context` parameter is the handler used (or about to be used) to
+* The `blocking_context` parameter is the handler used (or about to be used) to
 block the task.
 
 
-Polling API
------------
+Register/Unregister Polling Service API
+---------------------------------------
 
 ```c
 typedef int (* nanos_polling_service_t)(void *data);
@@ -67,14 +67,14 @@ to support operations in a non-blocking way. For instance to check for certain
 events that are not possible to check in a blocking way, or that it is not
 desirable to do so.
 
-The `name` parameter is a string that identifies the kind of service that will
+* The `name` parameter is a string that identifies the kind of service that will
 be serviced
 
-The `service` parameter is the function (following the
+* The `service` parameter is the function (following the
 `nanos_pollint_service_t` type signature) that the runtime should call
 periodically
 
-The `data` parameter is an opaque pointer that is passed to the function as is.
+* The `data` parameter is an opaque pointer that is passed to the function as is.
 
 Same function can be registered several times with different `data` parameters,
 and each combination will be considered as a different registration (i.e. a
@@ -93,11 +93,11 @@ The `service-data` tuple must not have previously `true` in any of its previous
 invocations, since that return value is equivalent to a call to the
 `nanos_unregister_polling_service()`.
 
-The `name` parameter is a string that identifies the kind of service.
+* The `name` parameter is a string that identifies the kind of service.
 
-The `service` parameter is the function that the runtime should stop calling periodically
+* The `service` parameter is the function that the runtime should stop calling periodically
 with the given parameter `data`,
 
-The `data` parameter is an opaque pointer to the data that was passed to the service
+* The `data` parameter is an opaque pointer to the data that was passed to the service
 function.
 
