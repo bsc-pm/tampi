@@ -38,10 +38,10 @@ extern "C" {
 
       std::array<MPI_Request,2> reqs;
       int err = MPI_Irecv( recvbuf, recvcount, recvtype, source, recvtag, comm,
-            reqs.begin() );
+            &reqs[0] );
 
       err = MPI_Isend( sendbuf, sendcount, sendtype, dest, sendtag, comm,
-            reqs.begin() );
+            &reqs[1] );
 
       if( status != MPI_STATUS_IGNORE ) {
          MPI_Status statuses[2];
