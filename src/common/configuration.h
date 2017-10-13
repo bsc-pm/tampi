@@ -37,7 +37,10 @@ public:
    bool disabled() const { return _level == 0; }
    bool tlsTuneDisabled() const { return disabled() || _level > 2; }
 
-   Configuration() = default; // All enabled by default
+   Configuration() :
+      _level( 3 )
+   {
+   }
 
    Configuration( int level ) :
       _level( level )
