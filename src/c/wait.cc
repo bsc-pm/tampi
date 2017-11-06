@@ -17,29 +17,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#include <dlfcn.h>
 #include <mpi.h>
 
-#include "ticket.h"
-#include "print.h"
-#include "api_def.h"
-
-using namespace nanos::mpi;
+#include "definitions.h"
+#include "environment.h"
+#include "process_request.h"
+#include "symbols.h"
 
 extern "C" {
-   API_DEF( int, MPI_Wait,
-              ( MPI_Request *request, MPI_Status *status )
-            )
-   {
-      nanos::log::intercepted_call( __func__ );
-
-      int err = MPI_SUCCESS;
-      // TODO: copy back status information if not ignored
-      //if( status == MPI_STATUS_IGNORE ) {
-      C::Ticket ticket( *request );
-      ticket.wait();
-      //} else {
-      //}
-      return err;
-   }
+	int MPI_Wait(MPI_Request *request, MPI_Status *status)
+	{
+		int err = MPI_SUCCESS;
+		if (C::Environment::isEnabled()) {
+			assert(request != NULL);
+			C::processRequest(*request, status);
+		} else {
+			static C::MPI_Wait_t *symbol = (C::MPI_Wait_t *) Symbol::loadNextSymbol(__func__);
+			err = (*symbol)(request, status);
+		}
+		return err;
+	}
 } // extern C
 

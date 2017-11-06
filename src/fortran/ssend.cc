@@ -17,30 +17,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#ifndef REQUEST_H
-#define REQUEST_H
-
 #include <mpi.h>
 
-// MPI Test fortran specializations
+#include "definitions.h"
+#include "environment.h"
+#include "process_request.h"
+#include "symbols.h"
+
 extern "C" {
-
-//! MPI_Request_get_status Fortran API declaration
-void pmpi_request_get_status_( MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint* );
-
-//! MPI_Test Fortran API declaration
-void pmpi_test_( MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint* );
-
-//! MPI_Testall Fortran API declaration
-void pmpi_testall_( MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint* );
-
-//! MPI_Testany Fortran API declaration
-void pmpi_testany_( MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint* );
-
-//! MPI_Testsome Fortran API declaration
-void pmpi_testsome_( MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint[], MPI_Fint* );
-
+	void mpi_issend_(MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
+			MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm,
+			MPI_Fint *request, MPI_Fint *err);
+	
+	void mpi_ssend_(MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
+			MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *err)
+	{
+		if (Fortran::Environment::isEnabled()) {
+			MPI_Fint request;
+			mpi_issend_(buf, count, datatype, dest, tag, comm, &request, err);
+			Fortran::processRequest(request);
+		} else {
+			static Fortran::mpi_ssend_t *symbol = (Fortran::mpi_ssend_t *) Symbol::loadNextSymbol(__func__);
+			(*symbol)(buf, count, datatype, dest, tag, comm, err);
+		}
+	}
 } // extern C
 
-#endif // REQUEST_H

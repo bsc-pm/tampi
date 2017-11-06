@@ -17,91 +17,61 @@
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <mpi.h>
-#include <dlfcn.h>
+
 #include <cassert>
+#include <dlfcn.h>
+#include <mpi.h>
 #include <stdarg.h>
 
-#include "configuration.h"
+#include "definitions.h"
 #include "environment.h"
-
-using namespace nanos::mpi;
-
-template<>
-TicketQueue<C::Ticket>* C::environment::_queue = nullptr;
+#include "symbols.h"
 
 extern "C" {
 
-int MPI_Init( int *argc, char*** argv )
+int MPI_Init(int *argc, char*** argv)
 {
-    // Look for next defined MPI_Init
-    // Used to support other profiling tools
-    int (*mpi_init_fn)(int*, char ***);
-    mpi_init_fn = (int (*)(int*, char***)) dlsym(RTLD_NEXT, "MPI_Init");
-    assert(mpi_init_fn != 0);
-
-    // Initialize the environment
-    C::environment::initialize();
-
-    // Call MPI_Init
-    int error = mpi_init_fn(argc, argv);
-    return error;
+	static C::MPI_Init_t *symbol = (C::MPI_Init_t *) Symbol::loadNextSymbol(__func__);
+	
+	// Disable the interoperability
+	C::Environment::disable();
+	
+	// Call MPI_Init
+	return (*symbol)(argc, argv);
 }
 
-int MPI_Init_thread( int *argc, char ***argv, int required, int *provided )
+int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
 {
-    // Look for next defined MPI_Init
-    // Used to support other profiling tools
-    int (*mpi_init_thread_fn)(int*, char ***, int, int*);
-    mpi_init_thread_fn = (int (*)(int*, char***, int, int*)) dlsym(RTLD_NEXT, "MPI_Init_thread");
-    assert(mpi_init_thread_fn != 0);
-
-    // Initialize the environment
-    C::environment::initialize();
-
-    // Call MPI_Init_thread
-    int error = mpi_init_thread_fn(argc, argv, required, provided);
-    return error;
+	static C::MPI_Init_thread_t *symbol = (C::MPI_Init_thread_t *) Symbol::loadNextSymbol(__func__);
+	
+	// Call MPI_Init_thread
+	int err = (*symbol)(argc, argv, required, provided);
+	
+	// Initialize the environment if needed
+	if (required == MPI_TASK_MULTIPLE && *provided != MPI_TASK_MULTIPLE) {
+		C::Environment::enable();
+		C::Environment::initialize();
+		*provided = MPI_TASK_MULTIPLE;
+	} else {
+		C::Environment::disable();
+	}
+	
+	return err;
 }
 
 int MPI_Finalize()
 {
-    // Look for next defined MPI_Finalize
-    // Used to support other profiling tools
-    int (*mpi_finalize_fn)();
-    mpi_finalize_fn = (int (*)()) dlsym(RTLD_NEXT, "MPI_Finalize");
-    assert(mpi_finalize_fn != 0);
-
-    // Call MPI_Finalize
-    int error = mpi_finalize_fn();
-
-    // Finalize the environment
-    C::environment::finalize();
-
-    return error;
-}
-
-int MPI_Pcontrol( int level, ... )
-{
-   va_list args;
-   va_start( args, level );
-
-   int task_level = va_arg( args, int );
-   int num_spins  = va_arg( args, int );
-
-   config.reset(level);
-
-#if HAVE_NANOS_GET_TASK_LOCAL_STORAGE
-   if( !config.tlsTuneDisabled() ) {
-      nanos::tls_view task_local_storage;
-      detail::WaitProperties waitMode( task_level, num_spins );
-      task_local_storage.store( waitMode );
-   }
-#endif
-
-   va_end( args );
-
-   return MPI_SUCCESS;
+	static C::MPI_Finalize_t *symbol = (C::MPI_Finalize_t *) Symbol::loadNextSymbol(__func__);
+	
+	// Call MPI_Finalize
+	int err = (*symbol)();
+	
+	// Finalize the environment
+	if (C::Environment::isEnabled()) {
+		C::Environment::finalize();
+	}
+	
+	return err;
 }
 
 } // extern C

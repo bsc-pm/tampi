@@ -19,22 +19,20 @@
  */
 #include <mpi.h>
 
-#include "ticket.h"
-#include "print.h"
+#include "definitions.h"
+#include "environment.h"
+#include "process_request.h"
+#include "symbols.h"
 
-using namespace nanos::mpi;
-
-   extern "C" {
-      void mpi_wait_( MPI_Fint *request, MPI_Fint *status, MPI_Fint *err )
-      {
-         nanos::log::intercepted_call( __func__ );
-
-         // TODO: copy back status information when not ignored
-         //if( status == MPI_F_STATUS_IGNORE ) {
-         Fortran::Ticket ticket(*request );
-         ticket.wait();
-         //} else {
-         //}
-      }
-   } // extern C
+extern "C" {
+	void mpi_wait_(MPI_Fint *request, MPI_Fint *status, MPI_Fint *err)
+	{
+		if (Fortran::Environment::isEnabled()) {
+			Fortran::processRequest(*request, status);
+		} else {
+			static Fortran::mpi_wait_t *symbol = (Fortran::mpi_wait_t *) Symbol::loadNextSymbol(__func__);
+			(*symbol)(request, status, err);
+		}
+	}
+} // extern C
 

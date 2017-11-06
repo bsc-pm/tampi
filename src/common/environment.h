@@ -17,11 +17,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef NANOS6_ENVIRONMENT_H
-#define NANOS6_ENVIRONMENT_H
+#ifndef ENVIRONMENT_H
+#define ENVIRONMENT_H
 
-#include "configuration.h"
-#include "ticketqueue.h"
+#include "ticket_queue.h"
 
 #ifdef HAVE_NANOX_NANOS_H
 #include <nanox/nanos.h>
@@ -31,56 +30,62 @@
 #include <nanos6.h>
 #endif
 
-#include <atomic>
-
-namespace nanos {
-namespace mpi {
-
-namespace detail {
+#include <mpi.h>
 
 template < typename Queue >
-class environment {
+class GenericEnvironment {
 public:
-	environment() = delete;
-
-   static void initialize()
-   {
-      _queue = new Queue();
-      nanos_register_polling_service("MPI INTEROPERABILITY", environment::poll, _queue);
-   }
-
-   static void finalize()
-   {
-      nanos_unregister_polling_service("MPI INTEROPERABILITY", environment::poll, _queue);
-      delete _queue;
-   }
-
-   static int poll( void* data )
-   {
-      _queue->poll();
-      return 0;
-   }
-
-   static Queue& getQueue()
-   {
-      return *_queue;
-   }
-
-private:
-   static Queue* _queue;
+	static Queue *_queue;
+	static bool _enabled;
+	
+	static int poll(void *poll)
+	{
+		_queue->poll();
+		return 0;
+	}
+	
+public:
+	GenericEnvironment() = delete;
+	
+	static bool isEnabled()
+	{
+		return _enabled;
+	}
+	
+	static void enable()
+	{
+		_enabled = true;
+	}
+	
+	static void disable()
+	{
+		_enabled = false;
+	}
+	
+	static void initialize()
+	{
+		_queue = new Queue();
+		nanos_register_polling_service("MPI INTEROPERABILITY", GenericEnvironment::poll, _queue);
+	}
+	
+	static void finalize()
+	{
+		nanos_unregister_polling_service("MPI INTEROPERABILITY", GenericEnvironment::poll, _queue);
+		delete _queue;
+	}
+	
+	static Queue& getQueue()
+	{
+		return *_queue;
+	}
 };
 
-} // namespace detail
-
 namespace C {
-   typedef detail::environment<TicketQueue<C::Ticket> >       environment;
+	typedef GenericEnvironment<TicketQueue<C::Ticket> > Environment;
 }
 
 namespace Fortran {
-   typedef detail::environment<TicketQueue<Fortran::Ticket> > environment;
+	typedef GenericEnvironment<TicketQueue<Fortran::Ticket> > Environment;
 }
 
-} // namespace mpi
-} // namespace nanos
-
-#endif //NANOS6_ENVIORNMENT_H
+#endif // ENVIRONMENT_H

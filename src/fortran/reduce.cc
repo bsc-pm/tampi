@@ -21,28 +21,29 @@
 
 #if MPI_VERSION >=3
 
-#include "print.h"
+#include "definitions.h"
+#include "environment.h"
 #include "process_request.h"
-
-using namespace nanos::mpi;
+#include "symbols.h"
 
 extern "C" {
-    void mpi_ireduce_( const void *sendbuf, void *recvbuf, MPI_Fint *count,
-                       MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
-                       MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
+	void mpi_ireduce_(const void *sendbuf, void *recvbuf, MPI_Fint *count,
+			MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
+			MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
 
-    void mpi_reduce_( const void *sendbuf, void *recvbuf, MPI_Fint *count,
-                      MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
-                      MPI_Fint *comm, MPI_Fint *err )
-    {
-        nanos::log::intercepted_call( __func__ );
-
-        MPI_Fint req;
-        mpi_ireduce_( sendbuf, recvbuf, count, datatype, op, root,
-                      comm, &req, err );
-
-        nanos::mpi::Fortran::process_request( req );
-    }
+	void mpi_reduce_(const void *sendbuf, void *recvbuf, MPI_Fint *count,
+			MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
+			MPI_Fint *comm, MPI_Fint *err)
+	{
+		if (Fortran::Environment::isEnabled()) {
+			MPI_Fint request;
+			mpi_ireduce_(sendbuf, recvbuf, count, datatype, op, root, comm, &request, err);
+			Fortran::processRequest(request);
+		} else {
+			static Fortran::mpi_reduce_t *symbol = (Fortran::mpi_reduce_t *) Symbol::loadNextSymbol(__func__);
+			(*symbol)(sendbuf, recvbuf, count, datatype, op, root, comm, err);
+		}
+	}
 } // extern C
 
 #endif // MPI_VERSION

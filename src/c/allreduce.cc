@@ -17,31 +17,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <mpi.h> // defines MPI_VERSION
+
+#include <dlfcn.h>
+#include <mpi.h>
 
 #if MPI_VERSION >=3
 
+#include "definitions.h"
+#include "environment.h"
 #include "process_request.h"
-#include "print.h"
-#include "api_def.h"
-
-using namespace nanos::mpi;
+#include "symbols.h"
 
 extern "C" {
-    API_DEF( int,  MPI_Allreduce, 
-               ( const void *sendbuf, void *recvbuf, int count,
-                 MPI_Datatype datatype, MPI_Op op, MPI_Comm comm )
-             )
-    {
-        nanos::log::intercepted_call( __func__ );
-
-        MPI_Request req;
-        int err = MPI_Iallreduce( sendbuf, recvbuf, count, datatype,
-                                  op, comm, &req );
-        nanos::mpi::C::process_request( req );
-        
-        return err;
-    }
+	int MPI_Allreduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
+	{
+		int err = MPI_SUCCESS;
+		if (C::Environment::isEnabled()) {
+			MPI_Request request;
+			err = MPI_Iallreduce(sendbuf, recvbuf, count, datatype, op, comm, &request);
+			
+			C::processRequest(request);
+		} else {
+			static C::MPI_Allreduce_t *symbol = (C::MPI_Allreduce_t *) Symbol::loadNextSymbol(__func__);
+			err = (*symbol)(sendbuf, recvbuf, count, datatype, op, comm);
+		}
+		return err;
+	}
 } // extern C
 
 #endif // MPI_VERSION

@@ -26,78 +26,51 @@
 #include <dlfcn.h>
 #include <cassert>
 
-#include "configuration.h"
+#include "definitions.h"
 #include "environment.h"
-
-#if HAVE_NANOS_GET_TASK_LOCAL_STORAGE
-#include "task_local.h"
-#endif
-
-
-using namespace nanos::mpi;
-
-template<>
-TicketQueue<Fortran::Ticket>* Fortran::environment::_queue = nullptr;
+#include "symbols.h"
 
 extern "C" {
 
-void mpi_init_( MPI_Fint * err )
+void mpi_init_(MPI_Fint *err)
 {
-   // Look for next defined MPI_Init
-   // Used to support other profiling tools
-   void (*mpi_init_fn)(MPI_Fint*);
-   mpi_init_fn = (void (*)(MPI_Fint*)) dlsym(RTLD_NEXT, "mpi_init_");
-   assert(mpi_init_fn != 0);
-
-   // Initialize the environment
-   Fortran::environment::initialize();
-
-   // Call MPI_Init
-   mpi_init_fn(err);
+	static Fortran::mpi_init_t *symbol = (Fortran::mpi_init_t *) Symbol::loadNextSymbol(__func__);
+	
+	// Call to MPI_Init
+	(*symbol)(err);
+	
+	// Disable the interoperability
+	Fortran::Environment::disable();
 }
 
-void mpi_init_thread_( MPI_Fint * required, MPI_Fint * provided, MPI_Fint * err )
+void mpi_init_thread_(MPI_Fint *required, MPI_Fint *provided, MPI_Fint *err)
 {
-   // Look for next defined MPI_Init
-   // Used to support other profiling tools
-   void (*mpi_init_thread_fn)(MPI_Fint*, MPI_Fint*, MPI_Fint*);
-   mpi_init_thread_fn = (void (*)(MPI_Fint*, MPI_Fint*, MPI_Fint*)) dlsym(RTLD_NEXT, "mpi_init_thread_");
-   assert(mpi_init_thread_fn != 0);
-
-   // Initialize the environment
-   Fortran::environment::initialize();
-
-   // Call MPI_Init_thread
-   mpi_init_thread_fn(required, provided, err);
+	static Fortran::mpi_init_thread_t *symbol = (Fortran::mpi_init_thread_t *) Symbol::loadNextSymbol(__func__);
+	
+	// Call to MPI_Init_thread
+	(*symbol)(required, provided, err);
+	
+	// Enable the interoperability if needed
+	if (*required == MPI_TASK_MULTIPLE && *provided != MPI_TASK_MULTIPLE) {
+		Fortran::Environment::enable();
+		Fortran::Environment::initialize();
+		*provided = MPI_TASK_MULTIPLE;
+	} else {
+		Fortran::Environment::disable();
+	}
 }
 
-void mpi_finalize_( MPI_Fint * err )
+void mpi_finalize_(MPI_Fint *err)
 {
-   // Look for next defined MPI_Finalize
-   // Used to support other profiling tools
-   void (*mpi_finalize_fn)(MPI_Fint*);
-   mpi_finalize_fn = (void (*)(MPI_Fint*)) dlsym(RTLD_NEXT, "mpi_finalize_");
-   assert(mpi_finalize_fn != 0);
-
-   // Call MPI_Finalize
-   mpi_finalize_fn(err);
-
-   // Finalize the environment
-   Fortran::environment::finalize();
-}
-
-void mpi_pcontrol_( MPI_Fint* level, MPI_Fint* task_level, MPI_Fint* err )
-{
-   config.reset( *level );
-
-#if HAVE_NANOS_GET_TASK_LOCAL_STORAGE
-   if( !config.tlsTuneDisabled() ) {
-      nanos::tls_view task_local_storage;
-      task_local_storage.store<bool>( (*task_level) != 0 );
-   }
-#endif
-
-   *err = MPI_SUCCESS;
+	static Fortran::mpi_finalize_t *symbol = (Fortran::mpi_finalize_t *) Symbol::loadNextSymbol(__func__);
+	
+	// Call MPI_Finalize
+	(*symbol)(err);
+	
+	// Finalize the interoperability
+	if (Fortran::Environment::isEnabled()) {
+		Fortran::Environment::finalize();
+	}
 }
 
 } // extern C

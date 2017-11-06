@@ -17,42 +17,41 @@
  * You should have received a copy of the GNU General Public License
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#include <dlfcn.h>
 #include <mpi.h>
 
-#include "ticket.h"
-#include "print.h"
-#include "api_def.h"
-
-using namespace nanos::mpi;
+#include "definitions.h"
+#include "environment.h"
+#include "process_request.h"
+#include "symbols.h"
 
 extern "C" {
-   API_DEF( int, MPI_Sendrecv,
-              ( MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
-                int dest, int sendtag,
-                void *recvbuf, int recvcount, MPI_Datatype recvtype,
-                int source, int recvtag,
-                MPI_Comm comm, MPI_Status *status )
-            )
-   {
-      nanos::log::intercepted_call( __func__ );
-
-      std::array<MPI_Request,2> reqs;
-      int err = MPI_Irecv( recvbuf, recvcount, recvtype, source, recvtag, comm,
-            &reqs[0] );
-
-      err = MPI_Isend( sendbuf, sendcount, sendtype, dest, sendtag, comm,
-            &reqs[1] );
-
-      if( status != MPI_STATUS_IGNORE ) {
-         MPI_Status statuses[2];
-         C::Ticket ticket( {std::begin(reqs), std::end(reqs)}, statuses );
-         ticket.wait();
-	 *status = statuses[0];
-      } else {
-         C::Ticket ticket( {std::begin(reqs), std::end(reqs)} );
-         ticket.wait();
-      }
-      return err;
-   }
+	int MPI_Sendrecv(
+			MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype, int dest, int sendtag,
+			void *recvbuf, int recvcount, MPI_Datatype recvtype, int source, int recvtag,
+			MPI_Comm comm, MPI_Status *status)
+	{
+		int err = MPI_SUCCESS;
+		if (C::Environment::isEnabled()) {
+			MPI_Request requests[2];
+			err = MPI_Irecv(recvbuf, recvcount, recvtype, source, recvtag, comm, &requests[0]);
+			err = MPI_Isend(sendbuf, sendcount, sendtype, dest, sendtag, comm, &requests[1]);
+			
+			if (status != MPI_STATUS_IGNORE) {
+				MPI_Status statuses[2];
+				C::processRequests({requests, 2}, statuses);
+				*status = statuses[0];
+			} else {
+				C::processRequests({requests, 2});
+			}
+		} else {
+			static C::MPI_Sendrecv_t *symbol = (C::MPI_Sendrecv_t *) Symbol::loadNextSymbol(__func__);
+			err = (*symbol)(sendbuf, sendcount, sendtype, dest, sendtag,
+					recvbuf, recvcount, recvtype, source, recvtag,
+					comm, status);
+		}
+		return err;
+	}
 } // extern C
 

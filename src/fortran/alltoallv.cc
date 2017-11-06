@@ -21,33 +21,35 @@
 
 #if MPI_VERSION >=3
 
+#include "definitions.h"
+#include "environment.h"
 #include "process_request.h"
-#include "print.h"
-
-using namespace nanos::mpi;
+#include "symbols.h"
 
 extern "C" {
-    void mpi_ialltoallv_( const void *sendbuf, const MPI_Fint sendcounts[],
-                        const MPI_Fint sdispls[], MPI_Fint *sendtype,
-                        void *recvbuf, const MPI_Fint recvcounts[],
-                        const MPI_Fint rdispls[], MPI_Fint *recvtype,
-                        MPI_Fint *comm, MPI_Fint *req, MPI_Fint *ierror );
-
-    void mpi_alltoallv_( const void *sendbuf, const MPI_Fint sendcounts[],
-                        const MPI_Fint sdispls[], MPI_Fint *sendtype,
-                        void *recvbuf, const MPI_Fint recvcounts[],
-                        const MPI_Fint rdispls[], MPI_Fint *recvtype,
-                        MPI_Fint *comm, MPI_Fint *ierror )
-    {
-        nanos::log::intercepted_call( __func__ );
-
-        MPI_Fint req;
-        mpi_ialltoallv_( sendbuf, sendcounts, sdispls, sendtype,
-                        recvbuf, recvcounts, rdispls, recvtype,
-                        comm, &req, ierror );
-
-        nanos::mpi::Fortran::process_request( req );
-    }
+	void mpi_ialltoallv_(const void *sendbuf, const MPI_Fint sendcounts[],
+			const MPI_Fint sdispls[], MPI_Fint *sendtype,
+			void *recvbuf, const MPI_Fint recvcounts[],
+			const MPI_Fint rdispls[], MPI_Fint *recvtype,
+			MPI_Fint *comm, MPI_Fint *req, MPI_Fint *err);
+	
+	void mpi_alltoallv_(const void *sendbuf, const MPI_Fint sendcounts[],
+			const MPI_Fint sdispls[], MPI_Fint *sendtype,
+			void *recvbuf, const MPI_Fint recvcounts[],
+			const MPI_Fint rdispls[], MPI_Fint *recvtype,
+			MPI_Fint *comm, MPI_Fint *err)
+	{
+		if (Fortran::Environment::isEnabled()) {
+			MPI_Fint request;
+			mpi_ialltoallv_(sendbuf, sendcounts, sdispls, sendtype,
+					recvbuf, recvcounts, rdispls, recvtype,
+					comm, &request, err);
+			Fortran::processRequest(request);
+		} else {
+			static Fortran::mpi_alltoallv_t *symbol = (Fortran::mpi_alltoallv_t *) Symbol::loadNextSymbol(__func__);
+			(*symbol)(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, err);
+		}
+	}
 }
 
 #endif // MPI_VERSION

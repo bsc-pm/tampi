@@ -26,28 +26,28 @@
 #define SPIN_MUTEX_HPP
 
 class spin_mutex {
-   bool _locked;
-
+	bool _locked;
+	
 public:
-   spin_mutex() {
-      __atomic_clear( &_locked, __ATOMIC_RELAXED );
-   }
-
-   void lock() {
-      while( !try_lock() ) {
+	spin_mutex() {
+		__atomic_clear(&_locked, __ATOMIC_RELAXED);
+	}
+	
+	void lock() {
+		while(!try_lock()) {
 #ifdef X86_64_ARCH
-         __asm__("pause" ::: "memory");
+		__asm__("pause" ::: "memory");
 #endif
-      }
-   }
+		}
+	}
+	
+	void unlock() {
+		__atomic_clear(&_locked, __ATOMIC_RELEASE);
+	}
 
-   void unlock() {
-      __atomic_clear( &_locked, __ATOMIC_RELEASE );
-   }
-
-   bool try_lock() {
-      return !__atomic_test_and_set( &_locked, __ATOMIC_ACQUIRE );
-   }
+	bool try_lock() {
+		return !__atomic_test_and_set(&_locked, __ATOMIC_ACQUIRE);
+	}
 };
 
 #endif // SPIN_MUTEX_HPP

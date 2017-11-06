@@ -21,31 +21,29 @@
 
 #if MPI_VERSION >=3
 
-#include "print.h"
+#include "definitions.h"
+#include "environment.h"
 #include "process_request.h"
-
-using namespace nanos::mpi;
+#include "symbols.h"
 
 extern "C" {
-    void mpi_igatherv_( const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
-        void *recvbuf, const MPI_Fint recvcounts[], const MPI_Fint displs[], MPI_Fint *recvtype,
-        MPI_Fint *root, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
-
-    void mpi_gatherv_( const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
-                       void *recvbuf, const MPI_Fint recvcounts[],
-                       const MPI_Fint displs[], MPI_Fint *recvtype,
-                       MPI_Fint *root, MPI_Fint *comm, MPI_Fint *err )
-    {
-        nanos::log::intercepted_call( __func__ );
-
-        MPI_Fint req;
-        mpi_igatherv_( sendbuf, sendcount, sendtype,
-                recvbuf, recvcounts, displs, recvtype,
-                root, comm, &req, err );
-
-        nanos::mpi::Fortran::process_request( req );
-    }
-
+	void mpi_igatherv_(const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
+			void *recvbuf, const MPI_Fint recvcounts[], const MPI_Fint displs[], MPI_Fint *recvtype,
+			MPI_Fint *root, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
+	
+	void mpi_gatherv_(const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
+			void *recvbuf, const MPI_Fint recvcounts[], const MPI_Fint displs[], MPI_Fint *recvtype,
+			MPI_Fint *root, MPI_Fint *comm, MPI_Fint *err)
+	{
+		if (Fortran::Environment::isEnabled()) {
+			MPI_Fint request;
+			mpi_igatherv_(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, &request, err);
+			Fortran::processRequest(request);
+		} else {
+			static Fortran::mpi_gatherv_t *symbol = (Fortran::mpi_gatherv_t *) Symbol::loadNextSymbol(__func__);
+			(*symbol)(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, err);
+		}
+	}
 } // extern C
 
 #endif // MPI_VERSION
