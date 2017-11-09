@@ -1,0 +1,89 @@
+AR=ar
+CC=gcc
+CXX=g++
+CXXFLAGS=-O3 -std=c++11
+
+ifndef MPI_HOME
+$(error MPI_HOME environment variable is not defined!)
+endif
+
+ifndef NANOS6_HOME
+$(error NANOS6_HOME environment variable is not defined!)
+endif
+
+MPICC?=$(MPI_HOME)/bin/mpicc
+MPICXX?=$(MPI_HOME)/bin/mpicxx
+
+CPPFLAGS=-Isrc/ -Isrc/common -I$(MPI_HOME)/include -I$(NANOS6_HOME)/include -DHAVE_NANOS6_H
+
+COMMON_SOURCES=    \
+ common/environment
+
+C_SOURCES=         \
+ c/allreduce       \
+ c/alltoall        \
+ c/alltoallv       \
+ c/barrier         \
+ c/bcast           \
+ c/gatherv         \
+ c/recv            \
+ c/reduce          \
+ c/send            \
+ c/sendrecv        \
+ c/ssend           \
+ c/waitall         \
+ c/wait            \
+ c/sendrecvreplace \
+ c/init-finalize
+
+FORTRAN_SOURCES=         \
+ fortran/allreduce       \
+ fortran/alltoall        \
+ fortran/alltoallv       \
+ fortran/barrier         \
+ fortran/bcast           \
+ fortran/gatherv         \
+ fortran/recv            \
+ fortran/reduce          \
+ fortran/send            \
+ fortran/sendrecv        \
+ fortran/ssend           \
+ fortran/waitall         \
+ fortran/wait            \
+ fortran/sendrecvreplace \
+ fortran/init-finalize
+
+ALL_SOURCES=$(COMMON_SOURCES) $(C_SOURCES) $(FORTRAN_SOURCES)
+ALL_OBJECTS=$(addprefix obj/,$(addsuffix .o,$(ALL_SOURCES)))
+
+ifndef VERBOSE
+.SILENT: mkdir libmpiompss-interop $(ALL_SOURCES)
+endif
+.PHONY: all clean
+
+all: mkdir libmpiompss-interop
+
+libmpiompss-interop: $(ALL_SOURCES)
+	echo " CXXLD	$@"
+	#ar rcs $@.a $(ALL_OBJECTS)
+	$(CXX) $(CXXFLAGS) -shared -fPIC -Wl,-soname,$@.so.1 -o $@.so $(ALL_OBJECTS) -lc
+	$(AR) rcs $@.a $(ALL_OBJECTS)
+
+c/%: src/c/%.cc
+	echo " CXX	$<"
+	$(MPICXX) -fPIC $(CPPFLAGS) $(CXXFLAGS) -c -o obj/$@.o $^
+
+fortran/%: src/fortran/%.cc
+	echo " CXX	$<"
+	$(MPICXX) -fPIC $(CPPFLAGS) $(CXXFLAGS) -c -o obj/$@.o $^
+
+common/%: src/common/%.cc
+	echo " CXX	$<"
+	$(MPICXX) -fPIC $(CPPFLAGS) $(CXXFLAGS) -c -o obj/$@.o $^
+
+mkdir:
+	mkdir -p obj/common obj/c obj/fortran
+
+clean:
+	rm -rf obj
+	rm -f libmpiompss-interop.a
