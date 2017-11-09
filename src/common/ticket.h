@@ -57,7 +57,7 @@ public:
 	
 	~TicketBase()
 	{
-		assert(finished);
+		assert(finished());
 	}
 	
 	bool finished() const
