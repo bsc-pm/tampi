@@ -1,6 +1,6 @@
 AR=ar
-CC=gcc
-CXX=g++
+CC?=gcc
+CXX?=g++
 CXXFLAGS=-O3 -std=c++11
 
 ifndef MPI_HOME
@@ -10,6 +10,11 @@ endif
 ifndef NANOS6_HOME
 $(error NANOS6_HOME environment variable is not defined!)
 endif
+
+# By default, install the library at the directory from
+# where MAKE command was executed
+INSTALLDIR?=$(PWD)/interop
+OBJDIR=$(INSTALLDIR)/obj
 
 MPICC?=$(MPI_HOME)/bin/mpicc
 MPICXX?=$(MPI_HOME)/bin/mpicxx
@@ -54,7 +59,7 @@ FORTRAN_SOURCES=         \
  fortran/init-finalize
 
 ALL_SOURCES=$(COMMON_SOURCES) $(C_SOURCES) $(FORTRAN_SOURCES)
-ALL_OBJECTS=$(addprefix obj/,$(addsuffix .o,$(ALL_SOURCES)))
+ALL_OBJECTS=$(addprefix $(OBJDIR)/,$(addsuffix .o,$(ALL_SOURCES)))
 
 ifndef VERBOSE
 .SILENT: mkdir libmpiompss-interop $(ALL_SOURCES)
@@ -65,25 +70,24 @@ all: mkdir libmpiompss-interop
 
 libmpiompss-interop: $(ALL_SOURCES)
 	echo " CXXLD	$@"
-	#ar rcs $@.a $(ALL_OBJECTS)
-	$(CXX) $(CXXFLAGS) -shared -fPIC -Wl,-soname,$@.so.1 -o $@.so $(ALL_OBJECTS) -lc
-	$(AR) rcs $@.a $(ALL_OBJECTS)
+	$(CXX) $(CXXFLAGS) -shared -fPIC -Wl,-soname,$@.so.1 -o $(INSTALLDIR)/$@.so $(ALL_OBJECTS) -lc
+	$(AR) rcs $(INSTALLDIR)/$@.a $(ALL_OBJECTS)
 
 c/%: src/c/%.cc
 	echo " CXX	$<"
-	$(MPICXX) -fPIC $(CPPFLAGS) $(CXXFLAGS) -c -o obj/$@.o $^
+	$(MPICXX) -fPIC $(CPPFLAGS) $(CXXFLAGS) -c -o $(OBJDIR)/$@.o $^
 
 fortran/%: src/fortran/%.cc
 	echo " CXX	$<"
-	$(MPICXX) -fPIC $(CPPFLAGS) $(CXXFLAGS) -c -o obj/$@.o $^
+	$(MPICXX) -fPIC $(CPPFLAGS) $(CXXFLAGS) -c -o $(OBJDIR)/$@.o $^
 
 common/%: src/common/%.cc
 	echo " CXX	$<"
-	$(MPICXX) -fPIC $(CPPFLAGS) $(CXXFLAGS) -c -o obj/$@.o $^
+	$(MPICXX) -fPIC $(CPPFLAGS) $(CXXFLAGS) -c -o $(OBJDIR)/$@.o $^
 
 mkdir:
-	mkdir -p obj/common obj/c obj/fortran
+	mkdir -p $(OBJDIR)/common $(OBJDIR)/c $(OBJDIR)/fortran
 
 clean:
-	rm -rf obj
-	rm -f libmpiompss-interop.a
+	rm -rf $(OBJDIR)
+	rm -f  $(INSTALLDIR)/libmpiompss-interop.*
