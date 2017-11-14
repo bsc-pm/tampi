@@ -34,6 +34,7 @@ endif
 pkginclude_HEADERS= # This library does not provide any additional header
 
 c_api_sources= \
+ src/c/allgatherv.cc \
  src/c/allreduce.cc \
  src/c/alltoall.cc \
  src/c/alltoallv.cc \

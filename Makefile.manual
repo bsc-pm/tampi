@@ -25,6 +25,7 @@ COMMON_SOURCES=    \
  common/environment
 
 C_SOURCES=         \
+ c/allgatherv      \
  c/allreduce       \
  c/alltoall        \
  c/alltoallv       \
