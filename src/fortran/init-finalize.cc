@@ -47,11 +47,17 @@ void mpi_init_thread_(MPI_Fint *required, MPI_Fint *provided, MPI_Fint *err)
 {
 	static Fortran::mpi_init_thread_t *symbol = (Fortran::mpi_init_thread_t *) Symbol::loadNextSymbol(__func__);
 	
-	// Call to MPI_Init_thread
-	(*symbol)(required, provided, err);
+	/* NOTE: This should be modified when MPI_TASK_MULTIPLE
+ 	 * mode is supported by MPI */
+	MPI_Fint actualRequired = *required;
+	if (actualRequired == MPI_TASK_MULTIPLE) {
+		actualRequired = MPI_THREAD_MULTIPLE;
+	}
 	
-	// Enable the interoperability if needed
-	if (*required == MPI_TASK_MULTIPLE && *provided != MPI_TASK_MULTIPLE) {
+	// Call to MPI_Init_thread
+	(*symbol)(&actualRequired, provided, err);
+	
+	if (*required == MPI_TASK_MULTIPLE && *provided == MPI_THREAD_MULTIPLE) {
 		Fortran::Environment::enable();
 		Fortran::Environment::initialize();
 		*provided = MPI_TASK_MULTIPLE;

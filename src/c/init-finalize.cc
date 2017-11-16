@@ -44,11 +44,18 @@ int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
 {
 	static C::MPI_Init_thread_t *symbol = (C::MPI_Init_thread_t *) Symbol::loadNextSymbol(__func__);
 	
+	/* NOTE: This should be modified when MPI_TASK_MULTIPLE
+ 	 * mode is supported by MPI */
+	bool enableInterop = false;
+	if (required == MPI_TASK_MULTIPLE) {
+		required = MPI_THREAD_MULTIPLE;
+		enableInterop = true;
+	}
+	
 	// Call MPI_Init_thread
 	int err = (*symbol)(argc, argv, required, provided);
 	
-	// Initialize the environment if needed
-	if (required == MPI_TASK_MULTIPLE && *provided != MPI_TASK_MULTIPLE) {
+	if (enableInterop && *provided == MPI_THREAD_MULTIPLE) {
 		C::Environment::enable();
 		C::Environment::initialize();
 		*provided = MPI_TASK_MULTIPLE;

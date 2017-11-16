@@ -174,7 +174,7 @@ inline void TicketQueue<C::Ticket>::poll() {
 			int count = _requests.size();
 			int completed = 0;
 			int indices[count];
-			int err = PMPI_Testsome(count, _requests.data(), &completed, indices, _statuses.data());
+			PMPI_Testsome(count, _requests.data(), &completed, indices, _statuses.data());
 			
 			if (completed == MPI_UNDEFINED) {
 				// All requests were already released.

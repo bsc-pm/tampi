@@ -38,7 +38,7 @@ public:
 	static Queue *_queue;
 	static bool _enabled;
 	
-	static int poll(void *poll)
+	static int poll(__attribute__((unused)) void *data)
 	{
 		_queue->poll();
 		return 0;
