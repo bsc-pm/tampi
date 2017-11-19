@@ -34,18 +34,21 @@
 
 template < typename Queue >
 class GenericEnvironment {
-public:
-	static Queue *_queue;
+private:
 	static bool _enabled;
 	
 	static int poll(__attribute__((unused)) void *data)
 	{
-		_queue->poll();
+		getQueue().poll();
 		return 0;
 	}
 	
 public:
 	GenericEnvironment() = delete;
+	
+	GenericEnvironment(const GenericEnvironment &) = delete;
+	
+	const GenericEnvironment& operator= (const GenericEnvironment &) = delete;
 	
 	static bool isEnabled()
 	{
@@ -64,19 +67,18 @@ public:
 	
 	static void initialize()
 	{
-		_queue = new Queue();
-		nanos_register_polling_service("MPI INTEROPERABILITY", GenericEnvironment::poll, _queue);
+		nanos_register_polling_service("MPI INTEROPERABILITY", GenericEnvironment::poll, nullptr);
 	}
 	
 	static void finalize()
 	{
-		nanos_unregister_polling_service("MPI INTEROPERABILITY", GenericEnvironment::poll, _queue);
-		delete _queue;
+		nanos_unregister_polling_service("MPI INTEROPERABILITY", GenericEnvironment::poll, nullptr);
 	}
 	
 	static Queue& getQueue()
 	{
-		return *_queue;
+		static Queue _queue;
+		return _queue;
 	}
 };
 
