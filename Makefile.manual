@@ -43,6 +43,8 @@ C_SOURCES=         \
  c/init-finalize
 
 FORTRAN_SOURCES=         \
+ fortran/allgather       \
+ fortran/allgatherv      \
  fortran/allreduce       \
  fortran/alltoall        \
  fortran/alltoallv       \
@@ -51,6 +53,7 @@ FORTRAN_SOURCES=         \
  fortran/gatherv         \
  fortran/recv            \
  fortran/reduce          \
+ fortran/scatterv        \
  fortran/send            \
  fortran/sendrecv        \
  fortran/ssend           \

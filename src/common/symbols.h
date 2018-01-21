@@ -54,6 +54,8 @@ typedef void mpi_wait_t(MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_waitall_t(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*);
 
 #if MPI_VERSION >=3
+typedef void mpi_allgather_t(const void*, MPI_Fint*, MPI_Fint*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
+typedef void mpi_allgatherv_t(const void*, MPI_Fint*, MPI_Fint*, void*, const MPI_Fint[], const MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_allreduce_t(const void*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_alltoall_t(const void*, MPI_Fint*, MPI_Fint*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_alltoallv_t(const void*, const MPI_Fint[], const MPI_Fint[], MPI_Fint*, void*, const MPI_Fint[], const MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*);
@@ -61,6 +63,7 @@ typedef void mpi_barrier_t(MPI_Fint*, MPI_Fint*);
 typedef void mpi_bcast_t(void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_gatherv_t(const void*, MPI_Fint*, MPI_Fint*, void*, const MPI_Fint[], const MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_reduce_t(const void*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
+typedef void mpi_scatterv_t(const void*, const MPI_Fint[], const MPI_Fint[], MPI_Fint*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 #endif // MPI_VERSION
 } // namespace Fortran
 
