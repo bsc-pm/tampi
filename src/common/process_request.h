@@ -46,8 +46,6 @@ namespace C {
 namespace Fortran {
 	static inline void processRequest(Fortran::Ticket::Request &request, MPI_Fint *status = MPI_F_STATUS_IGNORE)
 	{
-		assert(&request != nullptr);
-		
 		int finished = 0;
 		int err = MPI_SUCCESS;
 		pmpi_test_(&request, &finished, status, &err);
