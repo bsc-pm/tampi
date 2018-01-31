@@ -74,7 +74,7 @@ all: mkdir libmpiompss-interop
 
 libmpiompss-interop: $(ALL_SOURCES)
 	echo " CXXLD	$@"
-	$(CXX) $(CXXFLAGS) -shared -fPIC -Wl,-soname,$@.so.1 -o $(INSTALLDIR)/$@.so $(ALL_OBJECTS) -lc
+	$(CXX) $(CXXFLAGS) -shared -o $(INSTALLDIR)/$@.so $(ALL_OBJECTS) -lc
 	$(AR) rcs $(INSTALLDIR)/$@.a $(ALL_OBJECTS)
 
 c/%: src/c/%.cc
