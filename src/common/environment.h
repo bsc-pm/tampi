@@ -18,11 +18,12 @@
 #endif
 
 #include <mpi.h>
+#include <atomic>
 
 template < typename Queue >
 class GenericEnvironment {
 private:
-	static bool _enabled;
+	static std::atomic<bool> _enabled;
 	
 	static int poll(__attribute__((unused)) void *data)
 	{
@@ -39,17 +40,17 @@ public:
 	
 	static bool isEnabled()
 	{
-		return _enabled;
+		return _enabled.load();
 	}
 	
 	static void enable()
 	{
-		_enabled = true;
+		_enabled.store(true);
 	}
 	
 	static void disable()
 	{
-		_enabled = false;
+		_enabled.store(false);
 	}
 	
 	static void initialize()

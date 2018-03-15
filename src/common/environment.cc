@@ -7,7 +7,7 @@
 #include "environment.h"
 
 template<>
-bool C::Environment::_enabled = false;
+std::atomic<bool> C::Environment::_enabled(false);
 
 template<>
-bool Fortran::Environment::_enabled = false;
+std::atomic<bool> Fortran::Environment::_enabled(false);
