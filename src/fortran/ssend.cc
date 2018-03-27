@@ -12,19 +12,19 @@
 #include "symbols.h"
 
 extern "C" {
-	void mpi_isend_(MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
+	void mpi_issend_(MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
 			MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm,
 			MPI_Fint *request, MPI_Fint *err);
 	
-	void mpi_send_(MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
+	void mpi_ssend_(MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
 			MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *err)
 	{
 		if (Fortran::Environment::isEnabled()) {
 			MPI_Fint request;
-			mpi_isend_(buf, count, datatype, dest, tag, comm, &request, err);
+			mpi_issend_(buf, count, datatype, dest, tag, comm, &request, err);
 			Fortran::processRequest(request);
 		} else {
-			static Fortran::mpi_send_t *symbol = (Fortran::mpi_send_t *) Symbol::loadNextSymbol(__func__);
+			static Fortran::mpi_ssend_t *symbol = (Fortran::mpi_ssend_t *) Symbol::loadNextSymbol(__func__);
 			(*symbol)(buf, count, datatype, dest, tag, comm, err);
 		}
 	}

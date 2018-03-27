@@ -15,21 +15,21 @@
 #include "symbols.h"
 
 extern "C" {
-	int MPI_Gatherv(
-			const void *sendbuf, int sendcount, MPI_Datatype sendtype,
-			void *recvbuf, const int recvcounts[], const int displs[],
-			MPI_Datatype recvtype, int root, MPI_Comm comm)
+	int MPI_Allgatherv(
+			const void* sendbuf, int sendcount, MPI_Datatype sendtype,
+			void* recvbuf, const int recvcounts[], const int displs[],
+			MPI_Datatype recvtype, MPI_Comm comm)
 	{
 		int err = MPI_SUCCESS;
 		if (C::Environment::isEnabled()) {
 			MPI_Request request;
-			err = MPI_Igatherv(sendbuf, sendcount, sendtype,
+			err = MPI_Iallgatherv(sendbuf, sendcount, sendtype,
 					recvbuf, recvcounts, displs, recvtype,
-					root, comm, &request);
+					comm, &request);
 			C::processRequest(request);
 		} else {
-			static C::MPI_Gatherv_t *symbol = (C::MPI_Gatherv_t *) Symbol::loadNextSymbol(__func__);
-			err = (*symbol)(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm);
+			static C::MPI_Allgatherv_t *symbol = (C::MPI_Allgatherv_t *) Symbol::loadNextSymbol(__func__);
+			err = (*symbol)(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm);
 		}
 		return err;
 	}

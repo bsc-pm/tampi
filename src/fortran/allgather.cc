@@ -14,24 +14,23 @@
 #include "symbols.h"
 
 extern "C" {
-	void mpi_ireduce_(const void *sendbuf, void *recvbuf, MPI_Fint *count,
-			MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
+	void mpi_iallgather_(const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
+			void *recvbuf, MPI_Fint *recvcount, MPI_Fint *recvtype,
 			MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
 
-	void mpi_reduce_(const void *sendbuf, void *recvbuf, MPI_Fint *count,
-			MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
+	void mpi_allgather_(const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
+			void *recvbuf, MPI_Fint *recvcount, MPI_Fint *recvtype,
 			MPI_Fint *comm, MPI_Fint *err)
 	{
 		if (Fortran::Environment::isEnabled()) {
 			MPI_Fint request;
-			mpi_ireduce_(sendbuf, recvbuf, count, datatype, op, root, comm, &request, err);
+			mpi_iallgather_(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, &request, err);
 			Fortran::processRequest(request);
 		} else {
-			static Fortran::mpi_reduce_t *symbol = (Fortran::mpi_reduce_t *) Symbol::loadNextSymbol(__func__);
-			(*symbol)(sendbuf, recvbuf, count, datatype, op, root, comm, err);
+			static Fortran::mpi_allgather_t *symbol = (Fortran::mpi_allgather_t *) Symbol::loadNextSymbol(__func__);
+			(*symbol)(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, err);
 		}
 	}
-} // extern C
+}
 
 #endif // MPI_VERSION
-

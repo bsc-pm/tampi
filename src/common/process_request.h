@@ -1,89 +1,90 @@
+/*
+	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
+	
+	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
+*/
+
 #ifndef PROCESS_REQUEST_H
 #define PROCESS_REQUEST_H
 
+#include "environment.h"
+#include "ticket.h"
+#include "ticket_queue.h"
 
 #include <mpi.h>
-
 #include <cassert>
 
-#include "ticket.h"
-
-
-namespace nanos {
-namespace mpi {
 namespace C {
-	static inline void process_request(C::Ticket::Request &request)
+	static inline void processRequest(Ticket::Request &request, Ticket::Status *status = MPI_STATUS_IGNORE)
 	{
-		assert(&request != nullptr);
-		
 		int finished = 0;
-		__attribute((unused)) int err = PMPI_Test(&request, &finished, MPI_STATUS_IGNORE);
+		PMPI_Test(&request, &finished, status);
 		
 		if (!finished) {
-			C::Ticket ticket(request);
+			Ticket ticket(request, status);
+			
+			TicketQueue<Ticket> &queue = Environment::getQueue();
+			queue.add(ticket, request);
+			
 			ticket.wait();
 		}
 	}
 	
-	
-#if 0
-	static inline void process_requests(C::Ticket::Request *begin, C::Ticket::Request *end)
+	static inline void processRequests(util::array_view<Ticket::Request> requests, Ticket::Status *statuses = MPI_STATUSES_IGNORE)
 	{
-		assert(begin != nullptr);
-		assert(end != nullptr);
+		assert(!requests.empty());
 		
-		int count = std::distance(begin,end);
 		int finished = 0;
-		
-		__attribute((unused)) int err = PMPI_Testall(count, begin, &finished, MPI_STATUSES_IGNORE);
+		PMPI_Testall(requests.size(), requests.begin(), &finished, statuses);
 		
 		if (!finished) {
-			C::Ticket ticket(begin, end);
+			Ticket ticket(requests, statuses);
+			
+			TicketQueue<Ticket> &queue = Environment::getQueue();
+			queue.add(ticket, requests);
+			
 			ticket.wait();
 		}
 	}
-#endif
 } // namespace C
 
 
 namespace Fortran {
-	static inline void process_request(Fortran::Ticket::Request &request)
+	static inline void processRequest(Fortran::Ticket::Request &request, MPI_Fint *status = MPI_F_STATUS_IGNORE)
 	{
-		assert(&request != nullptr);
-		
 		int finished = 0;
 		int err = MPI_SUCCESS;
-		pmpi_test_(&request, &finished, MPI_F_STATUS_IGNORE, &err);
+		pmpi_test_(&request, &finished, status, &err);
+		assert(!err);
 		
 		if (!finished) {
-			Fortran::Ticket ticket(request);
+			Fortran::Ticket ticket(request, status);
+			
+			TicketQueue<Ticket> &queue = Environment::getQueue();
+			queue.add(ticket, request);
+			
 			ticket.wait();
 		}
 	}
 	
-	
-#if 0
-	static inline void process_requests(Fortran::Ticket::Request *begin, Fortran::Ticket::Request *end)
+	static inline void processRequests(util::array_view<Ticket::Request> requests, MPI_Fint *statuses = MPI_F_STATUSES_IGNORE)
 	{
-		assert(begin != nullptr);
-		assert(end != nullptr);
+		assert(!requests.empty());
 		
-		int count = std::distance(begin,end);
 		int finished = 0;
 		int err = MPI_SUCCESS;
-		
-		pmpi_testall_(&count, begin, &finished, MPI_F_STATUSES_IGNORE, &err);
+		int size = requests.size();
+		pmpi_testall_(&size, requests.begin(), &finished, statuses, &err);
 		
 		if (!finished) {
-			Fortran::Ticket ticket(begin, end);
+			Ticket ticket(requests, statuses);
+			
+			TicketQueue<Ticket> &queue = Environment::getQueue();
+			queue.add(ticket, requests);
+			
 			ticket.wait();
 		}
 	}
-#endif
 } // namespace Fortran
-
-} // namespace mpi
-} // namespace nanos
-
 
 #endif // PROCESS_REQUEST_H
