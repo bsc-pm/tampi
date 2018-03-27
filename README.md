@@ -1,9 +1,104 @@
-Interoperability library
-========================
+# Task-Aware MPI Library
 
+Task-Aware MPI is a library which targets hybrid applications (MPI+OmpSs) and
+improves the interoperability between these two programming models. Normally,
+these applications taskify computation and MPI communication. Thus, computation
+and communication can overlap. This mechanism allows the execution of other ready
+tasks when a communication task is blocked inside MPI.
 
-Block/unblock API
------------------
+This library intercepts each blocking MPI call (e.g. `MPI_Recv`) and converts
+it to a call to the non-blocking function of the same operation (e.g. `MPI_Irecv`).
+The resulting MPI requests are stored and managed internally. Then, the calling
+task is blocked through the block/unblock API. Furthermore, thanks to the polling API,
+these pending requests are checked periodically to find out which of them are
+complete. When all the requests of a task are complete, the task is resumed,
+and finally, it can return from the MPI call.
+
+See the section [API Description](#api-description) for more information about the
+required APIs.
+
+## Installation
+### Build requirements
+
+To install Task-Aware MPI, the following tools and libraries must be installed:
+
++ automake, autoconf, libtool, make and a C and C++ compiler
++ [OmpSs](https://pm.bsc.es): Nanox or Nanos6 runtime
++ MPI with multi-threading support
+
+### Optional libraries and tools
+
+In addition to the build requirements, the following libraries and tools are optional:
+
++ [Extrae](https://tools.bsc.es/extrae)
+
+### Build procedure
+
+Task-Aware MPI uses the standard GNU automake and libtool toolchain.
+When cloning from a repository, the building environment must be prepared through the following command:
+
+```sh
+$ autoreconf -fiv
+```
+
+When the code is distributed through a tarball, it usually does not need that command.
+
+Then execute the following commands:
+
+```sh
+$ ./configure --prefix=INSTALLATION_PREFIX ...other options...
+$ make
+$ make install
+```
+
+where `INSTALLATION_PREFIX` is the directory into which to install Nanos6.
+
+The configure script accepts the following options:
+
++ `--with-ompss=prefix` to specify the prefix of the OmpSs installation
++ `--with-runtime=nanox|nanos6` to specify which OmpSs runtime should be used
++ `--with-extrae=prefix` to specify the prefix of the Extrae installation
+
+**NOTE:** An MPI installation with multi-threading support must be available when
+configuring the library. The PATH environment variable should contain the path to
+the binaries of MPI (i.e. by executing `export PATH=/path/to/mpi/bin:$PATH`).
+
+## Execution
+
+The user application must be linked to the generated library `libmpiompss-interop`. To
+enable the interoperability mechanism, the user have to define the `MPI_TASK_MULTIPLE`
+threading level, which is the next level of the `MPI_THREAD_MULTIPLE` (i.e. `MPI_THREAD_MULTIPLE+1`).
+In the MPI initialization call (i.e. `MPI_Init_thread`), the user has to request this
+new threading level.
+
+For example, a valid initialization of the interoperability mechanism could be the following one:
+```c
+//...
+#include <mpi.h>
+
+#define MPI_TASK_MULTIPLE (MPI_THREAD_MULTIPLE+1)
+
+int main(int argc, char **argv)
+{
+	int provided;
+	MPI_Init_thread(&argc, &argv, MPI_TASK_MULTIPLE, &provided);
+	if (provided != MPI_TASK_MULTIPLE) {
+		fprintf(stderr, "Error: MPI_TASK_MULTIPLE not supported!");
+		return 1;
+	}
+	//...
+}
+```
+
+Once added these changes, the application is ready to run with the interoperability
+mechanism enabled. The application should be launched with the same commands as in
+the original hybrid version.
+
+## API description
+
+This section describes the required APIs that the OmpSs runtime has to provide.
+
+### Block/unblock API
 
 ```c
 void *nanos_get_current_blocking_context();
@@ -43,8 +138,7 @@ guarantees that it will be resumed.
 block the task.
 
 
-Register/Unregister Polling Service API
----------------------------------------
+### Register/Unregister Polling Service API
 
 ```c
 typedef int (* nanos_polling_service_t)(void *data);
