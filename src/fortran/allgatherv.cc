@@ -14,24 +14,23 @@
 #include "symbols.h"
 
 extern "C" {
-	void mpi_igatherv_(const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
+	void mpi_iallgatherv_(const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
 			void *recvbuf, const MPI_Fint recvcounts[], const MPI_Fint displs[], MPI_Fint *recvtype,
-			MPI_Fint *root, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
-	
-	void mpi_gatherv_(const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
+			MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
+
+	void mpi_allgatherv_(const void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
 			void *recvbuf, const MPI_Fint recvcounts[], const MPI_Fint displs[], MPI_Fint *recvtype,
-			MPI_Fint *root, MPI_Fint *comm, MPI_Fint *err)
+			MPI_Fint *comm, MPI_Fint *err)
 	{
 		if (Fortran::Environment::isEnabled()) {
 			MPI_Fint request;
-			mpi_igatherv_(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, &request, err);
+			mpi_iallgatherv_(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, &request, err);
 			Fortran::processRequest(request);
 		} else {
-			static Fortran::mpi_gatherv_t *symbol = (Fortran::mpi_gatherv_t *) Symbol::loadNextSymbol(__func__);
-			(*symbol)(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, err);
+			static Fortran::mpi_allgatherv_t *symbol = (Fortran::mpi_allgatherv_t *) Symbol::loadNextSymbol(__func__);
+			(*symbol)(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, err);
 		}
 	}
-} // extern C
+}
 
 #endif // MPI_VERSION
-

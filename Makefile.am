@@ -34,6 +34,7 @@ endif
 pkginclude_HEADERS= # This library does not provide any additional header
 
 c_api_sources= \
+ src/c/allgatherv.cc \
  src/c/allreduce.cc \
  src/c/alltoall.cc \
  src/c/alltoallv.cc \
@@ -51,6 +52,8 @@ c_api_sources= \
  src/c/init-finalize.cc
 
 fortran_api_sources= \
+ src/fortran/allgather.cc \
+ src/fortran/allgatherv.cc \
  src/fortran/allreduce.cc \
  src/fortran/alltoall.cc \
  src/fortran/alltoallv.cc \
@@ -59,15 +62,17 @@ fortran_api_sources= \
  src/fortran/gatherv.cc \
  src/fortran/recv.cc \
  src/fortran/reduce.cc \
+ src/fortran/scatterv.cc \
  src/fortran/send.cc \
  src/fortran/sendrecv.cc \
+ src/fortran/ssend.cc \
  src/fortran/waitall.cc \
  src/fortran/wait.cc \
  src/fortran/sendrecvreplace.cc \
  src/fortran/init-finalize.cc
 
 common_sources = \
- src/common/configuration.cc \
+ src/common/environment.cc \
  src/common/process_request.h
 
 lib_LTLIBRARIES = libmpiompss-interop.la libmpiompss-c-interop.la libmpiompss-fortran-interop.la
