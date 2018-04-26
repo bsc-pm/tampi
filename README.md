@@ -55,9 +55,9 @@ where `INSTALLATION_PREFIX` is the directory into which to install Nanos6.
 
 The configure script accepts the following options:
 
-+ `--with-ompss=prefix` to specify the prefix of the OmpSs installation
-+ `--with-runtime=nanox|nanos6` to specify which OmpSs runtime should be used
-+ `--with-extrae=prefix` to specify the prefix of the Extrae installation
++ `--with-ompss=prefix` to specify the prefix of the OmpSs installation (mandatory)
++ `--with-runtime=nanox|nanos6` to specify which OmpSs runtime should be used (mandatory)
++ `--with-extrae=prefix` to specify the prefix of the Extrae installation (optional)
 
 **NOTE:** An MPI installation with multi-threading support must be available when
 configuring the library. The PATH environment variable should contain the path to
