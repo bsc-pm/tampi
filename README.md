@@ -65,8 +65,9 @@ the binaries of MPI (i.e. by executing `export PATH=/path/to/mpi/bin:$PATH`).
 
 ## Execution
 
-The user application must be linked to the generated library `libmpiompss-interop`. To
-enable the interoperability mechanism, the user have to define the `MPI_TASK_MULTIPLE`
+The user application must be linked to the generated library `libmpiompss-interop` (or
+`libmpiompss-c-interop` for C/C++ apps and `libmpiompss-fortran-interop` for Fortran apps).
+To enable the interoperability mechanism, the user have to define the `MPI_TASK_MULTIPLE`
 threading level, which is the next level of the `MPI_THREAD_MULTIPLE` (i.e. `MPI_THREAD_MULTIPLE+1`).
 In the MPI initialization call (i.e. `MPI_Init_thread`), the user has to request this
 new threading level.
