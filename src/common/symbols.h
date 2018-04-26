@@ -36,6 +36,7 @@ typedef int MPI_Wait_t(MPI_Request*, MPI_Status*);
 typedef int MPI_Waitall_t(int, MPI_Request[], MPI_Status[]);
 
 #if MPI_VERSION >=3
+typedef int MPI_Allgather_t(const void*, int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm);
 typedef int MPI_Allgatherv_t(const void*, int, MPI_Datatype, void*, const int[], const int[], MPI_Datatype, MPI_Comm);
 typedef int MPI_Allreduce_t(const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm);
 typedef int MPI_Alltoall_t(const void*, int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm);
@@ -44,6 +45,7 @@ typedef int MPI_Barrier_t(MPI_Comm);
 typedef int	MPI_Bcast_t(void*, int, MPI_Datatype, int, MPI_Comm);
 typedef int MPI_Gatherv_t(const void*, int, MPI_Datatype, void*, const int[], const int[], MPI_Datatype, int, MPI_Comm);
 typedef int MPI_Reduce_t(const void*, void*, int, MPI_Datatype, MPI_Op, int, MPI_Comm);
+typedef int MPI_Scatterv_t(const void*, const int[], const int[], MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm);
 #endif // MPI_VERSION
 } // namespace C
 
