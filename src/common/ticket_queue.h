@@ -58,13 +58,13 @@ public:
 	
 	void poll();
 	
-	void requestCompleted(int position) {
-		auto reqIt  = std::next(_requests.begin(),position);
-		auto statIt = std::next(_statuses.begin(),position);
-		auto tmIt   = std::next(_tickets.begin(),position);
+	void requestCompleted(int position, int statusPosition) {
+		auto reqIt  = std::next(_requests.begin(), position);
+		auto tmIt   = std::next(_tickets.begin(), position);
+		auto statIt = std::next(_statuses.begin(), statusPosition);
 		
 		TicketMapping tm = *tmIt;
-		tm.ticket->notifyCompletion(tm.requestPosition, _statuses[position]);
+		tm.ticket->notifyCompletion(tm.requestPosition, _statuses[statusPosition]);
 		
 		_requests.erase(reqIt);
 		_statuses.erase(statIt);
@@ -175,7 +175,7 @@ inline void TicketQueue<C::Ticket>::poll() {
 				// Iterate from the end to the beginning of the array to ensure
 				// indexed element positions are not changed after a deletion
 				for (int index = completed; index > 0; index--) {
-					requestCompleted(indices[index-1]);
+					requestCompleted(indices[index-1], index-1);
 				}
 			}
 		}
@@ -207,7 +207,7 @@ inline void TicketQueue<Fortran::Ticket>::poll() {
 				// Iterate from the end to the beginning of the array to ensure
 				// indexed element positions are not changed after a deletion
 				for (int index = completed; index > 0; index--) {
-					requestCompleted(indices[index-1] - 1);
+					requestCompleted(indices[index-1] - 1, index-1);
 				}
 			}
 		}
