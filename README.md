@@ -1,18 +1,26 @@
 # Task-Aware MPI Library
 
-Task-Aware MPI is a library which targets hybrid applications (MPI+OmpSs) and
-improves the interoperability between these two programming models. Normally,
-these applications taskify computation and MPI communication. Thus, computation
-and communication can overlap. This mechanism allows the execution of other ready
-tasks when a communication task is blocked inside MPI.
+The Task-Aware MPI library extends the functionality of standard MPI libraries
+by providing a new MPI_TASK_MULTIPLE threading support level. This new threading
+model improves the interoperability between MPI and task-based programming models
+such as OpenMP or OmpSs-2. With traditional MPI implementations, programmers must
+pay close attention to avoid deadlocks that may occur in applications where MPI
+calls occur inside tasks (hybrid applications). This is given by the out-of-order
+execution of tasks that consequently alter the execution order of the enclosed
+MPI calls. Such applications are often referred to as hybrid applications. The
+TAMPI library ensures a deadlock-free execution of such hybrid applications by
+implementing a cooperation between the MPI library and the task-based runtime
+system (MPI + OmpSs-2).
 
-This library intercepts each blocking MPI call (e.g. `MPI_Recv`) and converts
-it to a call to the non-blocking function of the same operation (e.g. `MPI_Irecv`).
-The resulting MPI requests are stored and managed internally. Then, the calling
-task is blocked through the block/unblock API. Furthermore, thanks to the polling API,
-these pending requests are checked periodically to find out which of them are
-complete. When all the requests of a task are complete, the task is resumed,
-and finally, it can return from the MPI call.
+TAMPI is compatible with mainstream MPI implementations that implement the
+MPI_THREAD_MULTIPLE threading level in order to provide its task-aware features.
+With the MPI_TASK_MULTIPLE threading level, each blocking call to MPI (e.g. MPI_Recv)
+is intercepted and converted into its non-blocking counterpart (e.g. MPI_Irecv).
+The resulting MPI request is stored and managed by the library in cooperation
+with the runtime, that periodically checks for the completion of the MPI request.
+The task that has called the synchronous MPI operation is blocked and unblocked
+once the associated MPI operations complete. Blocking and unblocking of tasks is
+implemented using the OmpSs-2 Pause/Resume API.
 
 See the section [API Description](#api-description) for more information about the
 required APIs.
@@ -99,7 +107,7 @@ the original hybrid version.
 
 This section describes the required APIs that the OmpSs runtime has to provide.
 
-### Block/unblock API
+### Task Pause/Resume API
 
 ```c
 void *nanos_get_current_blocking_context();
