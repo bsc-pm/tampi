@@ -42,7 +42,8 @@ C_SOURCES=         \
  c/waitall         \
  c/wait            \
  c/sendrecvreplace \
- c/init-finalize
+ c/init-finalize   \
+ c/utils
 
 FORTRAN_SOURCES=         \
  fortran/allgather       \
@@ -62,7 +63,8 @@ FORTRAN_SOURCES=         \
  fortran/waitall         \
  fortran/wait            \
  fortran/sendrecvreplace \
- fortran/init-finalize
+ fortran/init-finalize   \
+ fortran/utils
 
 ALL_SOURCES=$(COMMON_SOURCES) $(C_SOURCES) $(FORTRAN_SOURCES)
 ALL_OBJECTS=$(addprefix $(OBJDIR)/,$(addsuffix .o,$(ALL_SOURCES)))

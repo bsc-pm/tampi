@@ -34,6 +34,7 @@ typedef int MPI_Sendrecv_replace_t(void*, int, MPI_Datatype, int, int, int, int,
 typedef int MPI_Ssend_t(MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm);
 typedef int MPI_Wait_t(MPI_Request*, MPI_Status*);
 typedef int MPI_Waitall_t(int, MPI_Request[], MPI_Status[]);
+typedef int MPI_Query_thread_t(int*);
 
 #if MPI_VERSION >=3
 typedef int MPI_Allgather_t(const void*, int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm);
@@ -60,6 +61,7 @@ typedef void mpi_sendrecv_replace_t(void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_
 typedef void mpi_ssend_t(MPI3CONST void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_wait_t(MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_waitall_t(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*);
+typedef void mpi_query_thread_t(MPI_Fint*, MPI_Fint*);
 
 #if MPI_VERSION >=3
 typedef void mpi_allgather_t(const void*, MPI_Fint*, MPI_Fint*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);

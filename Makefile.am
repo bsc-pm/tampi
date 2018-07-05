@@ -51,7 +51,8 @@ c_api_sources= \
  src/c/waitall.cc \
  src/c/wait.cc \
  src/c/sendrecvreplace.cc \
- src/c/init-finalize.cc
+ src/c/init-finalize.cc \
+ src/c/utils.cc
 
 fortran_api_sources= \
  src/fortran/allgather.cc \
@@ -71,7 +72,8 @@ fortran_api_sources= \
  src/fortran/waitall.cc \
  src/fortran/wait.cc \
  src/fortran/sendrecvreplace.cc \
- src/fortran/init-finalize.cc
+ src/fortran/init-finalize.cc \
+ src/fortran/utils.cc
 
 common_sources = \
  src/common/environment.cc \
