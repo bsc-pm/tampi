@@ -30,11 +30,16 @@ C_SOURCES=         \
  c/allreduce       \
  c/alltoall        \
  c/alltoallv       \
+ c/alltoallw       \
  c/barrier         \
  c/bcast           \
+ c/gather          \
  c/gatherv         \
  c/recv            \
  c/reduce          \
+ c/reducescatter   \
+ c/reducescatterblock \
+ c/scatter         \
  c/scatterv        \
  c/send            \
  c/sendrecv        \
@@ -42,6 +47,8 @@ C_SOURCES=         \
  c/waitall         \
  c/wait            \
  c/sendrecvreplace \
+ c/scan            \
+ c/exscan          \
  c/init-finalize   \
  c/utils
 
@@ -51,11 +58,16 @@ FORTRAN_SOURCES=         \
  fortran/allreduce       \
  fortran/alltoall        \
  fortran/alltoallv       \
+ fortran/alltoallw       \
  fortran/barrier         \
  fortran/bcast           \
+ fortran/gather          \
  fortran/gatherv         \
  fortran/recv            \
  fortran/reduce          \
+ fortran/reducescatter   \
+ fortran/reducescatterblock \
+ fortran/scatter         \
  fortran/scatterv        \
  fortran/send            \
  fortran/sendrecv        \
@@ -63,6 +75,8 @@ FORTRAN_SOURCES=         \
  fortran/waitall         \
  fortran/wait            \
  fortran/sendrecvreplace \
+ fortran/scan            \
+ fortran/exscan          \
  fortran/init-finalize   \
  fortran/utils
 

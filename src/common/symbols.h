@@ -42,11 +42,18 @@ typedef int MPI_Allgatherv_t(const void*, int, MPI_Datatype, void*, const int[],
 typedef int MPI_Allreduce_t(const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm);
 typedef int MPI_Alltoall_t(const void*, int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm);
 typedef int MPI_Alltoallv_t(const void*, const int[], const int[], MPI_Datatype, void*, const int[], const int[], MPI_Datatype, MPI_Comm);
+typedef int MPI_Alltoallw_t(const void*, const int[], const int[], const MPI_Datatype[], void*, const int[], const int[], const MPI_Datatype[], MPI_Comm);
 typedef int MPI_Barrier_t(MPI_Comm);
 typedef int	MPI_Bcast_t(void*, int, MPI_Datatype, int, MPI_Comm);
+typedef int MPI_Gather_t(const void*, int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm);
 typedef int MPI_Gatherv_t(const void*, int, MPI_Datatype, void*, const int[], const int[], MPI_Datatype, int, MPI_Comm);
 typedef int MPI_Reduce_t(const void*, void*, int, MPI_Datatype, MPI_Op, int, MPI_Comm);
+typedef int MPI_Reduce_scatter_t(const void*, void*, const int[], MPI_Datatype, MPI_Op, MPI_Comm);
+typedef int MPI_Reduce_scatter_block_t(const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm);
+typedef int MPI_Scatter_t(const void*, int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm);
 typedef int MPI_Scatterv_t(const void*, const int[], const int[], MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm);
+typedef int MPI_Scan_t(const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm);
+typedef int MPI_Exscan_t(const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm);
 #endif // MPI_VERSION
 } // namespace C
 
@@ -69,11 +76,18 @@ typedef void mpi_allgatherv_t(const void*, MPI_Fint*, MPI_Fint*, void*, const MP
 typedef void mpi_allreduce_t(const void*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_alltoall_t(const void*, MPI_Fint*, MPI_Fint*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_alltoallv_t(const void*, const MPI_Fint[], const MPI_Fint[], MPI_Fint*, void*, const MPI_Fint[], const MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*);
+typedef void mpi_alltoallw_t(const void*, const MPI_Fint[], const MPI_Fint[], const MPI_Fint[], void*, const MPI_Fint[], const MPI_Fint[], const MPI_Fint[], MPI_Fint*, MPI_Fint*);
 typedef void mpi_barrier_t(MPI_Fint*, MPI_Fint*);
 typedef void mpi_bcast_t(void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
+typedef void mpi_gather_t(const void*, MPI_Fint*, MPI_Fint*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_gatherv_t(const void*, MPI_Fint*, MPI_Fint*, void*, const MPI_Fint[], const MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_reduce_t(const void*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
+typedef void mpi_reduce_scatter_t(const void*, void*, const MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
+typedef void mpi_reduce_scatter_block_t(const void*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
+typedef void mpi_scatter_t(const void*, MPI_Fint*, MPI_Fint*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_scatterv_t(const void*, const MPI_Fint[], const MPI_Fint[], MPI_Fint*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
+typedef void mpi_scan_t(const void*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
+typedef void mpi_exscan_t(const void*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 #endif // MPI_VERSION
 } // namespace Fortran
 

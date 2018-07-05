@@ -39,11 +39,16 @@ c_api_sources= \
  src/c/allreduce.cc \
  src/c/alltoall.cc \
  src/c/alltoallv.cc \
+ src/c/alltoallw.cc \
  src/c/barrier.cc \
  src/c/bcast.cc \
+ src/c/gather.cc \
  src/c/gatherv.cc \
  src/c/recv.cc \
  src/c/reduce.cc \
+ src/c/reducescatter.cc \
+ src/c/reducescatterblock.cc \
+ src/c/scatter.cc \
  src/c/scatterv.cc \
  src/c/send.cc \
  src/c/sendrecv.cc \
@@ -51,6 +56,8 @@ c_api_sources= \
  src/c/waitall.cc \
  src/c/wait.cc \
  src/c/sendrecvreplace.cc \
+ src/c/scan.cc \
+ src/c/exscan.cc \
  src/c/init-finalize.cc \
  src/c/utils.cc
 
@@ -60,11 +67,16 @@ fortran_api_sources= \
  src/fortran/allreduce.cc \
  src/fortran/alltoall.cc \
  src/fortran/alltoallv.cc \
+ src/fortran/alltoallw.cc \
  src/fortran/barrier.cc \
  src/fortran/bcast.cc \
+ src/fortran/gather.cc \
  src/fortran/gatherv.cc \
  src/fortran/recv.cc \
  src/fortran/reduce.cc \
+ src/fortran/reducescatter.cc \
+ src/fortran/reducescatterblock.cc \
+ src/fortran/scatter.cc \
  src/fortran/scatterv.cc \
  src/fortran/send.cc \
  src/fortran/sendrecv.cc \
@@ -72,6 +84,8 @@ fortran_api_sources= \
  src/fortran/waitall.cc \
  src/fortran/wait.cc \
  src/fortran/sendrecvreplace.cc \
+ src/fortran/scan.cc \
+ src/fortran/exscan.cc \
  src/fortran/init-finalize.cc \
  src/fortran/utils.cc
 
