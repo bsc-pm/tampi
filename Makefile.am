@@ -13,9 +13,9 @@ AM_CPPFLAGS=\
  $(CPPFLAGS)
 
 if debug_mode_enabled
-AM_CXXFLAGS=-O0 -g3 $(CXXFLAGS)
+AM_CXXFLAGS=-O0 -g3 -Wall -Wextra $(CXXFLAGS)
 else
-AM_CXXFLAGS=-O3 -fno-rtti -fno-exceptions -fvisibility-inlines-hidden $(CXXFLAGS)
+AM_CXXFLAGS=-O3 -fno-rtti -fno-exceptions -fvisibility-inlines-hidden -Wall -Wextra $(CXXFLAGS)
 endif
 
 AM_LDFLAGS=@extraelib@ @ompsslib@ -ldl $(LDFLAGS)
