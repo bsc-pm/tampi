@@ -42,7 +42,7 @@ AC_PREREQ(2.59)dnl for _AC_LANG_PREFIX
 
 #Check if an extrae implementation is installed.
 AC_ARG_WITH(extrae,
-[AS_HELP_STRING([--with-extrae,--with-ompss=PATH],
+[AS_HELP_STRING([--with-extrae,--with-extrae=PATH],
                 [search in system directories or specify prefix directory for installed extrae package])])
 AC_ARG_WITH(extrae-include,
 [AS_HELP_STRING([--with-extrae-include=PATH],
