@@ -12,31 +12,29 @@
 #endif
 
 #include "array_view.h"
-
-#ifdef HAVE_NANOX_NANOS_H
-#include <nanox/nanos.h>
-#define nanos_get_current_task nanos_current_wd
-#endif
-
-#ifdef HAVE_NANOS6_H
-#include <nanos6.h>
-#endif
+#include "runtime_api.h"
 
 #include <array>
 #include <cassert>
 
-
 class TicketBase {
 private:
-	void *_waiter;
+	void *_taskContextOrCounter;
 	int _pending;
+	bool _blockable;
 	
 public:
-	TicketBase() :
-		_waiter(),
-		_pending(0)
+	TicketBase(bool isBlockable) :
+		_taskContextOrCounter(nullptr),
+		_pending(0),
+		_blockable(isBlockable)
 	{
-		_waiter = nanos_get_current_blocking_context();
+		if (isBlockable) {
+			_taskContextOrCounter = nanos_get_current_blocking_context();
+		} else {
+			_taskContextOrCounter = nanos_get_current_event_counter();
+		}
+		assert(_taskContextOrCounter != nullptr);
 	}
 	
 	TicketBase(const TicketBase &gt) = delete;
@@ -44,41 +42,50 @@ public:
 	
 	~TicketBase()
 	{
-		assert(finished());
+		assert(_pending == 0);
 	}
-	
+
 	bool finished() const
 	{
 		return _pending == 0;
 	}
 	
+	bool isBlockable() const
+	{
+		return _blockable;
+	}
+	
 	void addPendingRequest()
 	{
 		++_pending;
-	}
-
-	void removePendingRequest()
-	{
-		assert( _pending > 0 );
-		--_pending;
-	}
-	
-	int getPendingRequests() const
-	{
-		return _pending;
-	}
-	
-	void notifyCompletion()
-	{
-		removePendingRequest();
-		if (finished()) {
-			nanos_unblock_task(_waiter);
+		if (!_blockable) {
+			nanos_increase_current_task_event_counter(_taskContextOrCounter, 1);
 		}
+	}
+	
+	bool notifyCompletion()
+	{
+		assert(_pending > 0);
+		--_pending;
+		
+		// Only non-blockable tickets can be explicitly freed
+		bool disposable = (!_blockable && _pending == 0);
+		
+		if (!_blockable) {
+			nanos_decrease_task_event_counter(_taskContextOrCounter, 1);
+		} else if (_pending == 0) {
+			// NOTE: Do NOT access to this ticket after this statement,
+			// since the blocked task holds it in its stack
+			nanos_unblock_task(_taskContextOrCounter);
+		}
+		
+		return disposable;
 	}
 	
 	void wait()
 	{
-		nanos_block_current_task(_waiter);
+		assert(_blockable);
+		nanos_block_current_task(_taskContextOrCounter);
 	}
 };
 
@@ -92,15 +99,15 @@ private:
 	Status *_firstStatus;
 	
 public:
-	inline Ticket(Request &request, Status *status = MPI_STATUS_IGNORE)
-		: TicketBase(),
+	inline Ticket(Request &request, Status *status, bool blockable)
+		: TicketBase(blockable),
 		_firstRequest(&request),
 		_firstStatus(status)
 	{
 	}
 	
-	inline Ticket(util::array_view<Request> &requests, Status *firstStatus = MPI_STATUSES_IGNORE) :
-		TicketBase(),
+	inline Ticket(util::array_view<Request> &requests, Status *firstStatus, bool blockable) :
+		TicketBase(blockable),
 		_firstRequest(requests.begin()),
 		_firstStatus(firstStatus)
 	{
@@ -116,7 +123,7 @@ public:
 		return _firstStatus == MPI_STATUS_IGNORE || _firstStatus == MPI_STATUSES_IGNORE;
 	}
 	
-	inline void notifyCompletion(int statusPos, const Status& status)
+	inline bool notifyCompletion(int statusPos, const Status& status)
 	{
 		if (!ignoreStatus()) {
 			const Status *first = &status;
@@ -124,7 +131,7 @@ public:
 			Status *out = std::next(_firstStatus, statusPos);
 			std::copy<const Status*,Status*>(first, last, out);
 		}
-		TicketBase::notifyCompletion();
+		return TicketBase::notifyCompletion();
 	}
 };
 } // namespace C
@@ -139,15 +146,15 @@ private:
 	MPI_Fint *_firstStatus;
 	
 public:
-	Ticket(Request &request, MPI_Fint *status = MPI_F_STATUS_IGNORE)
-		: TicketBase(),
+	Ticket(Request &request, MPI_Fint *status, bool blockable)
+		: TicketBase(blockable),
 		_firstRequest(&request),
 		_firstStatus(status)
 	{
 	}
 	
-	Ticket(util::array_view<Request> &requests, MPI_Fint *firstStatus = MPI_F_STATUSES_IGNORE)
-		: TicketBase(),
+	Ticket(util::array_view<Request> &requests, MPI_Fint *firstStatus, bool blockable)
+		: TicketBase(blockable),
 		_firstRequest(requests.begin()),
 		_firstStatus(firstStatus)
 	{
@@ -164,7 +171,7 @@ public:
 		return _firstStatus == MPI_F_STATUS_IGNORE || _firstStatus == MPI_F_STATUSES_IGNORE;
 	}
 	
-	void notifyCompletion(int statusPos, const Status &status)
+	bool notifyCompletion(int statusPos, const Status &status)
 	{
 		if (!ignoreStatus()) {
 			const Status *first = &status;
@@ -172,7 +179,7 @@ public:
 			Status* out = std::next((Status*)_firstStatus, statusPos);
 			std::copy<const Status*,Status*>(first, last, out);
 		}
-		TicketBase::notifyCompletion();
+		return TicketBase::notifyCompletion();
 	}
 };
 } // namespace Fortran

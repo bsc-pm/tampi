@@ -8,14 +8,7 @@
 #define ENVIRONMENT_H
 
 #include "ticket_queue.h"
-
-#ifdef HAVE_NANOX_NANOS_H
-#include <nanox/nanos.h>
-#endif
-
-#ifdef HAVE_NANOS6_H
-#include <nanos6.h>
-#endif
+#include "runtime_api.h"
 
 #include <mpi.h>
 #include <atomic>
@@ -41,6 +34,11 @@ public:
 	static bool isEnabled()
 	{
 		return _enabled.load();
+	}
+	
+	static bool inSerialContext()
+	{
+		return nanos_in_serial_context();
 	}
 	
 	static void enable()

@@ -2,11 +2,10 @@ ACLOCAL_AMFLAGS=-I m4
 
 EXTRA_DIST=\
  src/common/*.h\
- src/common/mpi/*.h
+ src/include/*.h
 
 AM_CPPFLAGS=\
  @extraeinc@ \
- @ompssinc@ \
  -I@top_srcdir@/src \
  -I@top_srcdir@/src/common \
  -include "config.h" \
@@ -18,8 +17,8 @@ else
 AM_CXXFLAGS=-O3 -fno-rtti -fno-exceptions -fvisibility-inlines-hidden -Wall -Wextra $(CXXFLAGS)
 endif
 
-AM_LDFLAGS=@extraelib@ @ompsslib@ -ldl $(LDFLAGS)
-LIBS=@extraelibs@ @ompsslibs@
+AM_LDFLAGS=@extraelib@ -ldl $(LDFLAGS)
+LIBS=@extraelibs@
 
 if DEFINES_I_MPI_CXX
 export I_MPI_CXX=@I_MPI_CXX@
@@ -31,6 +30,7 @@ if DEFINES_MPICH_CXX
 export MPICH_CXX=@MPICH_CXX@
 endif
 
+include_HEADERS= src/include/TAMPI.h
 pkginclude_HEADERS= # This library does not provide any additional header
 
 c_api_sources= \
@@ -58,6 +58,8 @@ c_api_sources= \
  src/c/sendrecvreplace.cc \
  src/c/scan.cc \
  src/c/exscan.cc \
+ src/c/iwaitall.cc \
+ src/c/iwait.cc \
  src/c/init-finalize.cc \
  src/c/utils.cc
 
@@ -86,6 +88,8 @@ fortran_api_sources= \
  src/fortran/sendrecvreplace.cc \
  src/fortran/scan.cc \
  src/fortran/exscan.cc \
+ src/fortran/iwaitall.cc \
+ src/fortran/iwait.cc \
  src/fortran/init-finalize.cc \
  src/fortran/utils.cc
 

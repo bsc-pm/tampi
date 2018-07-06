@@ -64,7 +64,12 @@ public:
 		auto statIt = std::next(_statuses.begin(), statusPosition);
 		
 		TicketMapping tm = *tmIt;
-		tm.ticket->notifyCompletion(tm.requestPosition, _statuses[statusPosition]);
+		bool disposable = tm.ticket->notifyCompletion(tm.requestPosition, _statuses[statusPosition]);
+		if (disposable) {
+			assert(!tm.ticket->isBlockable());
+			assert(tm.ticket->finished());
+			delete tm.ticket;
+		}
 		
 		_requests.erase(reqIt);
 		_statuses.erase(statIt);

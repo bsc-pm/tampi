@@ -10,17 +10,19 @@
 
 #include "definitions.h"
 #include "environment.h"
+#include "process_request.h"
 #include "symbols.h"
 
 extern "C" {
-	void mpi_query_thread_(MPI_Fint *provided, MPI_Fint *err)
+	void mpi_wait_(MPI_Fint *request, MPI_Fint *status, MPI_Fint *err);
+	
+	void tampi_iwait_(MPI_Fint *request, MPI_Fint *status, MPI_Fint *err)
 	{
-		if (Fortran::Environment::isEnabled()) {
-			*provided = MPI_TASK_MULTIPLE;
+		if (Fortran::Environment::isEnabled() && !Fortran::Environment::inSerialContext()) {
+			Fortran::processRequest(*request, status, /* Do not block */ false);
 			*err = MPI_SUCCESS;
 		} else {
-			static Fortran::mpi_query_thread_t *symbol = (Fortran::mpi_query_thread_t *) Symbol::loadNextSymbol(__func__);
-			(*symbol)(provided, err);
+			mpi_wait_(request, status, err);
 		}
 	}
 } // extern C

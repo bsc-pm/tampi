@@ -15,22 +15,27 @@
 #include <cassert>
 
 namespace C {
-	static inline void processRequest(Ticket::Request &request, Ticket::Status *status = MPI_STATUS_IGNORE)
+	static inline void processRequest(Ticket::Request &request, Ticket::Status *status = MPI_STATUSES_IGNORE, bool blockable = true)
 	{
 		int finished = 0;
 		PMPI_Test(&request, &finished, status);
 		
 		if (!finished) {
-			Ticket ticket(request, status);
-			
 			TicketQueue<Ticket> &queue = Environment::getQueue();
-			queue.add(ticket, request);
 			
-			ticket.wait();
+			if (blockable) {
+				Ticket ticket(request, status, true);
+				queue.add(ticket, request);
+				ticket.wait();
+			} else {
+				Ticket *ticket = new Ticket(request, status, false);
+				assert(ticket != nullptr);
+				queue.add(*ticket, request);
+			}
 		}
 	}
 	
-	static inline void processRequests(util::array_view<Ticket::Request> requests, Ticket::Status *statuses = MPI_STATUSES_IGNORE)
+	static inline void processRequests(util::array_view<Ticket::Request> requests, Ticket::Status *statuses = MPI_STATUSES_IGNORE, bool blockable = true)
 	{
 		assert(!requests.empty());
 		
@@ -38,19 +43,24 @@ namespace C {
 		PMPI_Testall(requests.size(), requests.begin(), &finished, statuses);
 		
 		if (!finished) {
-			Ticket ticket(requests, statuses);
-			
 			TicketQueue<Ticket> &queue = Environment::getQueue();
-			queue.add(ticket, requests);
 			
-			ticket.wait();
+			if (blockable) {
+				Ticket ticket(requests, statuses, true);
+				queue.add(ticket, requests);
+				ticket.wait();
+			} else {
+				Ticket *ticket = new Ticket(requests, statuses, false);
+				assert(ticket != nullptr);
+				queue.add(*ticket, requests);
+			}
 		}
 	}
 } // namespace C
 
 
 namespace Fortran {
-	static inline void processRequest(Fortran::Ticket::Request &request, MPI_Fint *status = MPI_F_STATUS_IGNORE)
+	static inline void processRequest(Fortran::Ticket::Request &request, MPI_Fint *status = MPI_F_STATUS_IGNORE, bool blockable = true)
 	{
 		int finished = 0;
 		int err = MPI_SUCCESS;
@@ -58,16 +68,21 @@ namespace Fortran {
 		assert(!err);
 		
 		if (!finished) {
-			Fortran::Ticket ticket(request, status);
-			
 			TicketQueue<Ticket> &queue = Environment::getQueue();
-			queue.add(ticket, request);
 			
-			ticket.wait();
+			if (blockable) {
+				Ticket ticket(request, status, true);
+				queue.add(ticket, request);
+				ticket.wait();
+			} else {
+				Ticket *ticket = new Ticket(request, status, false);
+				assert(ticket != nullptr);
+				queue.add(*ticket, request);
+			}
 		}
 	}
 	
-	static inline void processRequests(util::array_view<Ticket::Request> requests, MPI_Fint *statuses = MPI_F_STATUSES_IGNORE)
+	static inline void processRequests(util::array_view<Ticket::Request> requests, MPI_Fint *statuses = MPI_F_STATUSES_IGNORE, bool blockable = true)
 	{
 		assert(!requests.empty());
 		
@@ -77,12 +92,17 @@ namespace Fortran {
 		pmpi_testall_(&size, requests.begin(), &finished, statuses, &err);
 		
 		if (!finished) {
-			Ticket ticket(requests, statuses);
-			
 			TicketQueue<Ticket> &queue = Environment::getQueue();
-			queue.add(ticket, requests);
 			
-			ticket.wait();
+			if (blockable) {
+				Ticket ticket(requests, statuses, true);
+				queue.add(ticket, requests);
+				ticket.wait();
+			} else {
+				Ticket *ticket = new Ticket(requests, statuses, false);
+				assert(ticket != nullptr);
+				queue.add(*ticket, requests);
+			}
 		}
 	}
 } // namespace Fortran
