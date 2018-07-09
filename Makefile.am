@@ -97,8 +97,8 @@ common_sources = \
  src/common/environment.cc \
  src/common/process_request.h
 
-lib_LTLIBRARIES = libmpiompss-interop.la libmpiompss-c-interop.la libmpiompss-fortran-interop.la
-libmpiompss_interop_la_SOURCES=$(common_sources) $(c_api_sources) $(fortran_api_sources)
-libmpiompss_c_interop_la_SOURCES = $(common_sources) $(c_api_sources)
-libmpiompss_fortran_interop_la_SOURCES = $(common_sources) $(fortran_api_sources)
+lib_LTLIBRARIES = libtampi.la libtampi-c.la libtampi-fortran.la
+libtampi_la_SOURCES=$(common_sources) $(c_api_sources) $(fortran_api_sources)
+libtampi_c_la_SOURCES = $(common_sources) $(c_api_sources)
+libtampi_fortran_la_SOURCES = $(common_sources) $(fortran_api_sources)
 

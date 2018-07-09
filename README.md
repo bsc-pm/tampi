@@ -90,19 +90,17 @@ the binaries of MPI (i.e. by executing `export PATH=/path/to/mpi/bin:$PATH`).
 
 ## Execution
 
-The user application must be linked to the generated library `libmpiompss-interop` (or
-`libmpiompss-c-interop` for C/C++ apps and `libmpiompss-fortran-interop` for Fortran apps).
-To enable the interoperability mechanism, the user have to define the `MPI_TASK_MULTIPLE`
-threading level, which is the next level of the `MPI_THREAD_MULTIPLE` (i.e. `MPI_THREAD_MULTIPLE+1`).
-In the MPI initialization call (i.e. `MPI_Init_thread`), the user has to request this
-new threading level.
+The user application must be linked to the generated library `libtampi` (or `libtampi-c` for
+C/C++ apps and `libtampi-fortran` for Fortran apps). To enable the interoperability mechanism,
+the user has to request the new `MPI_TASK_MULTIPLE` threading level, which is defined in the
+`TAMPI.h` header. This threading level is the next level of `MPI_THREAD_MULTIPLE`
+(i.e. `MPI_THREAD_MULTIPLE+1`).
 
 For example, a valid initialization of the interoperability mechanism could be the following one:
 ```c
 //...
 #include <mpi.h>
-
-#define MPI_TASK_MULTIPLE (MPI_THREAD_MULTIPLE+1)
+#include <TAMPI.h>
 
 int main(int argc, char **argv)
 {
@@ -116,9 +114,11 @@ int main(int argc, char **argv)
 }
 ```
 
-Once added these changes, the application is ready to run with the interoperability
-mechanism enabled. The application should be launched with the same commands as in
-the original hybrid version.
+Remember to link the application to the TAMPI library when compiling the application. In addition,
+the path to the `include` directory of TAMPI should be specified (e.g. `-I${TAMPI_HOME}/include`)
+in order to find the `TAMPI.h` header. Once added these changes, the application is ready to
+run with the interoperability mechanism enabled. The application should be launched with
+the same commands as in the original hybrid version.
 
 ## API description
 
