@@ -4,8 +4,9 @@
 	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
 */
 
-#include <dlfcn.h>
 #include <mpi.h>
+
+#include "include/TAMPI.h"
 
 #include "definitions.h"
 #include "environment.h"

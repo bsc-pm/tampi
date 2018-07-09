@@ -9,6 +9,8 @@
 #include <mpi.h>
 #include <stdarg.h>
 
+#include "include/TAMPI.h"
+
 #include "definitions.h"
 #include "environment.h"
 #include "symbols.h"

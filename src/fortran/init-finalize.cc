@@ -12,6 +12,8 @@
 #include <dlfcn.h>
 #include <cassert>
 
+#include "include/TAMPI.h"
+
 #include "definitions.h"
 #include "environment.h"
 #include "symbols.h"

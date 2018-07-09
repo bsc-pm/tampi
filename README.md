@@ -22,6 +22,26 @@ The task that has called the synchronous MPI operation is blocked and unblocked
 once the associated MPI operations complete. Blocking and unblocking of tasks is
 implemented using the OmpSs-2 Pause/Resume API.
 
+In addition, the TAMPI library defines two additional functions which improve the
+interoperability of asynchronous MPI operations and task-based programming models.
+These two asynchronous functions are called TAMPI_Iwait and TAMPI_Iwaitall, which
+have the same parameters than their synchronous counterparts MPI_Wait and MPI_Waitall,
+respectively.
+
+These functions bind a specific set of MPI requests to the task that executes the
+TAMPI_Iwait or TAMPI_Iwaitall function. Once a task completes its execution, it will
+wait until all bound MPI requests are completed before releasing its dependencies.
+This approach requires both computation and communication tasks to declare dependencies
+on the data buffers to guarantee a correct execution order.
+
+Both TAMPI_Iwait and TAMPI_Iwaitall rely on a generic external events API defined by
+OmpSs-2. This API can be used to bind and unbind external events on tasks. Only a task
+can bind its events, but these events can be unbound from anywhere. Thus, the dependencies
+of a task are released when the task finishes and there are no bound events left. With
+this approach tasks are completely executed without blocking, so there is no need to keep
+their stack alive until the MPI operations complete. This can significantly decrease the
+amount of memory required if there are many of these tasks executing concurrently.
+
 See the section [API Description](#api-description) for more information about the
 required APIs.
 
@@ -31,7 +51,6 @@ required APIs.
 To install Task-Aware MPI, the following tools and libraries must be installed:
 
 + automake, autoconf, libtool, make and a C and C++ compiler
-+ [OmpSs](https://pm.bsc.es): Nanox or Nanos6 runtime
 + MPI with multi-threading support
 
 ### Optional libraries and tools
@@ -54,7 +73,7 @@ When the code is distributed through a tarball, it usually does not need that co
 Then execute the following commands:
 
 ```sh
-$ ./configure --prefix=INSTALLATION_PREFIX ...other options...
+$ ./configure --prefix=INSTALLATION_PREFIX [other options]
 $ make
 $ make install
 ```
@@ -63,8 +82,6 @@ where `INSTALLATION_PREFIX` is the directory into which to install Nanos6.
 
 The configure script accepts the following options:
 
-+ `--with-ompss=prefix` to specify the prefix of the OmpSs installation (mandatory)
-+ `--with-runtime=nanox|nanos6` to specify which OmpSs runtime should be used (mandatory)
 + `--with-extrae=prefix` to specify the prefix of the Extrae installation (optional)
 
 **NOTE:** An MPI installation with multi-threading support must be available when
@@ -105,7 +122,8 @@ the original hybrid version.
 
 ## API description
 
-This section describes the required APIs that the OmpSs runtime has to provide.
+This section describes the required APIs that the runtime system of the task-based
+programming model runtime has to provide.
 
 ### Task Pause/Resume API
 
@@ -146,6 +164,42 @@ guarantees that it will be resumed.
 * The `blocking_context` parameter is the handler used (or about to be used) to
 block the task.
 
+
+### Task External Events API
+
+```c
+void *nanos_get_current_event_counter();
+```
+Returns an opaque pointer which represents the event counter associated to the
+calling task.
+
+
+```c
+void nanos_increase_current_task_event_counter(void *event_counter, unsigned int increment);
+```
+Atomically increases the event counter of the calling task to prevent the release
+of its dependencies.
+
+* The `event_counter` parameter is the value returned by a call to
+`nanos_get_current_event_counter()` performed within the task.
+
+* The `increment` parameter is the value to be increased and it must
+be positive or zero.
+
+
+```c
+void nanos_decrease_task_event_counter(void *event_counter, unsigned int decrement);
+```
+Atomically decreases the counter of events of a task and it
+releases the dependencies once the number of events becomes
+zero and the task has completed its execution. Notice that
+it can be called from anywhere.
+
+* The `event_counter` parameter is the handler of the event counter
+associated to the target task.
+
+* The `decrement` parameter is the value to be decreased and it must
+be positive or zero.
 
 ### Register/Unregister Polling Service API
 
