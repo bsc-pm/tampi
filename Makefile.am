@@ -30,7 +30,7 @@ if DEFINES_MPICH_CXX
 export MPICH_CXX=@MPICH_CXX@
 endif
 
-include_HEADERS= src/include/TAMPI.h
+include_HEADERS= src/include/TAMPI.h src/include/TAMPIf.h
 pkginclude_HEADERS= # This library does not provide any additional header
 
 c_api_sources= \
