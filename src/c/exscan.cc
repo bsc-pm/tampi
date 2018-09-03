@@ -20,7 +20,7 @@ extern "C" {
 		int err = MPI_SUCCESS;
 		if (C::Environment::isEnabled()) {
 			MPI_Request request;
-			err = MPI_Iscan(sendbuf, recvbuf, count, datatype, op, comm, &request);
+			err = MPI_Iexscan(sendbuf, recvbuf, count, datatype, op, comm, &request);
 			C::processRequest(request);
 		} else {
 			static C::MPI_Exscan_t *symbol = (C::MPI_Exscan_t *) Symbol::loadNextSymbol(__func__);
