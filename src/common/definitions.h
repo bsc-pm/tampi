@@ -16,4 +16,7 @@
 	#define MPI3CONST
 #endif
 
+//! Value of the MPI_REQUEST_NULL constant for Fortran
+extern MPI_Fint MPI_F_REQUEST_NULL;
+
 #endif // DEFINITIONS_H

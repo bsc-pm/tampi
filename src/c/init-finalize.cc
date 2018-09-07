@@ -42,8 +42,11 @@ int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
 	
 	// Call MPI_Init_thread
 	int err = (*symbol)(argc, argv, required, provided);
+	if (err != MPI_SUCCESS) return err;
 	
 	if (enableInterop && *provided == MPI_THREAD_MULTIPLE) {
+		MPI_F_REQUEST_NULL = MPI_Request_c2f(MPI_REQUEST_NULL);
+		
 		C::Environment::enable();
 		C::Environment::initialize();
 		*provided = MPI_TASK_MULTIPLE;
@@ -51,7 +54,7 @@ int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
 		C::Environment::disable();
 	}
 	
-	return err;
+	return MPI_SUCCESS;
 }
 
 int MPI_Finalize()

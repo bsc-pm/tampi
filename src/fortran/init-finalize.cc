@@ -44,8 +44,11 @@ void mpi_init_thread_(MPI_Fint *required, MPI_Fint *provided, MPI_Fint *err)
 	
 	// Call to MPI_Init_thread
 	(*symbol)(&actualRequired, provided, err);
+	if (*err != MPI_SUCCESS) return;
 	
 	if (*required == MPI_TASK_MULTIPLE && *provided == MPI_THREAD_MULTIPLE) {
+		MPI_F_REQUEST_NULL = MPI_Request_c2f(MPI_REQUEST_NULL);
+		
 		Fortran::Environment::enable();
 		Fortran::Environment::initialize();
 		*provided = MPI_TASK_MULTIPLE;

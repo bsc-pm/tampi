@@ -92,7 +92,7 @@ inline void TicketQueue<C::Ticket>::add(C::Ticket &ticket, C::Ticket::Request &r
 template<>
 inline void TicketQueue<Fortran::Ticket>::add(Fortran::Ticket &ticket, Fortran::Ticket::Request &request)
 {
-	assert(request != MPI_REQUEST_NULL);
+	assert(request != MPI_F_REQUEST_NULL);
 	std::lock_guard<spin_mutex> guard(_mutex);
 	
 	ticket.addPendingRequest();
@@ -156,7 +156,7 @@ inline void TicketQueue<Fortran::Ticket>::add(Fortran::Ticket &ticket, util::arr
 	// as completed)
 	for (int u = 0; u < count; ++u) {
 		Fortran::Ticket::Request& request = requests[u];
-		if (request != MPI_REQUEST_NULL) {
+		if (request != MPI_F_REQUEST_NULL) {
 			ticket.addPendingRequest();
 			_requests.push_back(request);
 			_statuses.emplace_back();
