@@ -30,9 +30,9 @@ public:
 		_blockable(isBlockable)
 	{
 		if (isBlockable) {
-			_taskContextOrCounter = nanos_get_current_blocking_context();
+			_taskContextOrCounter = nanos6_get_current_blocking_context();
 		} else {
-			_taskContextOrCounter = nanos_get_current_event_counter();
+			_taskContextOrCounter = nanos6_get_current_event_counter();
 		}
 		assert(_taskContextOrCounter != nullptr);
 	}
@@ -59,7 +59,7 @@ public:
 	{
 		++_pending;
 		if (!_blockable) {
-			nanos_increase_current_task_event_counter(_taskContextOrCounter, 1);
+			nanos6_increase_current_task_event_counter(_taskContextOrCounter, 1);
 		}
 	}
 	
@@ -72,11 +72,11 @@ public:
 		bool disposable = (!_blockable && _pending == 0);
 		
 		if (!_blockable) {
-			nanos_decrease_task_event_counter(_taskContextOrCounter, 1);
+			nanos6_decrease_task_event_counter(_taskContextOrCounter, 1);
 		} else if (_pending == 0) {
 			// NOTE: Do NOT access to this ticket after this statement,
 			// since the blocked task holds it in its stack
-			nanos_unblock_task(_taskContextOrCounter);
+			nanos6_unblock_task(_taskContextOrCounter);
 		}
 		
 		return disposable;
@@ -85,7 +85,7 @@ public:
 	void wait()
 	{
 		assert(_blockable);
-		nanos_block_current_task(_taskContextOrCounter);
+		nanos6_block_current_task(_taskContextOrCounter);
 	}
 };
 

@@ -38,7 +38,7 @@ public:
 	
 	static bool inSerialContext()
 	{
-		return nanos_in_serial_context();
+		return nanos6_in_serial_context();
 	}
 	
 	static void enable()
@@ -53,12 +53,12 @@ public:
 	
 	static void initialize()
 	{
-		nanos_register_polling_service("MPI INTEROPERABILITY", GenericEnvironment::poll, nullptr);
+		nanos6_register_polling_service("MPI INTEROPERABILITY", GenericEnvironment::poll, nullptr);
 	}
 	
 	static void finalize()
 	{
-		nanos_unregister_polling_service("MPI INTEROPERABILITY", GenericEnvironment::poll, nullptr);
+		nanos6_unregister_polling_service("MPI INTEROPERABILITY", GenericEnvironment::poll, nullptr);
 	}
 	
 	static Queue& getQueue()
