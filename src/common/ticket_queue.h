@@ -68,7 +68,7 @@ public:
 		if (disposable) {
 			assert(!tm.ticket->isBlockable());
 			assert(tm.ticket->finished());
-			delete tm.ticket;
+			Allocator<Ticket>::free(tm.ticket);
 		}
 		
 		_requests.erase(reqIt);

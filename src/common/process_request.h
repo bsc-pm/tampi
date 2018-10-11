@@ -7,6 +7,7 @@
 #ifndef PROCESS_REQUEST_H
 #define PROCESS_REQUEST_H
 
+#include "allocator.h"
 #include "environment.h"
 #include "ticket.h"
 #include "ticket_queue.h"
@@ -28,7 +29,7 @@ namespace C {
 				queue.add(ticket, request);
 				ticket.wait();
 			} else {
-				Ticket *ticket = new Ticket(request, status, false);
+				Ticket *ticket = Allocator<Ticket>::allocate(request, status, false);
 				assert(ticket != nullptr);
 				queue.add(*ticket, request);
 			}
@@ -50,7 +51,7 @@ namespace C {
 				queue.add(ticket, requests);
 				ticket.wait();
 			} else {
-				Ticket *ticket = new Ticket(requests, statuses, false);
+				Ticket *ticket = Allocator<Ticket>::allocate(requests, statuses, false);
 				assert(ticket != nullptr);
 				queue.add(*ticket, requests);
 			}
@@ -75,7 +76,7 @@ namespace Fortran {
 				queue.add(ticket, request);
 				ticket.wait();
 			} else {
-				Ticket *ticket = new Ticket(request, status, false);
+				Ticket *ticket = Allocator<Ticket>::allocate(request, status, false);
 				assert(ticket != nullptr);
 				queue.add(*ticket, request);
 			}
@@ -99,7 +100,7 @@ namespace Fortran {
 				queue.add(ticket, requests);
 				ticket.wait();
 			} else {
-				Ticket *ticket = new Ticket(requests, statuses, false);
+				Ticket *ticket = Allocator<Ticket>::allocate(requests, statuses, false);
 				assert(ticket != nullptr);
 				queue.add(*ticket, requests);
 			}

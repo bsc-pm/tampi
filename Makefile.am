@@ -5,6 +5,7 @@ EXTRA_DIST=\
  src/include/*.h
 
 AM_CPPFLAGS=\
+ $(BOOST_CPPFLAGS) -DBOOST_ENABLE_ASSERT_DEBUG_HANDLER \
  @extraeinc@ \
  -I@top_srcdir@/src \
  -I@top_srcdir@/src/common \
@@ -17,7 +18,7 @@ else
 AM_CXXFLAGS=-O3 -fno-rtti -fno-exceptions -fvisibility-inlines-hidden -Wall -Wextra $(CXXFLAGS)
 endif
 
-AM_LDFLAGS=@extraelib@ -ldl $(LDFLAGS)
+AM_LDFLAGS=$(BOOST_LDFLAGS) @extraelib@ -ldl $(LDFLAGS)
 LIBS=@extraelibs@
 
 if DEFINES_I_MPI_CXX
@@ -94,6 +95,7 @@ fortran_api_sources= \
  src/fortran/utils.cc
 
 common_sources = \
+ src/common/allocator.cc \
  src/common/environment.cc
 
 lib_LTLIBRARIES = libtampi.la libtampi-c.la libtampi-fortran.la

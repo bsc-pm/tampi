@@ -4,8 +4,10 @@
 	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
 */
 
+#include "allocator.h"
 #include "definitions.h"
 #include "environment.h"
+#include "ticket.h"
 
 template<>
 std::atomic<bool> C::Environment::_enabled(false);

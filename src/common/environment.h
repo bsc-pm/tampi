@@ -7,13 +7,14 @@
 #ifndef ENVIRONMENT_H
 #define ENVIRONMENT_H
 
+#include "allocator.h"
 #include "ticket_queue.h"
 #include "runtime_api.h"
 
 #include <mpi.h>
 #include <atomic>
 
-template < typename Queue >
+template <typename Ticket, typename TicketQueue>
 class GenericEnvironment {
 private:
 	static std::atomic<bool> _enabled;
@@ -54,26 +55,30 @@ public:
 	static void initialize()
 	{
 		nanos6_register_polling_service("MPI INTEROPERABILITY", GenericEnvironment::poll, nullptr);
+		
+		Allocator<Ticket>::initialize();
 	}
 	
 	static void finalize()
 	{
 		nanos6_unregister_polling_service("MPI INTEROPERABILITY", GenericEnvironment::poll, nullptr);
+		
+		Allocator<Ticket>::finalize();
 	}
 	
-	static Queue& getQueue()
+	static TicketQueue &getQueue()
 	{
-		static Queue _queue;
+		static TicketQueue _queue;
 		return _queue;
 	}
 };
 
 namespace C {
-	typedef GenericEnvironment<TicketQueue<C::Ticket> > Environment;
+	typedef GenericEnvironment<Ticket, TicketQueue<Ticket> > Environment;
 }
 
 namespace Fortran {
-	typedef GenericEnvironment<TicketQueue<Fortran::Ticket> > Environment;
+	typedef GenericEnvironment<Ticket, TicketQueue<Ticket> > Environment;
 }
 
 #endif // ENVIRONMENT_H
