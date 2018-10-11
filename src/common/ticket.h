@@ -17,6 +17,8 @@
 #include <array>
 #include <cassert>
 
+#include <mpi.h>
+
 class TicketBase {
 private:
 	void *_taskContextOrCounter;
@@ -24,7 +26,7 @@ private:
 	bool _blockable;
 	
 public:
-	TicketBase(bool isBlockable) :
+	inline TicketBase(bool isBlockable) :
 		_taskContextOrCounter(nullptr),
 		_pending(0),
 		_blockable(isBlockable)
@@ -40,22 +42,22 @@ public:
 	TicketBase(const TicketBase &gt) = delete;
 	TicketBase& operator=(const TicketBase &gt) = delete;
 	
-	~TicketBase()
+	inline ~TicketBase()
 	{
 		assert(_pending == 0);
 	}
 
-	bool finished() const
+	inline bool finished() const
 	{
 		return _pending == 0;
 	}
 	
-	bool isBlockable() const
+	inline bool isBlockable() const
 	{
 		return _blockable;
 	}
 	
-	void addPendingRequest()
+	inline void addPendingRequest()
 	{
 		++_pending;
 		if (!_blockable) {
@@ -63,7 +65,7 @@ public:
 		}
 	}
 	
-	bool notifyCompletion()
+	inline bool notifyCompletion()
 	{
 		assert(_pending > 0);
 		--_pending;
@@ -82,7 +84,7 @@ public:
 		return disposable;
 	}
 	
-	void wait()
+	inline void wait()
 	{
 		assert(_blockable);
 		nanos6_block_current_task(_taskContextOrCounter);
@@ -146,32 +148,32 @@ private:
 	MPI_Fint *_firstStatus;
 	
 public:
-	Ticket(Request &request, MPI_Fint *status, bool blockable)
+	inline Ticket(Request &request, MPI_Fint *status, bool blockable)
 		: TicketBase(blockable),
 		_firstRequest(&request),
 		_firstStatus(status)
 	{
 	}
 	
-	Ticket(util::array_view<Request> &requests, MPI_Fint *firstStatus, bool blockable)
+	inline Ticket(util::array_view<Request> &requests, MPI_Fint *firstStatus, bool blockable)
 		: TicketBase(blockable),
 		_firstRequest(requests.begin()),
 		_firstStatus(firstStatus)
 	{
 	}
 	
-	MPI_Fint* getStatus()
+	inline MPI_Fint* getStatus()
 	{
 		return _firstStatus;
 	}
 	
-	bool ignoreStatus() const
+	inline bool ignoreStatus() const
 	{
 		// MPI fortran API decays status array to a pointer to integer
 		return _firstStatus == MPI_F_STATUS_IGNORE || _firstStatus == MPI_F_STATUSES_IGNORE;
 	}
 	
-	bool notifyCompletion(int statusPos, const Status &status)
+	inline bool notifyCompletion(int statusPos, const Status &status)
 	{
 		if (!ignoreStatus()) {
 			const Status *first = &status;

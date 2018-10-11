@@ -25,6 +25,8 @@
 #ifndef SPIN_MUTEX_HPP
 #define SPIN_MUTEX_HPP
 
+#include <config.h>
+
 class spin_mutex {
 	bool _locked;
 	

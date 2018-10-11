@@ -94,8 +94,7 @@ fortran_api_sources= \
  src/fortran/utils.cc
 
 common_sources = \
- src/common/environment.cc \
- src/common/process_request.h
+ src/common/environment.cc
 
 lib_LTLIBRARIES = libtampi.la libtampi-c.la libtampi-fortran.la
 libtampi_la_SOURCES=$(common_sources) $(c_api_sources) $(fortran_api_sources)
