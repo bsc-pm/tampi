@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([MPI-OmpSs interoperability library], [0.1], [pm-tools@bsc.es])
+AC_INIT([Task-Aware MPI Library], [0.10], [pm-tools@bsc.es])
 
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src])
@@ -56,9 +56,6 @@ AX_CHECK_MPI
 
 AX_BOOST_BASE([1.59], [], [ AC_MSG_ERROR([Boost library not found])])
 
-# EXTRAE
-AX_CHECK_EXTRAE
-
 # Checks for typedefs, structures, and compiler characteristics.
 AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
 AC_CHECK_HEADER_STDBOOL
@@ -77,6 +74,12 @@ AS_IF([test "$ARCH" = "x86_64"],[
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 
-echo "- MPI-OmpSs interoperability library -"
-echo "       - Configuration summary -"
-echo "Installation prefix: $prefix"
+echo ""
+echo ""
+echo "Configuration summary:"
+echo "    Installation prefix... ${prefix}"
+echo ""
+echo "    MPI CXX compiler... ${MPICXX}"
+echo ""
+echo "    Boost CPPFLAGS... ${BOOST_CPPFLAGS}"
+echo "    Boost LDFLAGS... ${BOOST_LDFLAGS}"

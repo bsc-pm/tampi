@@ -1,6 +1,6 @@
 # Task-Aware MPI Library
 
-The Task-Aware MPI library extends the functionality of standard MPI libraries
+The Task-Aware MPI or TAMPI library extends the functionality of standard MPI libraries
 by providing a new MPI_TASK_MULTIPLE threading support level. This new threading
 model improves the interoperability between MPI and task-based programming models
 such as OpenMP or OmpSs-2. With traditional MPI implementations, programmers must
@@ -35,8 +35,8 @@ This approach requires both computation and communication tasks to declare depen
 on the data buffers to guarantee a correct execution order.
 
 Both TAMPI_Iwait and TAMPI_Iwaitall rely on a generic external events API defined by
-OmpSs-2. This API can be used to bind and unbind external events on tasks. Only a task
-can bind its events, but these events can be unbound from anywhere. Thus, the dependencies
+OmpSs-2. This API can be used to bind and fulfill external events on tasks. Only a task
+can bind its events, but these events can be fulfilled from anywhere. Thus, the dependencies
 of a task are released when the task finishes and there are no bound events left. With
 this approach tasks are completely executed without blocking, so there is no need to keep
 their stack alive until the MPI operations complete. This can significantly decrease the
@@ -50,14 +50,9 @@ required APIs.
 
 To install Task-Aware MPI, the following tools and libraries must be installed:
 
-+ automake, autoconf, libtool, make and a C and C++ compiler
-+ MPI with multi-threading support
-
-### Optional libraries and tools
-
-In addition to the build requirements, the following libraries and tools are optional:
-
-+ [Extrae](https://tools.bsc.es/extrae)
+1. automake, autoconf, libtool, make and a C and C++ compiler
+1. MPI supporting the MPI_THREAD_MULTIPLE threading level
+1. [Boost](http://boost.org) >= 1.59
 
 ### Build procedure
 
@@ -73,16 +68,13 @@ When the code is distributed through a tarball, it usually does not need that co
 Then execute the following commands:
 
 ```sh
-$ ./configure --prefix=INSTALLATION_PREFIX [other options]
+$ ./configure --prefix=INSTALLATION_PREFIX --with-boost=BOOST_PREFIX [other options]
 $ make
 $ make install
 ```
 
-where `INSTALLATION_PREFIX` is the directory into which to install Nanos6.
-
-The configure script accepts the following options:
-
-+ `--with-extrae=prefix` to specify the prefix of the Extrae installation (optional)
+where `INSTALLATION_PREFIX` is the directory into which to install TAMPI, and
+`BOOST_PREFIX` is the directory which contains the Boost library.
 
 **NOTE:** An MPI installation with multi-threading support must be available when
 configuring the library. The PATH environment variable should contain the path to
