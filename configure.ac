@@ -19,14 +19,6 @@ AM_CONDITIONAL(DEFINES_OMPI_CXX, test x"${OMPI_CXX}" != x"")
 AM_CONDITIONAL(DEFINES_MPICH_CXX, test x"${MPICH_CXX}" != x"")
 AM_CONDITIONAL(DEFINES_I_MPI_CXX, test x"${I_MPI_CXX}" != x"")
 
-# Prefix API
-AC_ARG_VAR(API_PREFIX,[Prepend MPI API with a given value.])
-AS_IF([ test "$API_PREFIX" != "" ],[
-  AC_DEFINE_UNQUOTED( [API_PREFIX], [$API_PREFIX],[
-    Prefix value that will precede MPI API function name.
-  ])
-])
-
 # Check if debug mode is enabled
 AX_DEBUG_MODE
 
@@ -54,12 +46,18 @@ AX_APPEND_FLAG([${MPI_CXXFLAGS}], [CXXFLAGS])
 AX_APPEND_FLAG([${MPI_CXXLDFLAGS}], [LDFLAGS])
 AX_CHECK_MPI
 
-AX_BOOST_BASE([1.59], [], [ AC_MSG_ERROR([Boost library not found])])
+# Boost is no longer required
+#AX_BOOST_BASE([1.59], [], [ AC_MSG_ERROR([Boost library not found])])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
 AC_CHECK_HEADER_STDBOOL
 AC_TYPE_SIZE_T
+
+# Enable/disable blocking and non-blocking modes
+AX_CHECK_BLOCKING_MODE
+AX_CHECK_NONBLOCKING_MODE
+AX_NOTIFY_EXTERNAL_EVENTS_API
 
 # Turn off shared libraries.
 LT_INIT([static])
@@ -80,6 +78,6 @@ echo "Configuration summary:"
 echo "    Installation prefix... ${prefix}"
 echo ""
 echo "    MPI CXX compiler... ${MPICXX}"
-echo ""
-echo "    Boost CPPFLAGS... ${BOOST_CPPFLAGS}"
-echo "    Boost LDFLAGS... ${BOOST_LDFLAGS}"
+# echo ""
+# echo "    Boost CPPFLAGS... ${BOOST_CPPFLAGS}"
+# echo "    Boost LDFLAGS... ${BOOST_LDFLAGS}"

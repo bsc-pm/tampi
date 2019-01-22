@@ -104,8 +104,8 @@ Please, check that provided directories are correct.
   ])dnl
 
   # Check if the user explicitly disabled multithread support check
-  AC_ARG_ENABLE([mpi-mt-check], [AS_HELP_STRING([--disable-mpi-mt-check (default: enabled)],
-    [Adds compiler debug flags and enables additional internal debugging mechanisms.])])
+  AC_ARG_ENABLE([mpi-mt-check], [AS_HELP_STRING([--disable-mpi-mt-check],
+    [Adds compiler debug flags and enables additional internal debugging mechanisms [default=enabled]])])
 
 
   AS_IF([test "$enable_mpi_mt_check" = no],[
