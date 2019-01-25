@@ -1,0 +1,29 @@
+PROGS=PrimitiveNonBlk.omp.test      \
+      MultiPrimitiveNonBlk.omp.test \
+      CollectiveNonBlk.omp.test
+
+# Compilers
+CXX=g++
+MCXX=mcxx
+MPICXX=mpicxx
+
+# Use the Intel MPI compiler if possible
+ifdef I_MPI_ROOT
+CXX=icpc
+MCXX=imcxx
+MPICXX=mpiicpc
+endif
+
+CPPFLAGS=-I.
+CFLAGS=-fopenmp -std=c++11 -O3
+
+TAMPI_CPPFLAGS=-I$(TAMPI_HOME)/include
+TAMPI_LDFLAGS=-L$(TAMPI_HOME)/lib -L$(TAMPI_HOME)/lib64 -l:libtampi.a
+
+all: $(PROGS)
+
+%.omp.test: omp/%.cpp
+	$(MPICXX) $(CPPFLAGS) $(CFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDFLAGS)
+
+clean:
+	rm -f *.o *.test
