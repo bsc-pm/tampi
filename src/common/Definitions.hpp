@@ -7,9 +7,9 @@
 #ifndef DEFINITIONS_HPP
 #define DEFINITIONS_HPP
 
-#include <array>
-
 #include <mpi.h>
+
+#include <array>
 
 //! Read only buffers must be defined as const in versions MPI 3.0 and later.
 #if MPI_VERSION >= 3

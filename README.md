@@ -220,6 +220,7 @@ The Task-Aware MPI library requires the installation of the following tools and 
 
 * Automake, autoconf, libtool, make and a C and C++ compiler.
 * An MPI library supporting the MPI_THREAD_MULTIPLE threading level.
+* [Boost](http://boost.org) library version 1.59 or greater.
 * A parallel task-based runtime system providing the API descrived in [src/common/RuntimeAPI.hpp](src/common/RuntimeAPI.hpp).
 It is not required for the building of TAMPI, but it will be required when linking a user application
 against this library. [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases) (version 2018.11 or greater)
@@ -240,16 +241,16 @@ When the code is distributed through a tarball, it usually does not need that co
 Then execute the following commands:
 
 ```bash
-$ ./configure --prefix=$INSTALLATION_PREFIX ..other options..
+$ ./configure --prefix=$INSTALLATION_PREFIX --with-boost=$BOOST_HOME ..other options..
 $ make
 $ make install
 ```
 
-where `$INSTALLATION_PREFIX` is the directory into which to install TAMPI. An MPI installation with
-multi-threading support must be available when configuring the library. The MPI frontend compiler for
-C++ (usually `mpicxx`) must be provided by either adding the binary's path to the PATH environment
-variable (i.e., executing `export PATH=/path/to/mpi/bin:$PATH`) or by setting the MPICXX environment
-variable.
+where `$INSTALLATION_PREFIX` is the directory into which to install TAMPI, and `$BOOST_HOME` is the
+prefix of the Boost installation. An MPI installation with multi-threading support must be available
+when configuring the library. The MPI frontend compiler for C++ (usually `mpicxx`) must be provided
+by either adding the binary's path to the PATH environment variable (i.e., executing `export
+PATH=/path/to/mpi/bin:$PATH`) or by setting the MPICXX environment variable.
 
 Other optional configuration flags are:
 * `--disable-blocking-mode`: Disables the blocking mode of TAMPI. MPI_TASK_MULTIPLE threading level is

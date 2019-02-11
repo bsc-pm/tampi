@@ -8,14 +8,17 @@
 #define TICKET_MANAGER_HPP
 
 #include "util/array_view.hpp"
-#include "util/spin_mutex.hpp"
-#include "util/utils.hpp"
+#include "util/SpinLock.hpp"
+#include "util/Utils.hpp"
 
+#include "MultiAdderQueue.hpp"
 #include "Symbols.hpp"
 #include "Ticket.hpp"
 #include "TicketManagerInternals.hpp"
 
+#include <algorithm>
 #include <cstring>
+#include <functional>
 #include <mutex>
 #include <vector>
 
@@ -24,28 +27,68 @@
 template <typename Lang>
 class TicketManager {
 private:
-	const static int NENTRIES = 32*1000;
+	static const int NENTRIES = 32*1000;
+	static const int NRPG = 64;
 	
 	typedef typename Lang::request_t request_t;
-	typedef typename Lang::status_t  status_t;
+	typedef typename Lang::status_t status_t;
 	typedef typename Lang::status_ptr_t status_ptr_t;
 	typedef ::Ticket<Lang> Ticket;
+	typedef std::function<void()> ProgressFunction;
+	typedef util::SpinLock<> SpinLock;
 	
-	volatile int _pending;
-	TicketManagerInternals<Lang> _arrays;
+	struct BlockingEntry {
+		request_t _request;
+		Ticket *_ticket;
+		int _position;
+		
+		inline BlockingEntry()
+		{}
+		
+		inline BlockingEntry(const request_t &request, Ticket &ticket, int position = 0)
+			: _request(request), _ticket(&ticket), _position(position)
+		{}
+	};
+	
+	struct NonBlockingEntry {
+		request_t _request;
+		status_ptr_t _status;
+		TaskContext _taskContext;
+		int _position;
+		
+		inline NonBlockingEntry()
+		{}
+		
+		inline NonBlockingEntry(const request_t &request, status_ptr_t status, const TaskContext &taskContext, int position = 0)
+			: _request(request), _status(status), _taskContext(taskContext), _position(position)
+		{}
+	};
+	
+	int _pending;
+	TicketManagerInternals<Lang, NENTRIES> _arrays;
+	
+	MultiAdderQueue<BlockingEntry> _blockingEntries;
+	MultiAdderQueue<NonBlockingEntry> _nonBlockingEntries;
+	
+	ProgressFunction _checkEntriesFunc;
 	
 	int *_indices;
-	mutable util::spin_mutex _mutex;
+	mutable SpinLock _mutex;
 	
 public:
 	TicketManager()
 		: _pending(0),
-		_arrays(NENTRIES),
+		_arrays(),
+		_blockingEntries(),
+		_nonBlockingEntries(),
+		_checkEntriesFunc(),
 		_indices(nullptr),
 		_mutex()
 	{
 		_indices = (int *) std::malloc(NENTRIES * sizeof(int));
 		assert(_indices != nullptr);
+		
+		_checkEntriesFunc = std::bind(&TicketManager::checkEntryQueues, this);
 	}
 	
 	~TicketManager()
@@ -57,14 +100,6 @@ public:
 	TicketManager(const TicketManager &) = delete;
 	
 	const TicketManager& operator= (const TicketManager &) = delete;
-
-	template<typename... Args>
-	void add(Args &&... args)
-	{
-		do {
-			while (_pending >= NENTRIES) util::spinWait();
-		} while (!tryAdd(std::forward<Args>(args)...));
-	}
 	
 	inline void completeRequest(unsigned int position, const status_t &status)
 	{
@@ -75,30 +110,46 @@ public:
 	
 	void checkRequests()
 	{
-		std::lock_guard<util::spin_mutex> guard(_mutex);
+		std::lock_guard<SpinLock> guard(_mutex);
+		
+		if (_pending < NENTRIES) {
+			internalCheckEntryQueues();
+		}
 		
 		bool retry = true;
 		while (_pending > 0 && retry) {
-			retry = innerCheckRequests();
+			retry = internalCheckRequests();
 		}
 	}
 	
+	void addBlockingRequest(request_t &request, Ticket &ticket);
+	
+	void addBlockingRequests(util::array_view<request_t> &requests, Ticket &ticket);
+	
+	void addNonBlockingRequest(request_t &request, status_ptr_t status);
+	
+	void addNonBlockingRequests(util::array_view<request_t> &requests, status_ptr_t statuses);
+	
 private:
-	bool innerCheckRequests();
+	bool internalCheckRequests();
 	
-	bool tryAdd(request_t &request, Ticket &ticket);
+	inline void checkEntryQueues()
+	{
+		std::unique_lock<SpinLock> guard(_mutex, std::try_to_lock);
+		if (guard.owns_lock()) {
+			internalCheckEntryQueues();
+		}
+	}
 	
-	bool tryAdd(util::array_view<request_t> &requests, Ticket &ticket);
+	void internalCheckEntryQueues();
 	
-	template<typename... Args>
-	bool tryAdd(request_t &request, Args &&... ticketArgs);
+	void transferEntries(BlockingEntry entries[], int count);
 	
-	template<typename... Args>
-	bool tryAdd(util::array_view<request_t> &requests, Args &&... ticketArgs);
+	void transferEntries(NonBlockingEntry entries[], int count);
 };
 
 template <>
-inline bool TicketManager<C>::innerCheckRequests()
+inline bool TicketManager<C>::internalCheckRequests()
 {
 	assert(_pending > 0);
 	
@@ -141,7 +192,7 @@ inline bool TicketManager<C>::innerCheckRequests()
 }
 
 template <>
-inline bool TicketManager<Fortran>::innerCheckRequests()
+inline bool TicketManager<Fortran>::internalCheckRequests()
 {
 	assert(_pending > 0);
 	
@@ -184,89 +235,132 @@ inline bool TicketManager<Fortran>::innerCheckRequests()
 	return (completed > 0);
 }
 
-template <typename Lang>
-inline bool TicketManager<Lang>::tryAdd(request_t &request, Ticket &ticket)
+template<typename Lang>
+inline void TicketManager<Lang>::addBlockingRequest(request_t &request, Ticket &ticket)
 {
 	assert(request != Lang::REQUEST_NULL);
-	std::lock_guard<util::spin_mutex> guard(_mutex);
+	ticket.addPendingRequest();
 	
-	if (_pending < NENTRIES) {
-		ticket.addPendingRequest();
-		
-		_arrays.associateRequest(_pending, request, ticket);
-		
-		++_pending;
-		return true;
-	}
-	return false;
+	BlockingEntry entry(request, ticket);
+	_blockingEntries.add(entry, _checkEntriesFunc);
 }
 
-template <typename Lang>
-inline bool TicketManager<Lang>::tryAdd(util::array_view<request_t> &requests, Ticket &ticket)
-{
-	assert(requests.size() > 0);
-	std::lock_guard<util::spin_mutex> guard(_mutex);
-	
-	if (_pending + requests.size() <= NENTRIES) {
-		int current = _pending;
-		for (int r = 0; r < requests.size(); ++r) {
-			if (requests[r] != Lang::REQUEST_NULL) {
-				_arrays.associateRequest(current, requests[r], ticket, r);
-				++current;
-			}
-		}
-		
-		assert(current > _pending);
-		ticket.addPendingRequest(current - _pending);
-		_pending = current;
-		
-		return true;
-	}
-	return false;
-}
-
-template <typename Lang> template<typename... Args>
-inline bool TicketManager<Lang>::tryAdd(request_t &request, Args &&... ticketArgs)
+template<typename Lang>
+inline void TicketManager<Lang>::addNonBlockingRequest(request_t &request, status_ptr_t status)
 {
 	assert(request != Lang::REQUEST_NULL);
-	std::lock_guard<util::spin_mutex> guard(_mutex);
+	TaskContext taskContext(false);
+	taskContext.bindEvents(1);
 	
-	if (_pending < NENTRIES) {
-		Ticket &ticket = _arrays.allocateTicket(_pending, std::forward<Args>(ticketArgs)...);
-		ticket.addPendingRequest();
-		
-		_arrays.associateRequest(_pending, request, ticket);
-		
-		++_pending;
-		return true;
-	}
-	return false;
+	NonBlockingEntry entry(request, status, taskContext);
+	_nonBlockingEntries.add(entry, _checkEntriesFunc);
 }
 
-template <typename Lang> template<typename... Args>
-inline bool TicketManager<Lang>::tryAdd(util::array_view<request_t> &requests, Args &&... ticketArgs)
+template<typename Lang>
+inline void TicketManager<Lang>::addBlockingRequests(util::array_view<request_t> &requests, Ticket &ticket)
 {
-	assert(requests.size() > 0);
-	std::lock_guard<util::spin_mutex> guard(_mutex);
+	BlockingEntry entries[NRPG];
 	
-	if (_pending + requests.size() <= NENTRIES) {
-		int current = _pending;
-		for (int r = 0; r < requests.size(); ++r) {
-			if (requests[r] != Lang::REQUEST_NULL) {
-				Ticket &ticket = _arrays.allocateTicket(current, std::forward<Args>(ticketArgs)...);
-				ticket.addPendingRequest();
-				
-				_arrays.associateRequest(current, requests[r], ticket, r);
-				++current;
+	const int active = util::getActiveRequestCount<Lang>(requests);
+	assert(active > 0);
+	ticket.addPendingRequest(active);
+	
+	int req = 0;
+	for (int added = 0; added < active; added += NRPG) {
+		const int size = std::min(NRPG, active - added);
+		int entry = 0;
+		while (entry < size) {
+			if (requests[req] != Lang::REQUEST_NULL) {
+				new (&entries[entry]) BlockingEntry(requests[req], ticket, req);
+				++entry;
 			}
+			++req;
 		}
-		
-		assert(current > _pending);
-		_pending = current;
-		
-		return true;
+		_blockingEntries.add(entries, size, _checkEntriesFunc);
 	}
-	return false;
 }
+
+template<typename Lang>
+inline void TicketManager<Lang>::addNonBlockingRequests(util::array_view<request_t> &requests, status_ptr_t statuses)
+{
+	NonBlockingEntry entries[NRPG];
+	
+	const int active = util::getActiveRequestCount<Lang>(requests);
+	assert(active > 0);
+	
+	TaskContext taskContext(false);
+	taskContext.bindEvents(active);
+	
+	int req = 0;
+	for (int added = 0; added < active; added += NRPG) {
+		const int size = std::min(NRPG, active - added);
+		int entry = 0;
+		while (entry < size) {
+			if (requests[req] != Lang::REQUEST_NULL) {
+				new (&entries[entry]) NonBlockingEntry(requests[req], statuses, taskContext, req);
+				++entry;
+			}
+			++req;
+		}
+		_nonBlockingEntries.add(entries, size, _checkEntriesFunc);
+	}
+}
+
+template<typename Lang>
+inline void TicketManager<Lang>::internalCheckEntryQueues()
+{
+	const int numAvailable = (NENTRIES - _pending);
+	BlockingEntry blockings[NRPG];
+	NonBlockingEntry nonBlockings[NRPG];
+	int numBlk, numNonBlk;
+	int total = 0;
+	
+	do {
+		numBlk = std::min(numAvailable - total, NRPG);
+		numBlk = _blockingEntries.retrieve(blockings, numBlk);
+		transferEntries(blockings, numBlk);
+		total += numBlk;
+		
+		numNonBlk = std::min(numAvailable - total, NRPG);
+		numNonBlk = _nonBlockingEntries.retrieve(nonBlockings, numNonBlk);
+		transferEntries(nonBlockings, numNonBlk);
+		total += numNonBlk;
+	} while (total < numAvailable && (numBlk > 0 || numNonBlk > 0));
+}
+
+template<typename Lang>
+inline void TicketManager<Lang>::transferEntries(BlockingEntry entries[], int count)
+{
+	assert(_pending + count <= NENTRIES);
+	
+	const int pending = _pending;
+	for (int r = 0; r < count; ++r) {
+		BlockingEntry &entry = entries[r];
+		Ticket &ticket = *(entry._ticket);
+		
+		_arrays.associateRequest(pending + r,
+				entry._request, ticket,
+				entry._position);
+	}
+	_pending += count;
+}
+
+template<typename Lang>
+inline void TicketManager<Lang>::transferEntries(NonBlockingEntry entries[], int count)
+{
+	assert(_pending + count <= NENTRIES);
+	
+	const int pending = _pending;
+	for (int r = 0; r < count; ++r) {
+		NonBlockingEntry &entry = entries[r];
+		Ticket &ticket = _arrays.allocateTicket(pending + r, entry._status, entry._taskContext);
+		
+		_arrays.associateRequest(pending + r, entry._request, ticket, entry._position);
+	}
+	_pending += count;
+}
+
+template<typename Lang>
+const int TicketManager<Lang>::NRPG;
 
 #endif // TICKET_MANAGER_HPP

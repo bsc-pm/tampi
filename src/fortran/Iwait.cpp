@@ -8,7 +8,7 @@
 
 #include "include/TAMPI.h"
 
-#include "util/error.hpp"
+#include "util/Error.hpp"
 
 #include "Definitions.hpp"
 #include "Environment.hpp"

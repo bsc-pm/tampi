@@ -7,7 +7,7 @@
 #ifndef TASK_CONTEXT_HPP
 #define TASK_CONTEXT_HPP
 
-#include "util/error.hpp"
+#include "util/Error.hpp"
 
 #include "RuntimeAPI.hpp"
 
@@ -20,19 +20,30 @@ private:
 	void *_taskData;
 	
 public:
+	inline TaskContext()
+	{}
+	
 	inline TaskContext(bool blocking) :
 		_blocking(blocking),
 		_taskData(nullptr)
 	{
-		if (_blocking) {
-			_taskData = getCurrentBlockingContext();
-		} else {
-			_taskData = getCurrentEventCounter();
-		}
+		_taskData = getCurrentTaskData(blocking);
 		assert(_taskData != nullptr);
 	}
 	
-	inline void bindedEvents(int num)
+	inline TaskContext(bool blocking, void *taskData) :
+		_blocking(blocking),
+		_taskData(taskData)
+	{
+		assert(taskData != nullptr);
+	}
+	
+	inline void *getTaskData() const
+	{
+		return _taskData;
+	}
+	
+	inline void bindEvents(int num)
 	{
 		assert(num > 0);
 		if (!_blocking) {
@@ -40,7 +51,7 @@ public:
 		}
 	}
 	
-	inline void completedEvents(int num, bool allCompleted)
+	inline void completeEvents(int num, bool allCompleted)
 	{
 		assert(num > 0);
 		if (!_blocking) {
@@ -56,6 +67,15 @@ public:
 		blockCurrentTask(_taskData);
 	}
 	
+	inline static void *getCurrentTaskData(bool blocking)
+	{
+		if (blocking) {
+			return getCurrentBlockingContext();
+		} else {
+			return getCurrentEventCounter();
+		}
+	}
+	
 	inline static void prepareNonBlockingModeAPI()
 	{
 #if NOTIFY_EXTERNAL_EVENTS_API
@@ -64,7 +84,6 @@ public:
 	}
 	
 private:
-
 #if HAVE_BLOCKING_MODE
 	inline static void *getCurrentBlockingContext()
 	{

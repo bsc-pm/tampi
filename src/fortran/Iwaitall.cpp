@@ -9,7 +9,7 @@
 #include "include/TAMPI.h"
 
 #include "util/array_view.hpp"
-#include "util/error.hpp"
+#include "util/Error.hpp"
 
 #include "Definitions.hpp"
 #include "Environment.hpp"

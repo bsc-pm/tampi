@@ -7,7 +7,7 @@
 #ifndef SYMBOLS_HPP
 #define SYMBOLS_HPP
 
-#include "util/error.hpp"
+#include "util/Error.hpp"
 
 #include "Definitions.hpp"
 

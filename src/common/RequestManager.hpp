@@ -7,7 +7,7 @@
 #ifndef REQUEST_MANAGER_HPP
 #define REQUEST_MANAGER_HPP
 
-#include "util/error.hpp"
+#include "util/Error.hpp"
 
 #include "Environment.hpp"
 #include "Ticket.hpp"
@@ -43,11 +43,11 @@ inline void RequestManager<C>::processRequest(request_t &request, status_ptr_t s
 		TicketManager &manager = Environment<C>::getTicketManager();
 		
 		if (blocking) {
-			Ticket ticket(status, true);
-			manager.add(request, ticket);
+			Ticket ticket(status);
+			manager.addBlockingRequest(request, ticket);
 			ticket.wait();
 		} else {
-			manager.add(request, status, false);
+			manager.addNonBlockingRequest(request, status);
 		}
 	}
 }
@@ -66,11 +66,11 @@ inline void RequestManager<C>::processRequests(util::array_view<request_t> reque
 		TicketManager &manager = Environment<C>::getTicketManager();
 		
 		if (blocking) {
-			Ticket ticket(statuses, true);
-			manager.add(requests, ticket);
+			Ticket ticket(statuses);
+			manager.addBlockingRequests(requests, ticket);
 			ticket.wait();
 		} else {
-			manager.add(requests, statuses, false);
+			manager.addNonBlockingRequests(requests, statuses);
 		}
 	}
 }
@@ -87,11 +87,11 @@ inline void RequestManager<Fortran>::processRequest(request_t &request, status_p
 		TicketManager &manager = Environment<Fortran>::getTicketManager();
 		
 		if (blocking) {
-			Ticket ticket(status, true);
-			manager.add(request, ticket);
+			Ticket ticket(status);
+			manager.addBlockingRequest(request, ticket);
 			ticket.wait();
 		} else {
-			manager.add(request, status, false);
+			manager.addNonBlockingRequest(request, status);
 		}
 	}
 }
@@ -111,11 +111,11 @@ inline void RequestManager<Fortran>::processRequests(util::array_view<request_t>
 		TicketManager &manager = Environment<Fortran>::getTicketManager();
 		
 		if (blocking) {
-			Ticket ticket(statuses, true);
-			manager.add(requests, ticket);
+			Ticket ticket(statuses);
+			manager.addBlockingRequests(requests, ticket);
 			ticket.wait();
 		} else {
-			manager.add(requests, statuses, false);
+			manager.addNonBlockingRequests(requests, statuses);
 		}
 	}
 }

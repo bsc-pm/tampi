@@ -5,6 +5,7 @@ EXTRA_DIST=\
  src/include/*.h
 
 AM_CPPFLAGS=\
+ $(BOOST_CPPFLAGS) -DBOOST_ENABLE_ASSERT_DEBUG_HANDLER \
  -I@top_srcdir@/src \
  -I@top_srcdir@/src/common \
  -include "config.h" \
@@ -16,7 +17,7 @@ else
 AM_CXXFLAGS=-O3 -fno-rtti -fno-exceptions -fvisibility-inlines-hidden -Wall -Wextra $(CXXFLAGS)
 endif
 
-AM_LDFLAGS=-ldl $(LDFLAGS)
+AM_LDFLAGS=$(BOOST_LDFLAGS) -ldl $(LDFLAGS)
 LIBS=
 
 if DEFINES_I_MPI_CXX

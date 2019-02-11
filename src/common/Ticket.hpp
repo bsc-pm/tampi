@@ -25,9 +25,15 @@ private:
 	status_ptr_t _firstStatus;
 	
 public:
-	inline Ticket(status_ptr_t firstStatus, bool blocking) :
+	inline Ticket(status_ptr_t firstStatus, bool blocking = true) :
 		_pending(0),
 		_taskContext(blocking),
+		_firstStatus(firstStatus)
+	{}
+	
+	inline Ticket(status_ptr_t firstStatus, const TaskContext &taskContext, int pending = 1) :
+		_pending(pending),
+		_taskContext(taskContext),
 		_firstStatus(firstStatus)
 	{}
 	
@@ -49,7 +55,7 @@ public:
 	inline void addPendingRequest(int num = 1)
 	{
 		_pending += num;
-		_taskContext.bindedEvents(num);
+		_taskContext.bindEvents(num);
 	}
 	
 	inline void requestCompleted(const status_t& status, int statusPosition)
@@ -61,7 +67,7 @@ public:
 			storeStatus(status, statusPosition);
 		}
 		
-		_taskContext.completedEvents(1, _pending == 0);
+		_taskContext.completeEvents(1, _pending == 0);
 	}
 	
 	inline void wait()

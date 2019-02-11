@@ -47,7 +47,7 @@ AX_APPEND_FLAG([${MPI_CXXLDFLAGS}], [LDFLAGS])
 AX_CHECK_MPI
 
 # Boost is no longer required
-#AX_BOOST_BASE([1.59], [], [ AC_MSG_ERROR([Boost library not found])])
+AX_BOOST_BASE([1.59], [], [ AC_MSG_ERROR([Boost library not found])])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
@@ -58,6 +58,8 @@ AC_TYPE_SIZE_T
 AX_CHECK_BLOCKING_MODE
 AX_CHECK_NONBLOCKING_MODE
 AX_NOTIFY_EXTERNAL_EVENTS_API
+
+AX_CHECK_CPUS
 
 # Turn off shared libraries.
 LT_INIT([static])
@@ -78,6 +80,6 @@ echo "Configuration summary:"
 echo "    Installation prefix... ${prefix}"
 echo ""
 echo "    MPI CXX compiler... ${MPICXX}"
-# echo ""
-# echo "    Boost CPPFLAGS... ${BOOST_CPPFLAGS}"
-# echo "    Boost LDFLAGS... ${BOOST_LDFLAGS}"
+echo ""
+echo "    Boost CPPFLAGS... ${BOOST_CPPFLAGS}"
+echo "    Boost LDFLAGS... ${BOOST_LDFLAGS}"

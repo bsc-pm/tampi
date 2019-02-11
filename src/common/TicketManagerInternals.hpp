@@ -14,7 +14,7 @@
 #include <cstdlib>
 #include <utility>
 
-template <typename Lang>
+template <typename Lang, size_t Capacity>
 class TicketManagerInternals {
 private:
 	typedef typename Lang::request_t request_t;
@@ -22,27 +22,23 @@ private:
 	typedef typename Lang::status_ptr_t status_ptr_t;
 	typedef ::Ticket<Lang> Ticket;
 	
-	struct mapping_t 
-	{
+	struct mapping_t {
 		Ticket *ticket;
 		int localPosition;
 	};
 	
-	int _capacity;
 	request_t *_requests;
 	status_t  *_statuses;
 	mapping_t *_mappings;
 	Ticket    *_tickets;
 	
 public:
-	TicketManagerInternals(int capacity)
-		: _capacity(capacity)
+	TicketManagerInternals()
 	{
-		assert(capacity > 0);
-		_requests = (request_t *) std::malloc(capacity * sizeof(request_t));
-		_statuses =  (status_t *) std::malloc(capacity * sizeof(status_t));
-		_mappings = (mapping_t *) std::malloc(capacity * sizeof(mapping_t));
-		_tickets  =    (Ticket *) std::malloc(capacity * sizeof(Ticket));
+		_requests = (request_t *) std::malloc(Capacity * sizeof(request_t));
+		_statuses =  (status_t *) std::malloc(Capacity * sizeof(status_t));
+		_mappings = (mapping_t *) std::malloc(Capacity * sizeof(mapping_t));
+		_tickets  =    (Ticket *) std::malloc(Capacity * sizeof(Ticket));
 		assert(_requests && _statuses && _mappings && _tickets);
 	}
 	
@@ -55,9 +51,9 @@ public:
 		std::free(_tickets);
 	}
 	
-	inline int capacity() const
+	inline size_t capacity() const
 	{
-		return _capacity;
+		return Capacity;
 	}
 	
 	inline const request_t &getRequest(int position) const
