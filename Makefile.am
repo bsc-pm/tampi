@@ -41,26 +41,28 @@ c_api_sources= \
  src/c/Alltoallw.cpp \
  src/c/Barrier.cpp \
  src/c/Bcast.cpp \
+ src/c/Bsend.cpp \
+ src/c/Exscan.cpp \
  src/c/Gather.cpp \
  src/c/Gatherv.cpp \
+ src/c/InitFinalize.cpp \
+ src/c/Iwait.cpp \
+ src/c/Iwaitall.cpp \
  src/c/Recv.cpp \
  src/c/Reduce.cpp \
  src/c/Reducescatter.cpp \
  src/c/Reducescatterblock.cpp \
+ src/c/Rsend.cpp \
+ src/c/Scan.cpp \
  src/c/Scatter.cpp \
  src/c/Scatterv.cpp \
  src/c/Send.cpp \
  src/c/Sendrecv.cpp \
- src/c/Ssend.cpp \
- src/c/Waitall.cpp \
- src/c/Wait.cpp \
  src/c/Sendrecvreplace.cpp \
- src/c/Scan.cpp \
- src/c/Exscan.cpp \
- src/c/Iwaitall.cpp \
- src/c/Iwait.cpp \
- src/c/InitFinalize.cpp \
- src/c/Utils.cpp
+ src/c/Ssend.cpp \
+ src/c/Utils.cpp \
+ src/c/Wait.cpp \
+ src/c/Waitall.cpp
 
 fortran_api_sources= \
  src/fortran/Allgather.cpp \
@@ -71,26 +73,28 @@ fortran_api_sources= \
  src/fortran/Alltoallw.cpp \
  src/fortran/Barrier.cpp \
  src/fortran/Bcast.cpp \
+ src/fortran/Bsend.cpp \
+ src/fortran/Exscan.cpp \
  src/fortran/Gather.cpp \
  src/fortran/Gatherv.cpp \
+ src/fortran/InitFinalize.cpp \
+ src/fortran/Iwait.cpp \
+ src/fortran/Iwaitall.cpp \
  src/fortran/Recv.cpp \
  src/fortran/Reduce.cpp \
  src/fortran/Reducescatter.cpp \
  src/fortran/Reducescatterblock.cpp \
+ src/fortran/Rsend.cpp \
+ src/fortran/Scan.cpp \
  src/fortran/Scatter.cpp \
  src/fortran/Scatterv.cpp \
  src/fortran/Send.cpp \
  src/fortran/Sendrecv.cpp \
- src/fortran/Ssend.cpp \
- src/fortran/Waitall.cpp \
- src/fortran/Wait.cpp \
  src/fortran/Sendrecvreplace.cpp \
- src/fortran/Scan.cpp \
- src/fortran/Exscan.cpp \
- src/fortran/Iwaitall.cpp \
- src/fortran/Iwait.cpp \
- src/fortran/InitFinalize.cpp \
- src/fortran/Utils.cpp
+ src/fortran/Ssend.cpp \
+ src/fortran/Utils.cpp \
+ src/fortran/Wait.cpp \
+ src/fortran/Waitall.cpp
 
 common_sources = \
  src/common/Environment.cpp

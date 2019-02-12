@@ -26,17 +26,19 @@ void pmpi_testany_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_F
 void pmpi_testsome_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint[], MPI_Fint*);
 } // extern C
 
+typedef int MPI_Bsend_t(MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm);
 typedef int MPI_Finalize_t(void);
 typedef int MPI_Init_t(int*, char***);
 typedef int MPI_Init_thread_t(int*, char***, int, int*);
+typedef int MPI_Query_thread_t(int*);
 typedef int MPI_Recv_t(void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status*);
+typedef int MPI_Rsend_t(MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm);
 typedef int MPI_Send_t(MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm);
 typedef int MPI_Sendrecv_t(MPI3CONST void*, int, MPI_Datatype, int, int, void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status*);
 typedef int MPI_Sendrecv_replace_t(void*, int, MPI_Datatype, int, int, int, int, MPI_Comm, MPI_Status*);
 typedef int MPI_Ssend_t(MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm);
 typedef int MPI_Wait_t(MPI_Request*, MPI_Status*);
 typedef int MPI_Waitall_t(int, MPI_Request[], MPI_Status[]);
-typedef int MPI_Query_thread_t(int*);
 
 #if MPI_VERSION >=3
 typedef int MPI_Allgather_t(const void*, int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm);
@@ -58,17 +60,19 @@ typedef int MPI_Scan_t(const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm);
 typedef int MPI_Exscan_t(const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm);
 #endif // MPI_VERSION
 
+typedef void mpi_bsend_t(MPI3CONST void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_finalize_t(MPI_Fint*);
 typedef void mpi_init_t(MPI_Fint*);
 typedef void mpi_init_thread_t(MPI_Fint*, MPI_Fint*, MPI_Fint*);
+typedef void mpi_query_thread_t(MPI_Fint*, MPI_Fint*);
 typedef void mpi_recv_t(void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
+typedef void mpi_rsend_t(MPI3CONST void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_send_t(MPI3CONST void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_sendrecv_t(MPI3CONST void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_sendrecv_replace_t(void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_ssend_t(MPI3CONST void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_wait_t(MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_waitall_t(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*);
-typedef void mpi_query_thread_t(MPI_Fint*, MPI_Fint*);
 
 #if MPI_VERSION >=3
 typedef void mpi_allgather_t(const void*, MPI_Fint*, MPI_Fint*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
