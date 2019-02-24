@@ -37,6 +37,6 @@ namespace error {
 			warn(message);
 		}
 	}
-}
+} // namespace error
 
 #endif // ERROR_HPP

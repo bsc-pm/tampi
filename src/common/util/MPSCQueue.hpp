@@ -1,5 +1,11 @@
-#ifndef MULTI_ADDER_QUEUE_HPP
-#define MULTI_ADDER_QUEUE_HPP
+/*
+	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
+	
+	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
+*/
+
+#ifndef MPSC_QUEUE_HPP
+#define MPSC_QUEUE_HPP
 
 #include "util/SpinLock.hpp"
 
@@ -15,9 +21,10 @@
 
 #include <boost/lockfree/spsc_queue.hpp>
 
+namespace util {
 
 template <typename T, size_t Size = 2048>
-class MultiAdderQueue {
+class MPSCQueue {
 private:
 	typedef boost::lockfree::spsc_queue<T, boost::lockfree::capacity<Size> > queue_t;
 	typedef util::SpinLock<> SpinLock;
@@ -27,7 +34,7 @@ private:
 	queue_t _queue;
 	
 public:
-	MultiAdderQueue() :
+	MPSCQueue() :
 		_adderMutex(),
 		_queue()
 	{}
@@ -66,4 +73,6 @@ public:
 	}
 };
 
-#endif // MULTI_ADDER_QUEUE_HPP
+} // namespace util
+
+#endif // MPSC_QUEUE_HPP

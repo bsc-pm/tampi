@@ -7,6 +7,7 @@
 #ifndef REQUEST_MANAGER_HPP
 #define REQUEST_MANAGER_HPP
 
+#include "util/ArrayView.hpp"
 #include "util/Error.hpp"
 
 #include "Environment.hpp"
@@ -28,7 +29,7 @@ private:
 public:
 	static void processRequest(request_t &request, status_ptr_t status = Lang::STATUS_IGNORE, bool blocking = true);
 	
-	static void processRequests(util::array_view<request_t> requests, status_ptr_t statuses = Lang::STATUSES_IGNORE, bool blocking = true);
+	static void processRequests(util::ArrayView<request_t> requests, status_ptr_t statuses = Lang::STATUSES_IGNORE, bool blocking = true);
 };
 
 template <>
@@ -53,7 +54,7 @@ inline void RequestManager<C>::processRequest(request_t &request, status_ptr_t s
 }
 
 template <>
-inline void RequestManager<C>::processRequests(util::array_view<request_t> requests, status_ptr_t statuses, bool blocking)
+inline void RequestManager<C>::processRequests(util::ArrayView<request_t> requests, status_ptr_t statuses, bool blocking)
 {
 	assert(!requests.empty());
 	
@@ -97,7 +98,7 @@ inline void RequestManager<Fortran>::processRequest(request_t &request, status_p
 }
 
 template <>
-inline void RequestManager<Fortran>::processRequests(util::array_view<request_t> requests, status_ptr_t statuses, bool blocking)
+inline void RequestManager<Fortran>::processRequests(util::ArrayView<request_t> requests, status_ptr_t statuses, bool blocking)
 {
 	assert(!requests.empty());
 	

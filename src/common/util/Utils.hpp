@@ -9,7 +9,7 @@
 
 #include <config.h>
 
-#include "util/array_view.hpp"
+#include "util/ArrayView.hpp"
 
 #ifndef CACHELINE_SIZE
 #define CACHELINE_SIZE 64
@@ -34,7 +34,7 @@ namespace util {
 	};
 	
 	template<typename Lang>
-	static inline int getActiveRequestCount(const util::array_view<typename Lang::request_t> &requests)
+	static inline int getActiveRequestCount(const util::ArrayView<typename Lang::request_t> &requests)
 	{
 		int active = 0;
 		for (int r = 0; r < requests.size(); ++r) {
@@ -44,6 +44,6 @@ namespace util {
 		}
 		return active;
 	}
-}
+} // namespace util
 
 #endif // UTILS_HPP

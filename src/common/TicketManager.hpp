@@ -7,11 +7,11 @@
 #ifndef TICKET_MANAGER_HPP
 #define TICKET_MANAGER_HPP
 
-#include "util/array_view.hpp"
+#include "util/ArrayView.hpp"
+#include "util/MPSCQueue.hpp"
 #include "util/SpinLock.hpp"
 #include "util/Utils.hpp"
 
-#include "MultiAdderQueue.hpp"
 #include "Symbols.hpp"
 #include "Ticket.hpp"
 #include "TicketManagerInternals.hpp"
@@ -67,8 +67,8 @@ private:
 	int _pending;
 	TicketManagerInternals<Lang, NENTRIES> _arrays;
 	
-	MultiAdderQueue<BlockingEntry> _blockingEntries;
-	MultiAdderQueue<NonBlockingEntry> _nonBlockingEntries;
+	util::MPSCQueue<BlockingEntry> _blockingEntries;
+	util::MPSCQueue<NonBlockingEntry> _nonBlockingEntries;
 	
 	ProgressFunction _checkEntriesFunc;
 	
@@ -124,11 +124,11 @@ public:
 	
 	void addBlockingRequest(request_t &request, Ticket &ticket);
 	
-	void addBlockingRequests(util::array_view<request_t> &requests, Ticket &ticket);
+	void addBlockingRequests(util::ArrayView<request_t> &requests, Ticket &ticket);
 	
 	void addNonBlockingRequest(request_t &request, status_ptr_t status);
 	
-	void addNonBlockingRequests(util::array_view<request_t> &requests, status_ptr_t statuses);
+	void addNonBlockingRequests(util::ArrayView<request_t> &requests, status_ptr_t statuses);
 	
 private:
 	bool internalCheckRequests();
@@ -257,7 +257,7 @@ inline void TicketManager<Lang>::addNonBlockingRequest(request_t &request, statu
 }
 
 template<typename Lang>
-inline void TicketManager<Lang>::addBlockingRequests(util::array_view<request_t> &requests, Ticket &ticket)
+inline void TicketManager<Lang>::addBlockingRequests(util::ArrayView<request_t> &requests, Ticket &ticket)
 {
 	BlockingEntry entries[NRPG];
 	
@@ -281,7 +281,7 @@ inline void TicketManager<Lang>::addBlockingRequests(util::array_view<request_t>
 }
 
 template<typename Lang>
-inline void TicketManager<Lang>::addNonBlockingRequests(util::array_view<request_t> &requests, status_ptr_t statuses)
+inline void TicketManager<Lang>::addNonBlockingRequests(util::ArrayView<request_t> &requests, status_ptr_t statuses)
 {
 	NonBlockingEntry entries[NRPG];
 	

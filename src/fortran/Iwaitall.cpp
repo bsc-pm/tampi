@@ -8,7 +8,6 @@
 
 #include "include/TAMPI.h"
 
-#include "util/array_view.hpp"
 #include "util/Error.hpp"
 
 #include "Definitions.hpp"

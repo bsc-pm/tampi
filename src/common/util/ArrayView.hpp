@@ -12,25 +12,25 @@
 namespace util {
 
 template< typename T >
-class array_view {
+class ArrayView {
 private:
 	T* _begin;
 	T* _end;
 	
 public:
-	array_view(T *begin, int length)
+	ArrayView(T *begin, int length)
 		: _begin(begin),
 		_end(begin + static_cast<size_t>(length))
 	{
 	}
 	
-	array_view(T *begin, size_t length)
+	ArrayView(T *begin, size_t length)
 		: _begin(begin),
 		_end(begin + length)
 	{
 	}
 	
-	array_view(T *begin, T *end)
+	ArrayView(T *begin, T *end)
 		: _begin(begin),
 		_end(end)
 	{
