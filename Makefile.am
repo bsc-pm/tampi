@@ -34,68 +34,71 @@ include_HEADERS= src/include/TAMPI.h src/include/TAMPIf.h
 pkginclude_HEADERS= # This library does not provide any additional header
 
 c_api_sources= \
- src/c/allgather.cc \
- src/c/allgatherv.cc \
- src/c/allreduce.cc \
- src/c/alltoall.cc \
- src/c/alltoallv.cc \
- src/c/alltoallw.cc \
- src/c/barrier.cc \
- src/c/bcast.cc \
- src/c/gather.cc \
- src/c/gatherv.cc \
- src/c/recv.cc \
- src/c/reduce.cc \
- src/c/reducescatter.cc \
- src/c/reducescatterblock.cc \
- src/c/scatter.cc \
- src/c/scatterv.cc \
- src/c/send.cc \
- src/c/sendrecv.cc \
- src/c/ssend.cc \
- src/c/waitall.cc \
- src/c/wait.cc \
- src/c/sendrecvreplace.cc \
- src/c/scan.cc \
- src/c/exscan.cc \
- src/c/iwaitall.cc \
- src/c/iwait.cc \
- src/c/init-finalize.cc \
- src/c/utils.cc
+ src/c/Allgather.cpp \
+ src/c/Allgatherv.cpp \
+ src/c/Allreduce.cpp \
+ src/c/Alltoall.cpp \
+ src/c/Alltoallv.cpp \
+ src/c/Alltoallw.cpp \
+ src/c/Barrier.cpp \
+ src/c/Bcast.cpp \
+ src/c/Bsend.cpp \
+ src/c/Exscan.cpp \
+ src/c/Gather.cpp \
+ src/c/Gatherv.cpp \
+ src/c/InitFinalize.cpp \
+ src/c/Iwait.cpp \
+ src/c/Iwaitall.cpp \
+ src/c/Recv.cpp \
+ src/c/Reduce.cpp \
+ src/c/Reducescatter.cpp \
+ src/c/Reducescatterblock.cpp \
+ src/c/Rsend.cpp \
+ src/c/Scan.cpp \
+ src/c/Scatter.cpp \
+ src/c/Scatterv.cpp \
+ src/c/Send.cpp \
+ src/c/Sendrecv.cpp \
+ src/c/Sendrecvreplace.cpp \
+ src/c/Ssend.cpp \
+ src/c/Utils.cpp \
+ src/c/Wait.cpp \
+ src/c/Waitall.cpp
 
 fortran_api_sources= \
- src/fortran/allgather.cc \
- src/fortran/allgatherv.cc \
- src/fortran/allreduce.cc \
- src/fortran/alltoall.cc \
- src/fortran/alltoallv.cc \
- src/fortran/alltoallw.cc \
- src/fortran/barrier.cc \
- src/fortran/bcast.cc \
- src/fortran/gather.cc \
- src/fortran/gatherv.cc \
- src/fortran/recv.cc \
- src/fortran/reduce.cc \
- src/fortran/reducescatter.cc \
- src/fortran/reducescatterblock.cc \
- src/fortran/scatter.cc \
- src/fortran/scatterv.cc \
- src/fortran/send.cc \
- src/fortran/sendrecv.cc \
- src/fortran/ssend.cc \
- src/fortran/waitall.cc \
- src/fortran/wait.cc \
- src/fortran/sendrecvreplace.cc \
- src/fortran/scan.cc \
- src/fortran/exscan.cc \
- src/fortran/iwaitall.cc \
- src/fortran/iwait.cc \
- src/fortran/init-finalize.cc \
- src/fortran/utils.cc
+ src/fortran/Allgather.cpp \
+ src/fortran/Allgatherv.cpp \
+ src/fortran/Allreduce.cpp \
+ src/fortran/Alltoall.cpp \
+ src/fortran/Alltoallv.cpp \
+ src/fortran/Alltoallw.cpp \
+ src/fortran/Barrier.cpp \
+ src/fortran/Bcast.cpp \
+ src/fortran/Bsend.cpp \
+ src/fortran/Exscan.cpp \
+ src/fortran/Gather.cpp \
+ src/fortran/Gatherv.cpp \
+ src/fortran/InitFinalize.cpp \
+ src/fortran/Iwait.cpp \
+ src/fortran/Iwaitall.cpp \
+ src/fortran/Recv.cpp \
+ src/fortran/Reduce.cpp \
+ src/fortran/Reducescatter.cpp \
+ src/fortran/Reducescatterblock.cpp \
+ src/fortran/Rsend.cpp \
+ src/fortran/Scan.cpp \
+ src/fortran/Scatter.cpp \
+ src/fortran/Scatterv.cpp \
+ src/fortran/Send.cpp \
+ src/fortran/Sendrecv.cpp \
+ src/fortran/Sendrecvreplace.cpp \
+ src/fortran/Ssend.cpp \
+ src/fortran/Utils.cpp \
+ src/fortran/Wait.cpp \
+ src/fortran/Waitall.cpp
 
 common_sources = \
- src/common/allocator.cc \
- src/common/environment.cc
+ src/common/Environment.cpp
 
 lib_LTLIBRARIES = libtampi.la libtampi-c.la libtampi-fortran.la
 libtampi_la_SOURCES=$(common_sources) $(c_api_sources) $(fortran_api_sources)
