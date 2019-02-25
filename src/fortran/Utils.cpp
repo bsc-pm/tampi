@@ -23,5 +23,19 @@ extern "C" {
 			(*symbol)(provided, err);
 		}
 	}
+	
+	void tampi_blocking_enabled(MPI_Fint *flag, MPI_Fint *err)
+	{
+		assert(flag != NULL);
+		*flag = Environment<Fortran>::isBlockingEnabled() ? 1 : 0;
+		*err = MPI_SUCCESS;
+	}
+	
+	void tampi_nonblocking_enabled(MPI_Fint *flag, MPI_Fint *err)
+	{
+		assert(flag != NULL);
+		*flag = Environment<Fortran>::isNonBlockingEnabled() ? 1 : 0;
+		*err = MPI_SUCCESS;
+	}
 } // extern C
 

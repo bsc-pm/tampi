@@ -25,5 +25,19 @@ extern "C" {
 		}
 		return err;
 	}
+	
+	int TAMPI_Blocking_enabled(int *flag)
+	{
+		assert(flag != NULL);
+		*flag = Environment<C>::isBlockingEnabled() ? 1 : 0;
+		return MPI_SUCCESS;
+	}
+	
+	int TAMPI_Nonblocking_enabled(int *flag)
+	{
+		assert(flag != NULL);
+		*flag = Environment<C>::isNonBlockingEnabled() ? 1 : 0;
+		return MPI_SUCCESS;
+	}
 } // extern C
 
