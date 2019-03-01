@@ -1,7 +1,8 @@
+#include "TAMPIf.h"
+
 module test
 implicit none
 include "mpif.h"
-include "TAMPIf.h"
 
 contains
 

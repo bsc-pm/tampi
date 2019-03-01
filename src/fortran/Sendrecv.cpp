@@ -6,6 +6,8 @@
 
 #include <mpi.h>
 
+#include "include/TAMPI_Decl.h"
+
 #include "Definitions.hpp"
 #include "Environment.hpp"
 #include "RequestManager.hpp"
@@ -17,11 +19,11 @@ extern "C" {
 			MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
 	
 	void mpi_isend_(
-			MPI3CONST void *sendbuf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *dest,
+			void *sendbuf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *dest,
 			MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err );
 	
 	void mpi_sendrecv_(
-			MPI3CONST void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype, MPI_Fint *dest, MPI_Fint *sendtag,
+			void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype, MPI_Fint *dest, MPI_Fint *sendtag,
 			void *recvbuf, MPI_Fint *recvcount, MPI_Fint *recvtype, MPI_Fint *source, MPI_Fint *recvtag,
 			MPI_Fint *comm, MPI_Fint *status, MPI_Fint *err)
 	{

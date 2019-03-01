@@ -6,7 +6,7 @@
 
 #include <mpi.h>
 
-#include "include/TAMPI.h"
+#include "include/TAMPI_Decl.h"
 
 #include "Definitions.hpp"
 #include "Environment.hpp"

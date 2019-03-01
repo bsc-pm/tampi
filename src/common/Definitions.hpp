@@ -11,7 +11,7 @@
 
 #include <array>
 
-//! Read only buffers must be defined as const in versions MPI 3.0 and later.
+//! Read only buffers must be defined as const in versions MPI 3.0 and later
 #if MPI_VERSION >= 3
 	#define MPI3CONST const
 #else

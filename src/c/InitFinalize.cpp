@@ -11,7 +11,7 @@
 #include <mpi.h>
 #include <stdarg.h>
 
-#include "include/TAMPI.h"
+#include "include/TAMPI_Decl.h"
 
 #include "Definitions.hpp"
 #include "Environment.hpp"

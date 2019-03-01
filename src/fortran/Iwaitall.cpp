@@ -6,7 +6,7 @@
 
 #include <mpi.h>
 
-#include "include/TAMPI.h"
+#include "include/TAMPI_Decl.h"
 
 #include "util/Error.hpp"
 
@@ -20,13 +20,9 @@
 extern "C" {
 	void tampi_iwaitall_(MPI_Fint *count, MPI_Fint requests[], MPI_Fint *statuses, MPI_Fint *err)
 	{
-		if (!Environment<Fortran>::isNonBlockingEnabled()) {
-			error::warn("TAMPI_Iwaitall calls not allowed");
-			*err = MPI_ERR_OP;
-			return;
+		if (Environment<Fortran>::isNonBlockingEnabled()) {
+			RequestManager<Fortran>::processRequests({requests, *count}, statuses, /* Non-blocking */ false);
 		}
-		
-		RequestManager<Fortran>::processRequests({requests, *count}, statuses, /* Non-blocking */ false);
 		*err = MPI_SUCCESS;
 	}
 } // extern C

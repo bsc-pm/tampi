@@ -4,9 +4,9 @@
 	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
 */
 
-#include <mpi.h> // defines MPI_VERSION
+#include <mpi.h>
 
-#if MPI_VERSION >=3
+#include "include/TAMPI_Decl.h"
 
 #include "Definitions.hpp"
 #include "Environment.hpp"
@@ -14,11 +14,11 @@
 #include "Symbols.hpp"
 
 extern "C" {
-	void mpi_iallreduce_(const void *sendbuf, void *recvbuf, MPI_Fint *count,
+	void mpi_iallreduce_(void *sendbuf, void *recvbuf, MPI_Fint *count,
 			MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *comm,
 			MPI_Fint *request, MPI_Fint *err);
 	
-	void mpi_allreduce_(const void *sendbuf, void *recvbuf, MPI_Fint *count,
+	void mpi_allreduce_(void *sendbuf, void *recvbuf, MPI_Fint *count,
 			MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *comm, MPI_Fint *err)
 	{
 		if (Environment<Fortran>::isBlockingEnabled()) {
@@ -31,6 +31,18 @@ extern "C" {
 			(*symbol)(sendbuf, recvbuf, count, datatype, op, comm, err);
 		}
 	}
+	
+	void tampi_iallreduce_internal_(void *sendbuf, void *recvbuf, MPI_Fint *count,
+			MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *comm,
+			MPI_Fint *request, MPI_Fint *err)
+	{
+		mpi_iallreduce_(sendbuf, recvbuf, count, datatype, op, comm, request, err);
+		
+		if (Environment<Fortran>::isNonBlockingEnabled()) {
+			if (*err == MPI_SUCCESS) {
+				tampi_iwait_(request, MPI_F_STATUS_IGNORE, err);
+			}
+		}
+	}
 }
 
-#endif // MPI_VERSION

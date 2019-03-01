@@ -4,9 +4,9 @@
 	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
 */
 
-#include <mpi.h> // defines MPI_VERSION
+#include <mpi.h>
 
-#if MPI_VERSION >=3
+#include "include/TAMPI_Decl.h"
 
 #include "Definitions.hpp"
 #include "Environment.hpp"
@@ -14,16 +14,16 @@
 #include "Symbols.hpp"
 
 extern "C" {
-	void mpi_ialltoallw_(const void *sendbuf, const MPI_Fint sendcounts[],
-			const MPI_Fint sdispls[], const MPI_Fint sendtypes[],
-			void *recvbuf, const MPI_Fint recvcounts[],
-			const MPI_Fint rdispls[], const MPI_Fint recvtypes[],
-			MPI_Fint *comm, MPI_Fint *req, MPI_Fint *err);
+	void mpi_ialltoallw_(void *sendbuf, MPI_Fint sendcounts[],
+			MPI_Fint sdispls[], MPI_Fint sendtypes[],
+			void *recvbuf, MPI_Fint recvcounts[],
+			MPI_Fint rdispls[], MPI_Fint recvtypes[],
+			MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
 	
-	void mpi_alltoallw_(const void *sendbuf, const MPI_Fint sendcounts[],
-			const MPI_Fint sdispls[], const MPI_Fint sendtypes[],
-			void *recvbuf, const MPI_Fint recvcounts[],
-			const MPI_Fint rdispls[], const MPI_Fint recvtypes[],
+	void mpi_alltoallw_(void *sendbuf, MPI_Fint sendcounts[],
+			MPI_Fint sdispls[], MPI_Fint sendtypes[],
+			void *recvbuf, MPI_Fint recvcounts[],
+			MPI_Fint rdispls[], MPI_Fint recvtypes[],
 			MPI_Fint *comm, MPI_Fint *err)
 	{
 		if (Environment<Fortran>::isBlockingEnabled()) {
@@ -38,6 +38,22 @@ extern "C" {
 			(*symbol)(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, err);
 		}
 	}
+	
+	void tampi_ialltoallw_internal_(void *sendbuf, MPI_Fint sendcounts[],
+			MPI_Fint sdispls[], MPI_Fint sendtypes[],
+			void *recvbuf, MPI_Fint recvcounts[],
+			MPI_Fint rdispls[], MPI_Fint recvtypes[],
+			MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err)
+	{
+		mpi_ialltoallw_(sendbuf, sendcounts, sdispls, sendtypes,
+				recvbuf, recvcounts, rdispls, recvtypes,
+				comm, request, err);
+		
+		if (Environment<Fortran>::isNonBlockingEnabled()) {
+			if (*err == MPI_SUCCESS) {
+				tampi_iwait_(request, MPI_F_STATUS_IGNORE, err);
+			}
+		}
+	}
 }
 
-#endif // MPI_VERSION

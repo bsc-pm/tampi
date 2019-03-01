@@ -4,9 +4,9 @@
 	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
 */
 
-#include <mpi.h> // defines MPI_VERSION
+#include <mpi.h>
 
-#if MPI_VERSION >=3
+#include "include/TAMPI_Decl.h"
 
 #include "Definitions.hpp"
 #include "Environment.hpp"
@@ -14,12 +14,12 @@
 #include "Symbols.hpp"
 
 extern "C" {
-	void mpi_ialltoall_(const void *sendbuf, MPI_Fint *sendcount,
+	void mpi_ialltoall_(void *sendbuf, MPI_Fint *sendcount,
 			MPI_Fint *sendtype, void *recvbuf,
 			MPI_Fint *recvcount, MPI_Fint *recvtype,
-			MPI_Fint *comm, MPI_Fint *req, MPI_Fint *err);
+			MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
 	
-	void mpi_alltoall_(const void *sendbuf, MPI_Fint *sendcount,
+	void mpi_alltoall_(void *sendbuf, MPI_Fint *sendcount,
 			MPI_Fint *sendtype, void *recvbuf,
 			MPI_Fint *recvcount, MPI_Fint *recvtype,
 			MPI_Fint *comm, MPI_Fint *err)
@@ -36,6 +36,19 @@ extern "C" {
 			(*symbol)(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, err);
 		}
 	}
+	
+	void tampi_ialltoall_internal_(void *sendbuf, MPI_Fint *sendcount,
+			MPI_Fint *sendtype, void *recvbuf,
+			MPI_Fint *recvcount, MPI_Fint *recvtype,
+			MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err)
+	{
+		mpi_ialltoall_(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request, err);
+		
+		if (Environment<Fortran>::isNonBlockingEnabled()) {
+			if (*err == MPI_SUCCESS) {
+				tampi_iwait_(request, MPI_F_STATUS_IGNORE, err);
+			}
+		}
+	}
 }
 
-#endif // MPI_VERSION

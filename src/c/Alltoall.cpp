@@ -7,15 +7,13 @@
 #include <dlfcn.h>
 #include <mpi.h>
 
-#if MPI_VERSION >=3
-
 #include "Definitions.hpp"
 #include "Environment.hpp"
 #include "RequestManager.hpp"
 #include "Symbols.hpp"
 
 extern "C" {
-	int MPI_Alltoall(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+	int MPI_Alltoall(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 			void *recvbuf, int recvcount, MPI_Datatype recvtype,
 			MPI_Comm comm)
 	{
@@ -35,4 +33,3 @@ extern "C" {
 	}
 }
 
-#endif // MPI_VERSION
