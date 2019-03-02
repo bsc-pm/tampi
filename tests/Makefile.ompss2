@@ -1,5 +1,8 @@
-PROGS=PrimitiveBlk.ompss2.test         \
+PROGS=DoNotExecute.ompss2.test         \
+      DoNotExecutef.ompss2.test        \
+      PrimitiveBlk.ompss2.test         \
       PrimitiveNonBlk.ompss2.test      \
+      PrimitiveWrappers.ompss2.test    \
       MultiPrimitiveBlk.ompss2.test    \
       MultiPrimitiveNonBlk.ompss2.test \
       CollectiveBlk.ompss2.test        \
@@ -29,7 +32,7 @@ F90_WRAPPERS=I_MPI_F90=$(MF90) MPICH_FC=$(MF90) OMPI_FC=$(MF90)
 
 CPPFLAGS=-I.
 CFLAGS=--ompss-2 -O3 -std=c++11
-FFLAGS=--ompss-2 -O3
+FFLAGS=--ompss-2 -O3 --pp
 
 TAMPI_CPPFLAGS=-I$(TAMPI_HOME)/include
 TAMPI_LDFLAGS=-L$(TAMPI_HOME)/lib -L$(TAMPI_HOME)/lib64 -l:libtampi.a -lstdc++
@@ -39,7 +42,7 @@ all: $(PROGS)
 %.ompss2.test: ompss2/%.cpp
 	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(CFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDFLAGS)
 
-%.ompss2.test: ompss2/%.f90
+%.ompss2.test: ompss2/%.F90
 	$(F90_WRAPPERS) $(MPIF90) $(CPPFLAGS) $(FFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDFLAGS)
 
 clean:

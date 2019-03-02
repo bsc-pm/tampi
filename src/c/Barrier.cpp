@@ -7,8 +7,6 @@
 #include <dlfcn.h>
 #include <mpi.h>
 
-#if MPI_VERSION >=3
-
 #include "Definitions.hpp"
 #include "Environment.hpp"
 #include "RequestManager.hpp"
@@ -30,6 +28,4 @@ extern "C" {
 		return err;
 	}
 } // extern C
-
-#endif // MPI_VERSION
 

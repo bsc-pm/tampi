@@ -7,15 +7,13 @@
 #include <dlfcn.h>
 #include <mpi.h>
 
-#if MPI_VERSION >=3
-
 #include "Definitions.hpp"
 #include "Environment.hpp"
 #include "RequestManager.hpp"
 #include "Symbols.hpp"
 
 extern "C" {
-	int MPI_Scatterv(const void* sendbuf, const int sendcounts[], const int displs[], MPI_Datatype sendtype,
+	int MPI_Scatterv(MPI3CONST void* sendbuf, MPI3CONST int sendcounts[], MPI3CONST int displs[], MPI_Datatype sendtype,
 			void* recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
 	{
 		int err = MPI_SUCCESS;
@@ -32,6 +30,4 @@ extern "C" {
 		return err;
 	}
 } // extern C
-
-#endif // MPI_VERSION
 

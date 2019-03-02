@@ -4,9 +4,7 @@
 	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
 */
 
-#include <mpi.h> // defines MPI_VERSION
-
-#if MPI_VERSION >=3
+#include <mpi.h>
 
 #include "Definitions.hpp"
 #include "Environment.hpp"
@@ -14,7 +12,7 @@
 #include "Symbols.hpp"
 
 extern "C" {
-	int MPI_Allgather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+	int MPI_Allgather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 			void *recvbuf, int recvcount, MPI_Datatype recvtype, MPI_Comm comm)
 	{
 		int err = MPI_SUCCESS;
@@ -33,4 +31,3 @@ extern "C" {
 	}
 }
 
-#endif // MPI_VERSION

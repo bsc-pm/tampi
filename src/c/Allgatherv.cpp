@@ -7,16 +7,14 @@
 #include <dlfcn.h>
 #include <mpi.h>
 
-#if MPI_VERSION >=3
-
 #include "Definitions.hpp"
 #include "Environment.hpp"
 #include "RequestManager.hpp"
 #include "Symbols.hpp"
 
 extern "C" {
-	int MPI_Allgatherv(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
-			void* recvbuf, const int recvcounts[], const int displs[],
+	int MPI_Allgatherv(MPI3CONST void* sendbuf, int sendcount, MPI_Datatype sendtype,
+			void* recvbuf, MPI3CONST int recvcounts[], MPI3CONST int displs[],
 			MPI_Datatype recvtype, MPI_Comm comm)
 	{
 		int err = MPI_SUCCESS;
@@ -34,6 +32,4 @@ extern "C" {
 		return err;
 	}
 } // extern C
-
-#endif // MPI_VERSION
 

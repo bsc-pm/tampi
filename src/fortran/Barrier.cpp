@@ -4,9 +4,9 @@
 	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
 */
 
-#include <mpi.h> // defines MPI_VERSION
+#include <mpi.h>
 
-#if MPI_VERSION >=3
+#include "include/TAMPI_Decl.h"
 
 #include "Definitions.hpp"
 #include "Environment.hpp"
@@ -28,7 +28,16 @@ extern "C" {
 			(*symbol)(comm, err);
 		}
 	}
+	
+	void tampi_ibarrier_internal_(MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err)
+	{
+		mpi_ibarrier_(comm, request, err);
+		
+		if (Environment<Fortran>::isNonBlockingEnabled()) {
+			if (*err == MPI_SUCCESS) {
+				tampi_iwait_(request, MPI_F_STATUS_IGNORE, err);
+			}
+		}
+	}
 } // extern C
-
-#endif // MPI_VERSION
 

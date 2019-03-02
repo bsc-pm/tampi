@@ -7,7 +7,7 @@
 #include <dlfcn.h>
 #include <mpi.h>
 
-#include "include/TAMPI.h"
+#include "include/TAMPI_Decl.h"
 
 #include "util/Error.hpp"
 
@@ -21,12 +21,9 @@
 extern "C" {
 	int TAMPI_Iwait(MPI_Request *request, MPI_Status *status)
 	{
-		if (!Environment<C>::isNonBlockingEnabled()) {
-			error::warn("TAMPI_Iwait calls not allowed");
-			return MPI_ERR_OP;
+		if (Environment<C>::isNonBlockingEnabled()) {
+			RequestManager<C>::processRequest(*request, status, /* Non-blocking */ false);
 		}
-		
-		RequestManager<C>::processRequest(*request, status, /* Non-blocking */ false);
 		return MPI_SUCCESS;
 	}
 } // extern C

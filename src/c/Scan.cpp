@@ -7,15 +7,13 @@
 #include <dlfcn.h>
 #include <mpi.h>
 
-#if MPI_VERSION >=3
-
 #include "Definitions.hpp"
 #include "Environment.hpp"
 #include "RequestManager.hpp"
 #include "Symbols.hpp"
 
 extern "C" {
-	int MPI_Scan(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
+	int MPI_Scan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 	{
 		int err = MPI_SUCCESS;
 		if (Environment<C>::isBlockingEnabled()) {
@@ -31,4 +29,3 @@ extern "C" {
 	}
 }
 
-#endif // MPI_VERSION

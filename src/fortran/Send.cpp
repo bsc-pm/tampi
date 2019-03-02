@@ -6,17 +6,19 @@
 
 #include <mpi.h>
 
+#include "include/TAMPI_Decl.h"
+
 #include "Definitions.hpp"
 #include "Environment.hpp"
 #include "RequestManager.hpp"
 #include "Symbols.hpp"
 
 extern "C" {
-	void mpi_isend_(MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
+	void mpi_isend_(void *buf, MPI_Fint *count, MPI_Fint *datatype,
 			MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm,
 			MPI_Fint *request, MPI_Fint *err);
 	
-	void mpi_send_(MPI3CONST void *buf, MPI_Fint *count, MPI_Fint *datatype,
+	void mpi_send_(void *buf, MPI_Fint *count, MPI_Fint *datatype,
 			MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *err)
 	{
 		if (Environment<Fortran>::isBlockingEnabled()) {
@@ -27,6 +29,19 @@ extern "C" {
 		} else {
 			static mpi_send_t *symbol = (mpi_send_t *) Symbol::loadNextSymbol(__func__);
 			(*symbol)(buf, count, datatype, dest, tag, comm, err);
+		}
+	}
+	
+	void tampi_isend_internal_(void *buf, MPI_Fint *count, MPI_Fint *datatype,
+			MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm,
+			MPI_Fint *request, MPI_Fint *err)
+	{
+		mpi_isend_(buf, count, datatype, dest, tag, comm, request, err);
+		
+		if (Environment<Fortran>::isNonBlockingEnabled()) {
+			if (*err == MPI_SUCCESS) {
+				tampi_iwait_(request, MPI_F_STATUS_IGNORE, err);
+			}
 		}
 	}
 } // extern C
