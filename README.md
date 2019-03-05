@@ -12,25 +12,67 @@ execution order of the enclosed MPI calls. The TAMPI library ensures a deadlock-
 execution of such hybrid applications by implementing a cooperation mechanism between the
 MPI library and the parallel task-based runtime system.
 
-TAMPI is compatible with mainstream MPI implementations that support the MPI_THREAD_MULTIPLE
-threading level in order to provide its task-aware features. TAMPI provides two main mechanisms:
-the blocking mode that targets blocking MPI operations, and the non-blocking mode that focuses
-on non-blocking MPI operations.
+TAMPI provides two main mechanisms: the blocking mode and the non-blocking mode. The blocking
+mode targets the efficient and safe execution of blocking MPI operations (e.g., MPI_Recv)
+from inside tasks, while the non-blocking mode focuses on the efficient execution of
+non-blocking or immediate MPI operations (e.g., MPI_Irecv), also from inside tasks.
+
+On the one hand, TAMPI is currently compatible with two task-based programming model
+implementations: a derivative version of the LLVM OpenMP (yet to be released) and
+[OmpSs-2](https://github.com/bsc-pm/ompss-2-releases). However, the derivative OpenMP does
+not support the full set of features provided by TAMPI. OpenMP programs can only make use of
+the non-blocking mode of TAMPI, whereas OmpSs-2 programs can leverage both blocking and
+non-blocking modes.
+
+On the other hand, TAMPI is compatible with mainstream MPI implementations that support the
+`MPI_THREAD_MULTIPLE` threading level, which is the minimum requirement to provide its task-aware
+features. The following sections describe in detail the blocking (OmpSs-2) and non-blocking
+(OpenMP & OmpSs-2) modes of TAMPI.
 
 
-## Blocking Mode
+## Blocking Mode (OmpSs-2)
 
-The blocking mode of TAMPI is enabled by a new level of thread support named MPI_TASK_MULTIPLE,
-which is monotonically greater than the MPI_THREAD_MULTIPLE threading level. The blocking mode
-prevents the underlying hardware thread, which executes a task that calls blocking MPI
-operations, from blocking inside the MPI library. It allows the thread to run other tasks
-instead, while the operation does not complete. This mechanism leverages the standard MPI
-interception techniques that enable transparent interception of MPI calls performed by
-an application.
+The blocking mode of TAMPI targets the safe and efficient execution of blocking MPI operations
+(e.g., MPI_Recv) from inside tasks. This mode virtualizes the execution resources (e.g.,
+hardware threads) of the underlying system when tasks call blocking MPI functions. When a
+task calls a blocking operation, and it cannot complete immediately, the underlying execution
+resource is prevented from being blocked inside MPI and it is reused to execute other ready
+tasks. In this way, the user application can make progress although multiple communication
+tasks are executing blocking MPI operations. This is done transparently to the user, that is,
+a task calls a blocking MPI function (e.g., MPI_Recv), and the call returns once the operation
+has completed as states the MPI Standard.
 
-User applications can activate the TAMPI's blocking mode by requesting the MPI_TASK_MULTIPLE
-threading level, which is defined in the `TAMPI.h` header (`TAMPIf.h` for Fortran). A valid
-and safe usage of TAMPI's blocking mode is shown in the following example:
+This virtualization prevents applications from blocking all execution resources inside MPI
+(waiting for the completion of some operations), which could result in a deadlock due to the
+lack of progress. Thus, programmers are allowed to instantiate multiple communication tasks
+(that call blocking MPI functions) without the need of serializing them with dependencies,
+which would be necessary if this TAMPI mode was not enabled. In this way, communication tasks
+can run in parallel and their execution can be re-ordered by the task scheduler.
+
+This mode provides support for the following set of blocking MPI operations:
+
+* **Blocking primitives**: MPI_Recv, MPI_Send, MPI_Bsend, MPI_Rsend and MPI_Ssend.
+* **Blocking collectives**: MPI_Gather, MPI_Scatter, MPI_Barrier, MPI_Bcast, MPI_Scatterv, etc.
+* **Waiters** of a *complete set* of requests: **MPI_Wait** and **MPI_Waitall**.
+	* MPI_Waitany and MPI_Waitsome are not supported yet, the standard behavior is applied.
+
+As stated previously, this mode is only supported by [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases),
+version 2018.11 or greater.
+
+### Usage
+
+This library provides a header named `TAMPI.h` (or `TAMPIf.h` in Fortran). Apart from other
+declarations and definitions, this header defines a new MPI level of thread support named
+`MPI_TASK_MULTIPLE`, which is monotonically greater than the standard `MPI_THREAD_MULTIPLE`. To
+activate this mode from an application, users must:
+
+* Include the `TAMPI.h` header in C or `TAMPIf.h` in Fortran.
+* Initialize MPI with `MPI_Init_thread` and requesting the new `MPI_TASK_MULTIPLE` threading
+  level.
+
+The blocking TAMPI mode is considered activated once `MPI_Init_thread` successfully returns,
+and the provided threading level is `MPI_TASK_MULTIPLE`. A valid and safe usage of TAMPI's blocking
+mode is shown in the following OmpSs-2 + MPI example:
 
 ```c
 #include <mpi.h>
@@ -38,35 +80,38 @@ and safe usage of TAMPI's blocking mode is shown in the following example:
 
 int main(int argc, char **argv)
 {
-	int provided;
-	MPI_Init_thread(&argc, &argv, MPI_TASK_MULTIPLE, &provided);
-	if (provided != MPI_TASK_MULTIPLE) {
-		fprintf(stderr, "Error: MPI_TASK_MULTIPLE not supported!");
-		return 1;
-	}
-	
-	int *data = (int *) malloc(N * sizeof(int));
-	//...
-	
-	if (rank == 0) {
-		for (int n = 0; n < N; ++n) {
-			#pragma oss task in(data[n]) label(T1)
-			MPI_Ssend(&data[n], 1, MPI_INT, 1, n, MPI_COMM_WORLD);
-		}
-	} else if (rank == 1) {
-		for (int n = 0; n < N; ++n) {
-			#pragma oss task out(data[n]) label(T2)
-			{
-				MPI_Status status;
-				MPI_Recv(&data[n], 1, MPI_INT, 0, n, MPI_COMM_WORLD, &status);
-				check_status(&status);
-				fprintf(stdout, "data[%d] = %d\n", n, data[n]);
-			}
-		}
-	}
-	#pragma oss taskwait
-	
-	//...
+  int provided;
+  MPI_Init_thread(&argc, &argv, MPI_TASK_MULTIPLE, &provided);
+  if (provided != MPI_TASK_MULTIPLE) {
+    fprintf(stderr, "Error: MPI_TASK_MULTIPLE not supported!");
+    return 1;
+  }
+  
+  int *data = (int *) malloc(N * sizeof(int));
+  //...
+  
+  if (rank == 0) {
+    for (int n = 0; n < N; ++n) {
+      #pragma oss task in(data[n]) // T1
+      {
+        MPI_Ssend(&data[n], 1, MPI_INT, 1, n, MPI_COMM_WORLD);
+        // data buffer could already be reused
+      }
+    }
+  } else if (rank == 1) {
+    for (int n = 0; n < N; ++n) {
+      #pragma oss task out(data[n]) // T2
+      {
+        MPI_Status status;
+        MPI_Recv(&data[n], 1, MPI_INT, 0, n, MPI_COMM_WORLD, &status);
+        check_status(&status);
+        fprintf(stdout, "data[%d] = %d\n", n, data[n]);
+      }
+    }
+  }
+  #pragma oss taskwait
+  
+  //...
 }
 ```
 
@@ -82,37 +127,75 @@ buffer (MPI_Recv writes on `data`). After receiving the integer, each task check
 of the MPI operation, and finally, it prints the received integer. These tasks can also
 run in parallel.
 
-This program would be incorrect when using the standard MPI_THREAD_MULTIPLE since it could
+This program would be incorrect when using the standard `MPI_THREAD_MULTIPLE` since it could
 result in a deadlock situation depending on the task scheduling policy. Because of the
-out-of-order execution of tasks in each rank, all available hardware threads could end up
+out-of-order execution of tasks in each rank, all available execution resources could end up
 blocked inside MPI, hanging the application due to the lack of progress. However, with TAMPI's
-MPI_TASK_MULTIPLE threading level, hardware threads are prevented from blocking inside
-blocking MPI calls and they can execute other ready tasks while communication tasks are
-blocked, guaranteeing application progress.
+`MPI_TASK_MULTIPLE` threading level, execution resources are prevented from blocking inside
+blocking MPI calls and they can execute other ready tasks while communications are taking
+place, guaranteeing application progress.
 
 See the articles listed in the [References](#references) section for more information.
 
 
-## Non-blocking Mode
+## Non-Blocking Mode (OpenMP & OmpSs-2)
 
-Task-Aware MPI also defines a non-blocking mode that consists of two additional functions
-which improve the interoperability of non-blocking MPI operations and task-based programming
-models. These functions are TAMPI_Iwait and TAMPI_Iwaitall, which have the same parameters
-as their standard synchronous counterparts MPI_Wait and MPI_Waitall, respectively. These two
-new are non-blocking asynchronous functions that bind the release of the calling task's
-dependencies with the completion of the MPI requests passed as parameters. Once the task
-finishes its execution, it will wait until all bound MPI requests are completed before
-releasing its dependencies. Note that this approach requires both computation and communication
-tasks to declare dependencies on the data buffers to guarantee a correct execution order.
+The non-blocking mode of TAMPI focuses on the execution of non-blocking or immediate MPI
+operations from inside tasks. As the blocking TAMPI mode, the objective of this one is to
+allow the safe and efficient execution of multiple communication tasks in parallel, but
+avoiding the blocking of these tasks.
 
-This mode is orthogonal to the previous one and it only requires that MPI is initialized with
-at least the MPI_THREAD_MULTIPLE threading level. If MPI is not initialized with at least this
-standard level, any call to TAMPI_Iwait or TAMPI_Iwaitall will result in undefined behavior.
+The idea is to allow tasks to bind their completion to the finalization of one or more MPI
+requests. Thus, the completion of a task is delayed until (1) it finishes the execution of
+its body code and (2) all MPI requests that it bound during its execution complete. Notice
+that the completion of a task usually implies the release of its dependencies, the freeing
+of its data structures, etc.
 
-User applications can activate the TAMPI's non-blocking mode by requesting the standard
-MPI_THREAD_MULTIPLE threading level. The `TAMPI.h` header (`TAMPIf.h` for Fortran) declares both
-TAMPI_Iwait and TAMPI_Iwaitall functions. The following example shows a valid and safe usage of
-this mode:
+For that reason, TAMPI defines two asynchronous and non-blocking functions named **TAMPI_Iwait**
+and **TAMPI_Iwaitall**, which have the same parameters as their standard synchronous counterparts
+MPI_Wait and MPI_Waitall, respectively. They bind the completion of the calling task to the
+finalization of the MPI requests passed as parameters, and they return "immediately" without
+blocking the caller. The completion of the calling task will take place once it finishes its
+execution and all bound MPI requests complete.
+
+Since they are non-blocking and asynchronous, a task after calling TAMPI_Iwait or TAMPI_Iwaitall
+passing some requests cannot assume that the corresponding operations have already finished.
+For this reason, the communication buffers related to those requests should not be consumed or
+reused inside that task. The proper way is to correctly annotate the communication tasks (the
+ones calling TAMPI_Iwait or TAMPI_Iwaitall) with the dependencies on the corresponding
+communication buffers, and then, annotating also the tasks that will reuse or consume the data
+buffers. In this way, these latter will become ready once the data buffers are safe to be
+accessed (i.e., once the communications have been completed). Defining the correct dependencies
+of tasks is essential to guarantee a correct execution order.
+
+Calling any of these two functions from outside a task will result in undefined behavior. Note
+that the requests passed to these functions could be generated by calling non-blocking MPI
+operations (e.g., MPI_Irecv) from the same tasks that call TAMPI_Iwait or TAMPI_Iwaitall, from
+calls of other previously executed tasks or even from the main function. Also, notice that all
+requests with value MPI_REQUEST_NULL will be ignored.
+
+As stated in the introduction, this non-blocking mode is supported by both a derivative version
+of OpenMP (yet to be released) and [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases)
+(version 2018.11 or greater).
+
+### Usage
+
+To activate this mode from an applications, users must:
+
+* Include the `TAMPI.h` header in C or `TAMPIf.h` in Fortran.
+* Initialize the MPI with `MPI_Init_thread` requesting at least the standard `MPI_THREAD_MULTIPLE`
+  threading level.
+
+The non-blocking mode of TAMPI is considered initialized once `MPI_Init_thread` returns successfully,
+and the provided threading level is at least `MPI_THREAD_MULTIPLE`. If MPI is not initialized in that
+way, any call to TAMPI_Iwait or TAMPI_Iwaitall will be ignored.
+
+Notice that this mode is orthogonal to the blocking one, which we presented in the previous section.
+An OmpSs-2 program could activate both modes by initializing MPI with `MPI_TASK_MULTIPLE`, so that
+both mechanisms could operate at the same time. This does not apply to OpenMP programs since the
+aforementioned derivative implementation of OpenMP does not support the blocking mode.
+
+The following OpenMP + MPI example shows a valid and safe usage of this mode:
 
 ```c
 #include <mpi.h>
@@ -120,55 +203,62 @@ this mode:
 
 int main(int argc, char **argv)
 {
-	int provided;
-	MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
-	if (provided != MPI_THREAD_MULTIPLE) {
-		fprintf(stderr, "Error: MPI_THREAD_MULTIPLE not supported!");
-		return 1;
-	}
-	
-	int *data = (int *) malloc(N * sizeof(int));
-	//...
-	
-	// Must be alive during the execution of the communication tasks
-	MPI_Status statuses[N];
-	
-	if (rank == 0) {
-		for (int n = 0; n < N; ++n) {
-			#pragma oss task in(data[n]) label(T1)
-			{
-				MPI_Request request;
-				MPI_Issend(&data[n], 1, MPI_INT, 1, n, MPI_COMM_WORLD, &request);
-				TAMPI_Iwait(&request, MPI_STATUS_IGNORE);
-			}
-		}
-	} else if (rank == 1) {
-		for (int n = 0; n < N; ++n) {
-			#pragma oss task out(data[n], statuses[n]) label(T2)
-			{
-				MPI_Request request;
-				MPI_Irecv(&data[n], 1, MPI_INT, 0, n, MPI_COMM_WORLD, &request);
-				TAMPI_Iwaitall(1, &request, &statuses[n]);
-				// Data buffer and status cannot be accessed yet!
-			}
-			
-			#pragma oss task in(data[n], statuses[n]) label(T3)
-			{
-				check_status(&statuses[n]);
-				fprintf(stdout, "data[%d] = %d\n", n, data[n]);
-			}
-		}
-	}
-	#pragma oss taskwait
-	
-	//...
+  int provided;
+  MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
+  if (provided != MPI_THREAD_MULTIPLE) {
+    fprintf(stderr, "Error: MPI_THREAD_MULTIPLE not supported!");
+    return 1;
+  }
+  
+  int *data = (int *) malloc(N * sizeof(int));
+  //...
+  
+  // Must be alive during the execution of the communication tasks
+  MPI_Status statuses[N];
+  
+  #pragma omp parallel
+  #pragma omp single
+  {
+    if (rank == 0) {
+      for (int n = 0; n < N; ++n) {
+        #pragma omp task depend(in: data[n]) // T1
+        {
+          MPI_Request request;
+          MPI_Issend(&data[n], 1, MPI_INT, 1, n, MPI_COMM_WORLD, &request);
+          TAMPI_Iwait(&request, MPI_STATUS_IGNORE);
+          // data buffer cannot be reused yet!
+          // Other unrelated computation...
+        }
+      }
+    } else if (rank == 1) {
+      for (int n = 0; n < N; ++n) {
+        #pragma omp task depend(out: data[n], statuses[n]) // T2
+        {
+          MPI_Request request;
+          MPI_Irecv(&data[n], 1, MPI_INT, 0, n, MPI_COMM_WORLD, &request);
+          TAMPI_Iwaitall(1, &request, &statuses[n]);
+          // Data buffer and status cannot be accessed yet!
+          // Other unrelated computation...
+        }
+        
+        #pragma omp task depend(in: data[n], statuses[n]) // T3
+        {
+          check_status(&statuses[n]);
+          fprintf(stdout, "data[%d] = %d\n", n, data[n]);
+        }
+      }
+    }
+    #pragma omp taskwait
+  }
+  
+  //...
 }
 ```
 
-The above code does the same as the previous example presented in [Blocking Mode](#blocking-mode)
-but exclusively using the non-blocking mode. In this case, the sender rank creates tasks (T1) that
-use the immediate version of the MPI_Ssend operation, they bind their release of dependencies to
-the completion of the resulting request with TAMPI_Iwait, and they finish their execution "immediately".
+The above code does the same as the example presented in the previous section but exclusively using
+the non-blocking mode. In this case, the sender rank creates tasks (T1) that use the immediate version
+of the MPI_Ssend operation, they bind their release of dependencies to the completion of the resulting
+request with TAMPI_Iwait, and they finish their execution "immediately".
 
 The receiver rank instantiates tasks (T2) that use the immediate version of MPI_Recv and bind to themselves
 the resulting request. In this case, they use the TAMPI_Iwaitall function to register the request and to
@@ -185,19 +275,137 @@ after the taskwait.
 
 See the articles listed in the [References](#references) section for more information.
 
+## Wrapper Functions for Code Compatibility
 
-## Compatibility of Modes
+Typically, application developers try to adapt their code to different parallel programming models and
+platforms, so that an application can be compiled enabling a specific programming model or even a
+combination of various programming models, e.g., hybrid programming. However, developing and maintaining
+such type of applications can be difficult and tedious. To facilitate the task of developing this
+kind of multi-platform applications, TAMPI provides a set of wrapper functions and macros that behave
+differently depending on whether the **non-blocking mode** of TAMPI is enabled or not.
 
-Both blocking and non-blocking modes are entirely compatible so that they can operate in the same
-application. For instance, some tasks could use the blocking mode, while others could use the non-blocking
-one. Even a task can mix both modes. For example, it could issue some non-blocking MPI operations followed by a call
-to TAMPI_Iwaitall, and then a call to various blocking MPI operations.
+The idea behind those wrapper functions is to allow users to use the same code for pure MPI and hybrid
+configurations. In this way, the user does not need to duplicate the code or to use conditional compilation
+directives in order to keep correct both variants. For instance, when the application is compiled only
+with MPI (i.e., the non-blocking mode of TAMPI cannot be enabled) the wrappers will behave differently
+than when when compiling with MPI, OpenMP and enabling the non-blocking mode of TAMPI. In the first case,
+the OpenMP pragmas are ignored, and the standard operating of MPI is enforced, whereas in the second case,
+the OpenMP pragmas are enabled and the non-blocking mechanisms of TAMPI are used.
+
+The following table shows in the first column the name of each wrapper function. We provide a wrapper
+function for each standard non-blocking communication operation (e.g., MPI_Issend), be it primitives
+or collectives. The wrapper's name of a standard non-blocking function is composed of the original MPI
+name and adding the prefix *TA*. For instance, the corresponding wrapper function for MPI_Ibrecv is
+TAMPI_Ibrecv.
+
+The actual behavior of a wrapper function, when the non-blocking TAMPI is disabled (e.g., in pure MPI mode)
+is shown in the second column. The third column shows the behavior when the non-blocking mode of TAMPI is
+enabled, and therefore, in this case, OpenMP or OmpSs-2 must be enabled.
+
+Regardless of whether TAMPI is enabled or not, the wrapper functions call the corresponding standard
+non-blocking MPI function. Additionally, if the non-blocking mode is active, that call is followed by a call
+to TAMPI_Iwait passing the request generated by the previous non-blocking function. In this way, the calling
+task binds its completion to the finalization of that MPI request, as previously explained in this section.
+
+| Function         | TAMPI Disabled  | TAMPI Enabled                  |
+|------------------|-----------------|--------------------------------|
+| `TAMPI_Isend`    | `MPI_Isend`     | `MPI_Isend` + `TAMPI_Iwait`    |
+| `TAMPI_Irecv`    | `MPI_Irecv`     | `MPI_Irecv` + `TAMPI_Iwait`    |
+| `TAMPI_Ibcast`   | `MPI_Ibcast`    | `MPI_Ibcast` + `TAMPI_Iwait`   |
+| `TAMPI_Ibarrier` | `MPI_Ibarrier`  | `MPI_Ibarrier` + `TAMPI_Iwait` |
+| `TAMPI_I...`     | `MPI_I...`      | `MPI_I...` + `TAMPI_Iwait`     |
 
 
-## Required APIs
+The parameters of the wrapper functions are the same as their corresponding standard non-blocking MPI
+functions. The exception is TAMPI_Irecv because it requires an additional status parameter, which is
+not required in the standard MPI_Irecv. The following snippet shows the C prototype of both TAMPI_Irecv
+and TAMPI_Isend.
 
-Any parallel task-based programming model can support the TAMPI library by providing the
-APIs described in the [src/common/RuntimeAPI.hpp](src/common/RuntimeAPI.hpp) source file.
+```c
+int TAMPI_Irecv(const void *buf, int count, MPI_Datatype datatype, int dest,
+		int tag, MPI_Comm comm, MPI_Request *request, MPI_Status *status);
+
+int TAMPI_Isend(const void *buf, int count, MPI_Datatype datatype, int dest,
+		int tag, MPI_Comm comm, MPI_Request *request);
+```
+
+With those wrappers, we cover the conventional phase of MPI applications where they start the communications
+with multiple calls to non-blocking MPI functions (e.g., MPI_Isend and MPI_Irecv). Usually, after this phase,
+MPI applications wait for the completion of all those issued operations by calling MPI_Wait or MPI_Waitall
+from the main thread. However, this technique is not optimal in hybrid applications that want to parallelize
+both computation and communication phases, since it considerably reduces the parallelism in each communication
+phase.
+
+For this reason, TAMPI provides two special wrapper functions that are essential for facilitating the
+development of multi-platform applications. These two wrappers are TAMPI_Wait and TAMPI_Waitall, and
+their behavior is shown in the following table.
+
+| Function         | TAMPI Disabled  | TAMPI Enabled |
+|------------------|-----------------|---------------|
+| `TAMPI_Wait`     | `MPI_Wait`      |       -       |
+| `TAMPI_Waitall`  | `MPI_Waitall`   |       -       |
+
+
+As the previously presented wrappers, they behave differently depending on whether the non-blocking
+mode of TAMPI is enabled or not. If TAMPI is not active, those wrappers only call directly to MPI_Wait
+or MPI_Waitall, respectively. However, if TAMPI is active, they do nothing. With all these wrappers,
+multi-platform applications can have a hybrid MPI + OpenMP + TAMPI code that also can correctly work
+when compiling only with MPI.
+
+The following MPI + OpenMP example in Fortran tries to demonstrate the idea behind all those wrapper functions:
+
+```fortran
+#include "TAMPIf.h"
+
+! ...
+
+nreqs=0
+tag=10
+do proc=1,nprocs
+  if (sendlen(proc) > 0) then
+    nreqs=nreqs+1
+    len=sendlen(proc)
+    
+    !$OMP TASK DEFAULT(shared) FIRSTPRIVATE(proc,tag,len,nreqs) &
+    !$OMP&     PRIVATE(err) DEPEND(IN: senddata(:,proc))
+    call TAMPI_Isend(senddata(:,proc),len,MPI_REAL8,proc-1,tag,MPI_COMM_WORLD, &
+          requests(nreqs),err)
+    !$OMP END TASK
+  end if
+  if (recvlen(proc) > 0) then
+    nreqs=nreqs+1
+    len=recvlen(proc)
+    
+    !$OMP TASK DEFAULT(shared) FIRSTPRIVATE(proc,tag,len,nreqs) &
+    !$OMP&     PRIVATE(err) DEPEND(OUT: recvdata(:,proc))
+    call TAMPI_Irecv(recvdata(:,proc),len,MPI_REAL8,proc-1,tag,MPI_COMM_WORLD, &
+          requests(nreqs),statuses(nreqs),err)
+    !$OMP END TASK
+  end if
+end do
+
+call TAMPI_Waitall(nreqs,requests(:),statuses(:),err)
+
+! Computation tasks consuming or reusing communications buffers
+! ...
+```
+
+The previous example sends/receives a message, if needed, to/from the rest of MPI processes. Notice that
+this code would be correct for both a pure MPI execution (i.e., ignoring the OpenMP directives) and an
+execution with MPI+OpenMP+TAMPI. In the first case, the TAMPI_Isend, TAMPI_Irecv, and TAMPI_Waitall calls
+will become calls to MPI_Isend, MPI_Irecv and MPI_Waitall, respectively.
+
+However, if the non-blocking TAMPI mode is active, being OpenMP or OmpSs-2 also enabled obligatorily,
+TAMPI_Isend and TAMPI_Irecv will be executed from inside tasks. The TAMPI_Isend call would become an
+MPI_Isend call followed by a TAMPI_Iwait call passing the generated request as a parameter. In this way,
+the calling task will bind its completion to the finalization of that MPI request. The same will happen
+to TAMPI_Irecv. Finally, TAMPI_Waitall would do nothing since each task would already bound its own MPI
+request.
+
+It is important to mention that both TAMPI_Irecv and TAMPI_Waitall have a status location as a parameter.
+These statuses should be consistent in both calls; a status location passed to a TAMPI_Irecv should be
+the same as the status location that corresponds to that request in the TAMPI_Waitall. It could also be
+correct to specify the status to be ignored in both calls.
 
 
 ## References
@@ -219,13 +427,12 @@ can be used from user applications.
 The Task-Aware MPI library requires the installation of the following tools and libraries:
 
 * Automake, autoconf, libtool, make and a C and C++ compiler.
-* An MPI library supporting the MPI_THREAD_MULTIPLE threading level.
+* An MPI library supporting the `MPI_THREAD_MULTIPLE` threading level.
 * [Boost](http://boost.org) library version 1.59 or greater.
-* A parallel task-based runtime system providing the API descrived in [src/common/RuntimeAPI.hpp](src/common/RuntimeAPI.hpp).
-It is not required for the building of TAMPI, but it will be required when linking a user application
-against this library. [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases) (version 2018.11 or greater)
-is one of the task-based programming models that supports TAMPI.
-
+* One of the following parallel task-based programming models (required when compiling a user application):
+	- [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases) (version 2018.11 or greater): Supports both blocking and
+	  non-blocking TAMPI modes.
+	- A derivative implementation of OpenMP (yet to be released): Supports the non-blocking TAMPI mode.
 
 ## Building and Installing
 
@@ -253,14 +460,13 @@ by either adding the binary's path to the PATH environment variable (i.e., execu
 PATH=/path/to/mpi/bin:$PATH`) or by setting the MPICXX environment variable.
 
 Other optional configuration flags are:
-* `--disable-blocking-mode`: Disables the blocking mode of TAMPI. MPI_TASK_MULTIPLE threading level is
+* `--disable-blocking-mode`: Disables the blocking mode of TAMPI. `MPI_TASK_MULTIPLE` threading level is
    never provided, so that calls to blocking MPI procedures are directly converted to calls to the same
    blocking procedures of the underlying MPI library. Also, by disabling this mode, TAMPI does not
    require the runtime system to provide the block/unblock API. The blocking mode is **enabled** by
    default.
 * `--disable-nonblocking-mode`: Disables the non-blocking mode of TAMPI. Any call to TAMPI_Iwait or
-   TAMPI_Iwaitall procedures results in undefined behavior. The non-blocking mode is **enabled** by
-   default.
+   TAMPI_Iwaitall procedures will be ignored. The non-blocking mode is **enabled** by default.
 * `--enable-debug-mode`: Adds compiler debug flags and enables additional internal debugging mechanisms.
    Note that this flag can downgrade the overall performance. Debug mode is **disabled** by default.
 
@@ -276,14 +482,54 @@ There are two header files which can be included from user applications that dec
 functions and constants. `TAMPI.h` is the header for C/C++ applications and `TAMPIf.h` is the header
 for Fortran programs.
 
+
 ## Using TAMPI in Hybrid Applications
 
 User applications should be linked against the MPI library (e.g, using `mpicxx` compiler), the parallel
-task-based runtime system and the TAMPI library. For example, a hybrid MPI+OmpSs-2 application in C++
-named `app.cpp` could be compiled and linked using the following MPICH command:
+task-based runtime system and the TAMPI library. On the one hand, for a hybrid OpenMP + MPI application
+in C++ named `app.cpp` could be compiled and linked using the following command:
 
 ```bash
-$ MPICH_CXX=mcxx mpicxx --ompss-2 -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
+$ mpicxx -fopenmp -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
 ```
 
-Finally, the application could be launched as any traditional hybrid MPI+OmpSs-2 program.
+On the other hand, for a hybrid OmpSs-2 + MPI application in C++ named `app.cpp` could be compiled and
+linked using the following command:
+
+```bash
+$ mpicxx -cxx=mcxx --ompss-2 -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
+```
+
+Finally, both OpenMP and OmpSs-2 applications could be launched as any traditional hybrid program.
+
+
+### Notes for Fortran
+
+The `TAMPIf.h` header for Fortran defines some preprocessor macros. Therefore, to correctly use TAMPI
+in Fortran programs, users must include the header with `#include "TAMPIf.h"` at the starting lines of the
+program, as shown in the following example. Additionally, the program must be preprocessed when compiling
+the code. The preprocessing is enabled by default when the code file has the extension `.F90`, `.F95`, etc.,
+by passing the `-cpp` option to `gfortran` compiler or by passing the `--pp` option to the Mercurium compiler.
+
+```fortran
+#include "TAMPIf.h"
+
+module test_mod
+! ...
+end module test_mod
+
+program test_prog
+! ...
+end program test_prog
+```
+
+Finally, due to some technical limitations in the Fortran language, the wrapper functions of the non-blocking
+TAMPI mode cannot be written in all combinations of lowercase and uppercase letters. For instance, the only
+accepted ways to write in a Fortran program a call to the TAMPI_Issend procedure are:
+
+* `TAMPI_Issend`
+* `TAMPI_issend`
+* `tampi_issend`
+
+This limitation is applied to all other wrappers presented in the [Wrapper Functions](#wrapper-functions-for-code-compatibility)
+section, including both TAMPI_Wait and TAMPI_Waitall.
