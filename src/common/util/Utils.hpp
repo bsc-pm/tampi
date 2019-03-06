@@ -9,14 +9,14 @@
 
 #include <config.h>
 
+#if defined(__SSE2__)
+#include <xmmintrin.h>
+#endif
+
 #include "util/ArrayView.hpp"
 
 #ifndef CACHELINE_SIZE
 #define CACHELINE_SIZE 64
-#endif
-
-#ifndef SPIN_LOCK_READS
-#define SPIN_LOCK_READS 1000
 #endif
 
 #ifndef MAX_SYSTEM_CPUS
@@ -43,6 +43,24 @@ namespace util {
 			}
 		}
 		return active;
+	}
+	
+	static inline void spinWait()
+	{
+#if defined(__powerpc__) || defined(__powerpc64__) || defined(__PPC__) || defined(__PPC64__) || defined(_ARCH_PPC) || defined(_ARCH_PPC64)
+#define HMT_low()       asm volatile("or 1,1,1       # low priority")
+#define HMT_medium()    asm volatile("or 2,2,2       # medium priority")
+#define HMT_barrier()   asm volatile("" : : : "memory")
+		HMT_low(); HMT_medium(); HMT_barrier();
+#elif defined(__arm__) || defined(__aarch64__)
+		__asm__ __volatile__ ("yield");
+#elif defined(__SSE2__)
+		_mm_pause();
+#elif defined(__i386__) || defined(__x86_64__)
+		asm volatile("pause" ::: "memory");
+#else
+		#pragma message ("No 'pause' instruction/intrisic found for this architecture ")
+#endif
 	}
 } // namespace util
 

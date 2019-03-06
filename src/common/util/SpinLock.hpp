@@ -31,12 +31,7 @@ public:
 		const size_t head = _head.fetch_add(1, std::memory_order_relaxed);
 		const size_t idx = head % Size;
 		while (_buffer[idx].load(std::memory_order_acquire) != head) {
-			int spinsLeft = SPIN_LOCK_READS;
-			size_t value;
-			do {
-				value = _buffer[idx].load(std::memory_order_relaxed);
-				spinsLeft--;
-			} while (value != head && (spinsLeft > 0));
+			util::spinWait();
 		}
 	}
 	
