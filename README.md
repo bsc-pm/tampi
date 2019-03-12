@@ -35,12 +35,16 @@ features. The following sections describe in detail the blocking (OmpSs-2) and n
 The blocking mode of TAMPI targets the safe and efficient execution of blocking MPI operations
 (e.g., MPI_Recv) from inside tasks. This mode virtualizes the execution resources (e.g.,
 hardware threads) of the underlying system when tasks call blocking MPI functions. When a
-task calls a blocking operation, and it cannot complete immediately, the underlying execution
-resource is prevented from being blocked inside MPI and it is reused to execute other ready
-tasks. In this way, the user application can make progress although multiple communication
-tasks are executing blocking MPI operations. This is done transparently to the user, that is,
-a task calls a blocking MPI function (e.g., MPI_Recv), and the call returns once the operation
-has completed as states the MPI Standard.
+task calls a blocking operation, and it cannot complete immediately, the task is *paused*, and
+the underlying execution resource is leveraged to execute other ready tasks while the MPI operation
+does not complete. This means that the execution resource is **not blocked inside MPI**. Once
+the operation completes, the paused task is resumed, so that it will eventually continue its
+execution and it will return from the blocking MPI call.
+
+All this is done transparently to the user, meaning that all blocking MPI functions maintain the
+blocking semantics described in the MPI Standard. Also, this TAMPI mode ensures that the user
+application can make progress although multiple communication tasks are executing blocking MPI
+operations.
 
 This virtualization prevents applications from blocking all execution resources inside MPI
 (waiting for the completion of some operations), which could result in a deadlock due to the
@@ -143,7 +147,7 @@ See the articles listed in the [References](#references) section for more inform
 The non-blocking mode of TAMPI focuses on the execution of non-blocking or immediate MPI
 operations from inside tasks. As the blocking TAMPI mode, the objective of this one is to
 allow the safe and efficient execution of multiple communication tasks in parallel, but
-avoiding the blocking of these tasks.
+avoiding the pause of these tasks.
 
 The idea is to allow tasks to bind their completion to the finalization of one or more MPI
 requests. Thus, the completion of a task is delayed until (1) it finishes the execution of
@@ -186,7 +190,7 @@ To activate this mode from an applications, users must:
 * Initialize the MPI with `MPI_Init_thread` requesting at least the standard `MPI_THREAD_MULTIPLE`
   threading level.
 
-The non-blocking mode of TAMPI is considered initialized once `MPI_Init_thread` returns successfully,
+The non-blocking mode of TAMPI is considered activated once `MPI_Init_thread` returns successfully,
 and the provided threading level is at least `MPI_THREAD_MULTIPLE`. If MPI is not initialized in that
 way, any call to TAMPI_Iwait or TAMPI_Iwaitall will be ignored.
 
