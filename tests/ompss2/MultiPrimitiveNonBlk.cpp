@@ -5,9 +5,15 @@
 
 #include <vector>
 
+#ifdef LARGE_INPUT
 const int TIMESTEPS = 1000;
 const int MSG_NUM = 1000;
 const int MSG_SIZE = 100;
+#else
+const int TIMESTEPS = 100;
+const int MSG_NUM = 500;
+const int MSG_SIZE = 100;
+#endif
 
 struct statuses_t {
 	MPI_Status status[4];
@@ -43,7 +49,7 @@ int main(int argc, char **argv)
 	double startTime = getTime();
 	
 	for (int t = 0; t < TIMESTEPS; ++t) {
-		if (rank > 0) {
+		if (rank > 0 && rank < 4) {
 			int *message = buffer1;
 			
 			for (int m = 0; m < MSG_NUM; ++m) {

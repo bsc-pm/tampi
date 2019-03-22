@@ -11,20 +11,11 @@ PROGS=DoNotExecute.ompss2.test         \
       HugeTasks.ompss2.test
 
 # Compilers
-CXX=g++
-MCXX=mcxx
-MF90=mfc
-MPICXX=mpicxx
-MPIF90=mpif90
-
-# Special case for Intel MPI
-ifdef I_MPI_ROOT
-CXX=g++
-MCXX=mcxx
-MF90=mfc
-MPICXX=mpiicpc
-MPIF90=mpiifort
-endif
+CXX ?= g++
+MCXX ?= mcxx
+MF90 ?= mfc
+MPICXX ?= mpicxx
+MPIF90 ?= mpif90
 
 # MPI Wrappers
 CXX_WRAPPERS=I_MPI_CXX=$(MCXX) MPICH_CXX=$(MCXX) OMPI_CXX=$(MCXX)
@@ -34,15 +25,36 @@ CPPFLAGS=-I.
 CFLAGS=--ompss-2 -O3 -std=c++11
 FFLAGS=--ompss-2 -O3 --pp
 
-TAMPI_CPPFLAGS=-I$(TAMPI_HOME)/include
-TAMPI_LDFLAGS=-L$(TAMPI_HOME)/lib -L$(TAMPI_HOME)/lib64 -l:libtampi.a -lstdc++
+ifdef LARGE_INPUT
+CPPFLAGS+=-DLARGE_INPUT
+endif
+
+# TAMPI Flags
+ifndef TAMPI_INCLUDE_PATH
+ifndef TAMPI_HOME
+$(error TAMPI_HOME must be defined if TAMPI_INCLUDE_PATH is not)
+endif
+TAMPI_INCLUDE_PATH=$(TAMPI_HOME)/include
+endif
+
+ifndef TAMPI_LIBRARY_PATH
+ifndef TAMPI_HOME
+$(error TAMPI_HOME must be defined if TAMPI_LIBRARY_PATH is not)
+endif
+TAMPI_LIBRARY_PATH=$(TAMPI_HOME)/lib
+endif
+
+TAMPI_CPPFLAGS=-I$(TAMPI_INCLUDE_PATH)
+TAMPI_LDFLAGS=-L$(TAMPI_LIBRARY_PATH) -l:libtampi.a -lstdc++
 
 all: $(PROGS)
 
 %.ompss2.test: ompss2/%.cpp
+	@echo "  MPICXX $@"
 	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(CFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDFLAGS)
 
 %.ompss2.test: ompss2/%.F90
+	@echo "  MPIF90 $@"
 	$(F90_WRAPPERS) $(MPIF90) $(CPPFLAGS) $(FFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDFLAGS)
 
 clean:

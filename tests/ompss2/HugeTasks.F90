@@ -23,9 +23,16 @@ endif
 call MPI_Comm_rank(MPI_COMM_WORLD, rank, err)
 call MPI_Comm_size(MPI_COMM_WORLD, nranks, err)
 
+#ifdef LARGE_INPUT
 timesteps = 1000;
 msg_num = 1000;
 msg_size = 100;
+#else
+timesteps = 500;
+msg_num = 500;
+msg_size = 100;
+#endif
+
 total_size = msg_num * msg_size;
 
 allocate(buffer(msg_size, msg_num))

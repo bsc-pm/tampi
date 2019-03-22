@@ -5,9 +5,15 @@
 
 #include <vector>
 
+#ifdef LARGE_INPUT
 const int TIMESTEPS = 1000;
 const int MSG_NUM = 1000;
 const int MSG_SIZE = 100;
+#else
+const int TIMESTEPS = 100;
+const int MSG_NUM = 500;
+const int MSG_SIZE = 100;
+#endif
 
 struct statuses_t {
 	MPI_Status status[4];
