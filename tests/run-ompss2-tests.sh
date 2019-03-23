@@ -3,20 +3,29 @@
 function usage {
 	if [ "$#" -eq 1 ]; then
 		echo "Error: $1"
+		echo ""
 	fi
 	echo "Usage: ./run-ompss2-tests.sh [OPTION]..."
 	echo "  -l, --large              use large inputs (recommended only for powerful machines)"
 	echo "  -p, --path     PATH      path to the TAMPI installation (default: read \$TAMPI_HOME env. variable)"
 	echo "  -I, --includes INC_PATH  path to the directory containing the TAMPI headers (default: PATH/include)"
 	echo "  -L, --libs     LIB_PATH  path to the directory containing the TAMPI libraries (default: PATH/lib)"
-	echo "  -m, --mpi      MPI       the MPI implementation, valid values: impi | mpich | ompi (default: mpich)"
 	echo "  -h, --help               display this help and exit"
 	echo ""
-	echo "Note: MPI and OmpSs-2 binaries must be available (i.e. through the \$PATH env. variable) when executing"
-	echo "      this script"
+	echo "Note: Make sure all MPI and OmpSs-2 binaries are available (i.e. through the \$PATH env. variable) when"
+	echo "      executing this script"
 	echo ""
 	if [ "$#" -eq 1 ]; then
 		exit 1
+	fi
+}
+
+function find_binary {
+	which $1 &> /dev/null
+	if [ $? -eq 0 ]; then
+		echo 1
+	else
+		echo 0
 	fi
 }
 
@@ -83,13 +92,8 @@ while (("$i" < "$nargs")); do
 		tampi_inc_path=$val
 	elif [ "$opt" == "-L" ] || [ "$opt" == "--libs" ]; then
 		tampi_lib_path=$val
-	elif [ "$opt" == "-m" ] || [ "$opt" == "--mpi" ]; then
-		mpi=$val
-		if [ "$mpi" != "impi" ] && [ "$mpi" != "ompi" ] && [ "$mpi" != "mpich" ]; then
-			usage "Error: '$mpi' is not a valid argument for '$opt' option!"
-		fi
 	else
-		usage "Error: '$opt' is not a valid option!"
+		usage "'$opt' is not a valid option!"
 	fi
 done
 
@@ -112,17 +116,29 @@ if [ -z "$tampi_lib_path" ]; then
 fi
 
 # MPI Binaries
-mpicxx=mpicxx
-mpif90=mpif90
+mpicxx=mpiicpc
+found=$(find_binary $mpicxx)
+if [ $found -ne 1 ]; then
+	mpicxx=mpicxx
+fi
+
+mpif90=mpiifort
+found=$(find_binary $mpif90)
+if [ $found -ne 1 ]; then
+	mpif90=mpif90
+fi
+
 mpiexec=mpiexec.hydra
-if [ "$mpi" == "impi" ]; then
-	mpicxx=mpiicpc
-	mpif90=mpiifort
-elif [ "$mpi" == "ompi" ]; then
+found=$(find_binary $mpiexec)
+if [ $found -ne 1 ]; then
+	mpiexec=mpiexec
+fi
+found=$(find_binary $mpiexec)
+if [ $found -ne 1 ]; then
 	mpiexec=mpirun
 fi
 
-check_binaries $mpicxx $mpif90 $mpiexec $mcxx $mfc
+check_binaries $mpicxx $mpif90 $mpiexec mcxx mfc
 
 echo "---------------------------------------"
 echo "TAMPI TEST SUITE"
@@ -132,7 +148,7 @@ echo "Using TAMPI from:"
 echo "  Headers:   $tampi_inc_path"
 echo "  Libraries: $tampi_lib_path"
 echo ""
-echo "Using MPI ($mpi) from:"
+echo "Using MPI from:"
 echo "  C++:       $(which $mpicxx)"
 echo "  Fortran:   $(which $mpif90)"
 echo "  Launcher:  $(which $mpiexec)"
