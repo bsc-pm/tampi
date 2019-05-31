@@ -23,6 +23,10 @@ std::atomic<bool> Environment<Fortran>::_blockingEnabled(false);
 template<>
 std::atomic<bool> Environment<Fortran>::_nonBlockingEnabled(false);
 
+C::request_t C::REQUEST_NULL;
+C::status_ptr_t C::STATUS_IGNORE;
+C::status_ptr_t C::STATUSES_IGNORE;
+
 Fortran::request_t Fortran::REQUEST_NULL;
 Fortran::status_ptr_t Fortran::STATUS_IGNORE;
 Fortran::status_ptr_t Fortran::STATUSES_IGNORE;

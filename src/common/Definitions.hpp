@@ -25,12 +25,16 @@ public:
 	typedef MPI_Status status_t;
 	typedef MPI_Status* status_ptr_t;
 	
-	static constexpr request_t REQUEST_NULL = MPI_REQUEST_NULL;
-	static constexpr status_ptr_t STATUS_IGNORE = MPI_STATUS_IGNORE;
-	static constexpr status_ptr_t STATUSES_IGNORE = MPI_STATUS_IGNORE;
+	static request_t REQUEST_NULL;
+	static status_ptr_t STATUS_IGNORE;
+	static status_ptr_t STATUSES_IGNORE;
 	
 	static void initialize()
-	{}
+	{
+		REQUEST_NULL = MPI_REQUEST_NULL;
+		STATUS_IGNORE = MPI_STATUS_IGNORE;
+		STATUSES_IGNORE = MPI_STATUS_IGNORE;
+	}
 };
 
 class Fortran {
