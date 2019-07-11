@@ -8,7 +8,7 @@
 #define TICKET_MANAGER_HPP
 
 #include "util/ArrayView.hpp"
-#include "util/MPSCQueue.hpp"
+#include "util/LockFreeQueue.hpp"
 #include "util/SpinLock.hpp"
 #include "util/Utils.hpp"
 
@@ -65,8 +65,8 @@ private:
 	int _pending;
 	TicketManagerInternals<Lang, NENTRIES> _arrays;
 	
-	util::MPSCQueue<BlockingEntry> _blockingEntries;
-	util::MPSCQueue<NonBlockingEntry> _nonBlockingEntries;
+	util::LockFreeQueue<BlockingEntry> _blockingEntries;
+	util::LockFreeQueue<NonBlockingEntry> _nonBlockingEntries;
 	
 	ProgressFunction _checkEntriesFunc;
 	
