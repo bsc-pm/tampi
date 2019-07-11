@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 	
-	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
 #include <dlfcn.h>
@@ -10,7 +10,7 @@
 #include "Definitions.hpp"
 #include "Environment.hpp"
 #include "RequestManager.hpp"
-#include "Symbols.hpp"
+#include "Symbol.hpp"
 
 extern "C" {
 	int MPI_Reduce_scatter(MPI3CONST void *sendbuf, void *recvbuf, MPI3CONST int recvcounts[], MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)

@@ -1,19 +1,19 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 	
-	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
 #include <mpi.h>
 
 #include "include/TAMPI_Decl.h"
 
-#include "util/Error.hpp"
+#include "util/ErrorHandler.hpp"
 
 #include "Definitions.hpp"
 #include "Environment.hpp"
 #include "RequestManager.hpp"
-#include "Symbols.hpp"
+#include "Symbol.hpp"
 
 #include <assert.h>
 

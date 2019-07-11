@@ -1,22 +1,22 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 	
-	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
-#ifndef SPIN_MUTEX_HPP
-#define SPIN_MUTEX_HPP
+#ifndef SPIN_LOCK_HPP
+#define SPIN_LOCK_HPP
 
 #include "util/Utils.hpp"
 
 #include <atomic>
 
-namespace util {
 
-template <size_t Size = MAX_SYSTEM_CPUS>
 class SpinLock {
 private:
-	alignas(CACHELINE_SIZE) Padded<std::atomic<size_t> > _buffer[Size] = {};
+	const static size_t Size = MAX_SYSTEM_CPUS;
+	
+	alignas(CACHELINE_SIZE) util::Padded<std::atomic<size_t> > _buffer[Size] = {};
 	alignas(CACHELINE_SIZE) std::atomic<size_t> _head;
 	alignas(CACHELINE_SIZE) size_t _next;
 	
@@ -55,7 +55,5 @@ public:
 	}
 };
 
-}
-
-#endif // SPIN_MUTEX_HPP
+#endif // SPIN_LOCK_HPP
 

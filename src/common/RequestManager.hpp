@@ -1,14 +1,14 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 	
-	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef REQUEST_MANAGER_HPP
 #define REQUEST_MANAGER_HPP
 
 #include "util/ArrayView.hpp"
-#include "util/Error.hpp"
+#include "util/ErrorHandler.hpp"
 
 #include "Environment.hpp"
 #include "Ticket.hpp"
@@ -38,7 +38,7 @@ inline void RequestManager<C>::processRequest(request_t &request, status_ptr_t s
 	int err;
 	int finished = 0;
 	err = PMPI_Test(&request, &finished, status);
-	error::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Test");
+	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Test");
 	
 	if (!finished) {
 		TicketManager &manager = Environment<C>::getTicketManager();
@@ -61,7 +61,7 @@ inline void RequestManager<C>::processRequests(util::ArrayView<request_t> reques
 	int err;
 	int finished = 0;
 	err = PMPI_Testall(requests.size(), requests.begin(), &finished, statuses);
-	error::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Testall");
+	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Testall");
 	
 	if (!finished) {
 		TicketManager &manager = Environment<C>::getTicketManager();
@@ -82,7 +82,7 @@ inline void RequestManager<Fortran>::processRequest(request_t &request, status_p
 	int err;
 	int finished = 0;
 	pmpi_test_(&request, &finished, status, &err);
-	error::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Test");
+	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Test");
 	
 	if (!finished) {
 		TicketManager &manager = Environment<Fortran>::getTicketManager();
@@ -106,7 +106,7 @@ inline void RequestManager<Fortran>::processRequests(util::ArrayView<request_t> 
 	int finished = 0;
 	int size = requests.size();
 	pmpi_testall_(&size, requests.begin(), &finished, statuses, &err);
-	error::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Testall");
+	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Testall");
 	
 	if (!finished) {
 		TicketManager &manager = Environment<Fortran>::getTicketManager();

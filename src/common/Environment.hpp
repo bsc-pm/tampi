@@ -1,19 +1,19 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 	
-	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef ENVIRONMENT_HPP
 #define ENVIRONMENT_HPP
 
-#include "TaskContext.hpp"
-#include "PollingServices.hpp"
-#include "TicketManager.hpp"
-
 #include <atomic>
 
 #include <mpi.h>
+
+#include "TaskContext.hpp"
+#include "TaskingModel.hpp"
+#include "TicketManager.hpp"
 
 template <typename Lang>
 class Environment {
@@ -61,14 +61,15 @@ public:
 			enableBlocking(blockingMode);
 			enableNonBlocking(nonBlockingMode);
 			
+			Lang::initialize();
+			TaskingModel::initialize(blockingMode, nonBlockingMode);
+			
 			if (nonBlockingMode) {
-				TaskContext::prepareNonBlockingModeAPI();
+				TaskingModel::notifyTaskEventCounterAPI();
 			}
 			
-			Lang::initialize();
-			
 			if (blockingMode || nonBlockingMode) {
-				PollingServices::registerService("TAMPI", Environment::poll);
+				TaskingModel::registerPollingService("TAMPI", Environment::poll);
 			}
 		}
 	}
@@ -76,7 +77,7 @@ public:
 	static void finalize()
 	{
 		if (isAnyModeEnabled()) {
-			PollingServices::unregisterService("TAMPI", Environment::poll);
+			TaskingModel::unregisterPollingService("TAMPI", Environment::poll);
 			enableBlocking(false);
 			enableNonBlocking(false);
 		}

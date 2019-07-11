@@ -1,11 +1,12 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 	
-	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
-#ifndef RUNTIME_API_HPP
-#define RUNTIME_API_HPP
+#ifndef TASKING_MODEL_API_HPP
+#define TASKING_MODEL_API_HPP
+
 
 extern "C" {
 	/* Polling service API */
@@ -77,7 +78,7 @@ extern "C" {
 	//! Once the handler has been used once in a call to nanos6_block_current_task
 	//! and a call to nanos6_unblock_task, the handler is discarded and a new
 	//! one must be obtained to perform another cycle of blocking and unblocking.
-	void *nanos6_get_current_blocking_context();
+	void *nanos6_get_current_blocking_context(void);
 	
 	//! \brief Block the current task
 	//!
@@ -111,7 +112,7 @@ extern "C" {
 	//! \brief Get the event counter associated with the current task
 	//!
 	//! \returns the associated event counter with the executing task
-	void *nanos6_get_current_event_counter();
+	void *nanos6_get_current_event_counter(void);
 	
 	//! \brief Increase the counter of events of the current task to prevent the release of dependencies
 	//!
@@ -137,8 +138,19 @@ extern "C" {
 	//! that the external events API could be used from now on. This
 	//! function is required when TAMPI is configured with the option
 	//! "--enable-external-events-api-notification".
-	void nanos6_notify_task_event_counter_api();
+	void nanos6_notify_task_event_counter_api(void);
+	
+	//! Prototypes of the API functions
+	typedef void register_polling_service_t(char const *, nanos6_polling_service_t, void *);
+	typedef void unregister_polling_service_t(char const *, nanos6_polling_service_t, void *);
+	typedef void*get_current_blocking_context_t(void);
+	typedef void block_current_task_t(void*);
+	typedef void unblock_task_t(void*);
+	typedef void*get_current_event_counter_t(void);
+	typedef void increase_current_task_event_counter_t(void*, unsigned int);
+	typedef void decrease_task_event_counter_t(void*, unsigned int);
+	typedef void notify_task_event_counter_api_t(void);
 }
 
-#endif // RUNTIME_API_HPP
+#endif // TASKING_MODEL_API_HPP
 

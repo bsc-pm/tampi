@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 	
-	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TICKET_MANAGER_HPP
@@ -12,7 +12,6 @@
 #include "util/SpinLock.hpp"
 #include "util/Utils.hpp"
 
-#include "Symbols.hpp"
 #include "Ticket.hpp"
 #include "TicketManagerInternals.hpp"
 
@@ -35,7 +34,6 @@ private:
 	typedef typename Lang::status_ptr_t status_ptr_t;
 	typedef ::Ticket<Lang> Ticket;
 	typedef std::function<void()> ProgressFunction;
-	typedef util::SpinLock<> SpinLock;
 	
 	struct BlockingEntry {
 		request_t _request;
@@ -156,13 +154,13 @@ inline bool TicketManager<C>::internalCheckRequests()
 	int completed = 0;
 	int err = PMPI_Testsome(_pending, _arrays.getRequests(), &completed, _indices, _arrays.getStatuses());
 	if (err != MPI_SUCCESS)
-		error::fail("Unexpected return code from MPI_Testsome");
+		ErrorHandler::fail("Unexpected return code from MPI_Testsome");
 	
 	if (completed == MPI_UNDEFINED) {
 		/* Abort the program since this case should never occur.
  		 * The number of completed MPI requests is MPI_UNDEFINED
  		 * when all passed requests were already inactive */
-		error::fail("Unexpected output from PMPI_Testsome");
+		ErrorHandler::fail("Unexpected output from PMPI_Testsome");
 	} else if (completed > 0) {
 		int replacement = _pending - 1;
 		int reverse = completed - 1;
@@ -200,13 +198,13 @@ inline bool TicketManager<Fortran>::internalCheckRequests()
 	int completed = 0;
 	pmpi_testsome_(&count, _arrays.getRequests(), &completed, _indices, _arrays.getStatuses(), &err);
 	if (err != MPI_SUCCESS)
-		error::fail("Unexpected return code from MPI_Testsome");
+		ErrorHandler::fail("Unexpected return code from MPI_Testsome");
 	
 	if (completed == MPI_UNDEFINED) {
 		/* Abort the program since this case should never occur.
  		 * The number of completed MPI requests is MPI_UNDEFINED
  		 * when all passed requests were already inactive */
-		error::fail("Unexpected output from MPI_Testsome");
+		ErrorHandler::fail("Unexpected output from MPI_Testsome");
 	} else if (completed > 0) {
 		int replacement = _pending - 1;
 		int reverse = completed - 1;
