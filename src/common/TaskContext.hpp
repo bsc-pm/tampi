@@ -1,18 +1,17 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 	
-	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TASK_CONTEXT_HPP
 #define TASK_CONTEXT_HPP
 
-#include "util/Error.hpp"
-
-#include "RuntimeAPI.hpp"
-
 #include <array>
 #include <cassert>
+
+#include "TaskingModel.hpp"
+#include "util/ErrorHandler.hpp"
 
 class TaskContext {
 private:
@@ -47,7 +46,7 @@ public:
 	{
 		assert(num > 0);
 		if (!_blocking) {
-			increaseCurrentEventCounter(_taskData, num);
+			TaskingModel::increaseCurrentTaskEventCounter(_taskData, num);
 		}
 	}
 	
@@ -55,100 +54,26 @@ public:
 	{
 		assert(num > 0);
 		if (!_blocking) {
-			decreaseEventCounter(_taskData, num);
+			TaskingModel::decreaseTaskEventCounter(_taskData, num);
 		} else if (allCompleted) {
-			unblockTask(_taskData);
+			TaskingModel::unblockTask(_taskData);
 		}
 	}
 	
 	inline void waitEventsCompletion()
 	{
 		assert(_blocking);
-		blockCurrentTask(_taskData);
+		TaskingModel::blockCurrentTask(_taskData);
 	}
 	
 	inline static void *getCurrentTaskData(bool blocking)
 	{
 		if (blocking) {
-			return getCurrentBlockingContext();
+			return TaskingModel::getCurrentBlockingContext();
 		} else {
-			return getCurrentEventCounter();
+			return TaskingModel::getCurrentEventCounter();
 		}
 	}
-	
-	inline static void prepareNonBlockingModeAPI()
-	{
-#if NOTIFY_EXTERNAL_EVENTS_API
-		nanos6_notify_task_event_counter_api();
-#endif
-	}
-	
-private:
-#if HAVE_BLOCKING_MODE
-	inline static void *getCurrentBlockingContext()
-	{
-		return nanos6_get_current_blocking_context();
-	}
-	
-	inline static void blockCurrentTask(void *blockingContext)
-	{
-		nanos6_block_current_task(blockingContext);
-	}
-	
-	inline static void unblockTask(void *blockingContext)
-	{
-		nanos6_unblock_task(blockingContext);
-	}
-#else
-	inline static void *getCurrentBlockingContext()
-	{
-		error::fail("Blocking mode is not supported");
-		return 0;
-	}
-	
-	inline static void blockCurrentTask(void *)
-	{
-		error::fail("Blocking mode is not supported");
-	}
-	
-	inline static void unblockTask(void *)
-	{
-		error::fail("Blocking mode is not supported");
-	}
-#endif
-	
-#if HAVE_NONBLOCKING_MODE
-	inline static void *getCurrentEventCounter()
-	{
-		return nanos6_get_current_event_counter();
-	}
-	
-	inline static void increaseCurrentEventCounter(void *counter, int increment)
-	{
-		nanos6_increase_current_task_event_counter(counter, increment);
-	}
-	
-	inline static void decreaseEventCounter(void *counter, int decrement)
-	{
-		nanos6_decrease_task_event_counter(counter, decrement);
-	}
-#else
-	inline static void *getCurrentEventCounter()
-	{
-		error::fail("Non-blocking mode is not supported");
-		return 0;
-	}
-	
-	inline static void increaseCurrentEventCounter(void *, int)
-	{
-		error::fail("Non-blocking mode is not supported");
-	}
-	
-	inline static void decreaseEventCounter(void *, int)
-	{
-		error::fail("Non-blocking mode is not supported");
-	}
-#endif
 };
 
 #endif // TASK_CONTEXT_HPP

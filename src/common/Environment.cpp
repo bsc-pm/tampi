@@ -1,16 +1,16 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 	
-	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
+
+#include <cstdio>
 
 #include "Definitions.hpp"
 #include "Environment.hpp"
-#include "RuntimeAPI.hpp"
 #include "Ticket.hpp"
 #include "TicketManager.hpp"
-
-#include <cstdio>
+#include "util/ErrorHandler.hpp"
 
 
 template<>
@@ -30,6 +30,8 @@ C::status_ptr_t C::STATUSES_IGNORE;
 Fortran::request_t Fortran::REQUEST_NULL;
 Fortran::status_ptr_t Fortran::STATUS_IGNORE;
 Fortran::status_ptr_t Fortran::STATUSES_IGNORE;
+
+SpinLock ErrorHandler::_lock;
 
 #if !defined(NDEBUG)
 namespace boost {

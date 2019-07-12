@@ -1,20 +1,19 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 	
-	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
-#ifndef SYMBOLS_HPP
-#define SYMBOLS_HPP
-
-#include "util/Error.hpp"
-
-#include "Definitions.hpp"
+#ifndef SYMBOL_HPP
+#define SYMBOL_HPP
 
 #include <dlfcn.h>
 #include <string>
 
 #include <mpi.h>
+
+#include "Definitions.hpp"
+#include "util/ErrorHandler.hpp"
 
 // MPI Test fortran specializations
 extern "C" {
@@ -95,9 +94,14 @@ public:
 	static inline void *loadNextSymbol(const std::string &symbolName)
 	{
 		void *symbol = dlsym(RTLD_NEXT, symbolName.c_str());
-		error::failIf(!symbol, symbolName + " symbol could not be loaded!");
+		ErrorHandler::failIf(!symbol, "Symbol ", symbolName, " could not be found");
 		return symbol;
+	}
+	
+	static inline void *tryLoadNextSymbol(const std::string &symbolName)
+	{
+		return dlsym(RTLD_NEXT, symbolName.c_str());
 	}
 };
 
-#endif // SYMBOLS_HPP
+#endif // SYMBOL_HPP

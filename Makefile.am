@@ -102,7 +102,8 @@ fortran_api_sources= \
  src/fortran/Waitall.cpp
 
 common_sources = \
- src/common/Environment.cpp
+ src/common/Environment.cpp \
+ src/common/TaskingModel.cpp
 
 lib_LTLIBRARIES = libtampi.la libtampi-c.la libtampi-fortran.la
 libtampi_la_SOURCES=$(common_sources) $(c_api_sources) $(fortran_api_sources)

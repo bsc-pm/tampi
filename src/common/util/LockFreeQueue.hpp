@@ -1,16 +1,16 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 	
-	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
-#ifndef MPSC_QUEUE_HPP
-#define MPSC_QUEUE_HPP
-
-#include "util/SpinLock.hpp"
+#ifndef LOCK_FREE_QUEUE_HPP
+#define LOCK_FREE_QUEUE_HPP
 
 #include <functional>
 #include <mutex>
+
+#include "SpinLock.hpp"
 
 #include <boost/version.hpp>
 
@@ -24,17 +24,16 @@
 namespace util {
 
 template <typename T, size_t Size = 2048>
-class MPSCQueue {
+class LockFreeQueue {
 private:
 	typedef boost::lockfree::spsc_queue<T, boost::lockfree::capacity<Size> > queue_t;
-	typedef util::SpinLock<> SpinLock;
 	typedef std::function<void()> ProgressFunction;
 	
 	SpinLock _adderMutex;
 	queue_t _queue;
 	
 public:
-	MPSCQueue() :
+	LockFreeQueue() :
 		_adderMutex(),
 		_queue()
 	{}
@@ -75,4 +74,4 @@ public:
 
 } // namespace util
 
-#endif // MPSC_QUEUE_HPP
+#endif // LOCK_FREE_QUEUE_HPP
