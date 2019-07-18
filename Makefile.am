@@ -1,9 +1,5 @@
 ACLOCAL_AMFLAGS=-I m4
 
-EXTRA_DIST=\
- src/common/*.h\
- src/include/*.h
-
 AM_CPPFLAGS=\
  $(BOOST_CPPFLAGS) -DBOOST_ENABLE_ASSERT_DEBUG_HANDLER \
  -I@top_srcdir@/src \
@@ -104,6 +100,23 @@ fortran_api_sources= \
 common_sources = \
  src/common/Environment.cpp \
  src/common/TaskingModel.cpp
+
+noinst_HEADERS = \
+ src/common/Definitions.hpp \
+ src/common/Environment.hpp \
+ src/common/RequestManager.hpp \
+ src/common/Symbol.hpp \
+ src/common/TaskContext.hpp \
+ src/common/TaskingModelAPI.hpp \
+ src/common/TaskingModel.hpp \
+ src/common/Ticket.hpp \
+ src/common/TicketManager.hpp \
+ src/common/TicketManagerInternals.hpp \
+ src/common/util/ArrayView.hpp \
+ src/common/util/ErrorHandler.hpp \
+ src/common/util/LockFreeQueue.hpp \
+ src/common/util/SpinLock.hpp \
+ src/common/util/Utils.hpp
 
 lib_LTLIBRARIES = libtampi.la libtampi-c.la libtampi-fortran.la
 libtampi_la_SOURCES=$(common_sources) $(c_api_sources) $(fortran_api_sources)
