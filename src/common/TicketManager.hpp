@@ -160,7 +160,7 @@ inline bool TicketManager<C>::internalCheckRequests()
 		/* Abort the program since this case should never occur.
  		 * The number of completed MPI requests is MPI_UNDEFINED
  		 * when all passed requests were already inactive */
-		ErrorHandler::fail("Unexpected output from PMPI_Testsome");
+		ErrorHandler::fail("Unexpected output from MPI_Testsome");
 	} else if (completed > 0) {
 		int replacement = _pending - 1;
 		int reverse = completed - 1;
