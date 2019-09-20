@@ -51,6 +51,9 @@ inline void RequestManager<C>::processRequest(request_t &request, status_ptr_t s
 			manager.addNonBlockingRequest(request, status);
 		}
 	}
+	
+	// Nullify the request
+	request = C::REQUEST_NULL;
 }
 
 template <>
@@ -74,6 +77,11 @@ inline void RequestManager<C>::processRequests(util::ArrayView<request_t> reques
 			manager.addNonBlockingRequests(requests, statuses);
 		}
 	}
+	
+	// Nullify the requests
+	for (int i = 0; i < requests.size(); ++i) {
+		requests[i] = C::REQUEST_NULL;
+	}
 }
 
 template <>
@@ -95,6 +103,9 @@ inline void RequestManager<Fortran>::processRequest(request_t &request, status_p
 			manager.addNonBlockingRequest(request, status);
 		}
 	}
+	
+	// Nullify the request
+	request = Fortran::REQUEST_NULL;
 }
 
 template <>
@@ -118,6 +129,11 @@ inline void RequestManager<Fortran>::processRequests(util::ArrayView<request_t> 
 		} else {
 			manager.addNonBlockingRequests(requests, statuses);
 		}
+	}
+	
+	// Nullify the requests
+	for (int i = 0; i < requests.size(); ++i) {
+		requests[i] = Fortran::REQUEST_NULL;
 	}
 }
 
