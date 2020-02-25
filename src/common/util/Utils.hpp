@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef UTILS_HPP
@@ -32,6 +32,9 @@ namespace util {
 
 		uint8_t padding[roundup(sizeof(T), Size)-sizeof(T)];
 	};
+
+	template <class T>
+	using Uninitialized = typename std::aligned_storage<sizeof(T), alignof(T)>::type;
 
 	template<typename Lang>
 	static inline int getActiveRequestCount(const util::ArrayView<typename Lang::request_t> &requests)

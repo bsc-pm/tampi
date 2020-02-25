@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TICKET_MANAGER_HPP
@@ -257,7 +257,7 @@ inline void TicketManager<Lang>::addNonBlockingRequest(request_t &request, statu
 template<typename Lang>
 inline void TicketManager<Lang>::addBlockingRequests(util::ArrayView<request_t> &requests, Ticket &ticket)
 {
-	BlockingEntry entries[NRPG];
+	util::Uninitialized<BlockingEntry> entries[NRPG];
 
 	const int active = util::getActiveRequestCount<Lang>(requests);
 	assert(active > 0);
@@ -274,14 +274,14 @@ inline void TicketManager<Lang>::addBlockingRequests(util::ArrayView<request_t> 
 			}
 			++req;
 		}
-		_blockingEntries.add(entries, size, _checkEntriesFunc);
+		_blockingEntries.add((BlockingEntry *)entries, size, _checkEntriesFunc);
 	}
 }
 
 template<typename Lang>
 inline void TicketManager<Lang>::addNonBlockingRequests(util::ArrayView<request_t> &requests, status_ptr_t statuses)
 {
-	NonBlockingEntry entries[NRPG];
+	util::Uninitialized<NonBlockingEntry> entries[NRPG];
 
 	const int active = util::getActiveRequestCount<Lang>(requests);
 	assert(active > 0);
@@ -300,28 +300,29 @@ inline void TicketManager<Lang>::addNonBlockingRequests(util::ArrayView<request_
 			}
 			++req;
 		}
-		_nonBlockingEntries.add(entries, size, _checkEntriesFunc);
+		_nonBlockingEntries.add((NonBlockingEntry *)entries, size, _checkEntriesFunc);
 	}
 }
 
 template<typename Lang>
 inline void TicketManager<Lang>::internalCheckEntryQueues()
 {
+	util::Uninitialized<BlockingEntry> blockings[NRPG];
+	util::Uninitialized<NonBlockingEntry> nonBlockings[NRPG];
+
 	const int numAvailable = (NENTRIES - _pending);
-	BlockingEntry blockings[NRPG];
-	NonBlockingEntry nonBlockings[NRPG];
 	int numBlk, numNonBlk;
 	int total = 0;
 
 	do {
 		numBlk = std::min(numAvailable - total, NRPG);
-		numBlk = _blockingEntries.retrieve(blockings, numBlk);
-		transferEntries(blockings, numBlk);
+		numBlk = _blockingEntries.retrieve((BlockingEntry *)blockings, numBlk);
+		transferEntries((BlockingEntry *)blockings, numBlk);
 		total += numBlk;
 
 		numNonBlk = std::min(numAvailable - total, NRPG);
-		numNonBlk = _nonBlockingEntries.retrieve(nonBlockings, numNonBlk);
-		transferEntries(nonBlockings, numNonBlk);
+		numNonBlk = _nonBlockingEntries.retrieve((NonBlockingEntry *)nonBlockings, numNonBlk);
+		transferEntries((NonBlockingEntry *)nonBlockings, numNonBlk);
 		total += numNonBlk;
 	} while (total < numAvailable && (numBlk > 0 || numNonBlk > 0));
 }
