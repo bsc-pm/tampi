@@ -1,6 +1,6 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
-	
+
 	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
@@ -26,26 +26,26 @@ extern "C" {
 			} else {
 				int packedSize;
 				void *helperbuf = nullptr;
-				
+
 				// Setup a buffer for receiving
 				err = MPI_Pack_size(count, datatype, comm, &packedSize);
 				if (err != MPI_SUCCESS) return err;
-				
+
 				err = MPI_Alloc_mem(packedSize, MPI_INFO_NULL, &helperbuf);
 				if (err != MPI_SUCCESS) return err;
-				
+
 				// Receive into temporary buffer
 				err = MPI_Sendrecv(buf, count, datatype, dest, sendtag,
 						helperbuf, packedSize, MPI_BYTE, source, recvtag,
 						comm, status);
-				
+
 				// Copy into user's buffer
 				if (err == MPI_SUCCESS) {
 					int position = 0;
 					err = MPI_Unpack(helperbuf, packedSize, &position,
 							buf, count, datatype, comm);
 				}
-				
+
 				// Release resources
 				if (err == MPI_SUCCESS) {
 					err = MPI_Free_mem(helperbuf);

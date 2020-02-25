@@ -1,6 +1,6 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
-	
+
 	Copyright (C) 2015-2018 Barcelona Supercomputing Center (BSC)
 */
 
@@ -24,11 +24,11 @@ public:
 	typedef MPI_Request request_t;
 	typedef MPI_Status status_t;
 	typedef MPI_Status* status_ptr_t;
-	
+
 	static request_t REQUEST_NULL;
 	static status_ptr_t STATUS_IGNORE;
 	static status_ptr_t STATUSES_IGNORE;
-	
+
 	static void initialize()
 	{
 		REQUEST_NULL = MPI_REQUEST_NULL;
@@ -42,11 +42,11 @@ public:
 	typedef MPI_Fint request_t;
 	typedef std::array<MPI_Fint, sizeof(MPI_Status)/sizeof(MPI_Fint)> status_t;
 	typedef MPI_Fint* status_ptr_t;
-	
+
 	static request_t REQUEST_NULL;
 	static status_ptr_t STATUS_IGNORE;
 	static status_ptr_t STATUSES_IGNORE;
-	
+
 	static void initialize()
 	{
 		REQUEST_NULL = MPI_Request_c2f(MPI_REQUEST_NULL);

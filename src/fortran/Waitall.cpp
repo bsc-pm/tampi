@@ -1,6 +1,6 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
-	
+
 	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
@@ -24,7 +24,7 @@ extern "C" {
 			(*symbol)(count, array_of_requests, array_of_statuses, err);
 		}
 	}
-	
+
 	void tampi_waitall_internal_(MPI_Fint *count, MPI_Fint array_of_requests[], MPI_Fint *array_of_statuses, MPI_Fint *err)
 	{
 		*err = MPI_SUCCESS;

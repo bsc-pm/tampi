@@ -1,6 +1,6 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
-	
+
 	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
@@ -23,14 +23,14 @@ extern "C" {
 			(*symbol)(provided, err);
 		}
 	}
-	
+
 	void tampi_blocking_enabled(MPI_Fint *flag, MPI_Fint *err)
 	{
 		assert(flag != NULL);
 		*flag = Environment<Fortran>::isBlockingEnabled() ? 1 : 0;
 		*err = MPI_SUCCESS;
 	}
-	
+
 	void tampi_nonblocking_enabled(MPI_Fint *flag, MPI_Fint *err)
 	{
 		assert(flag != NULL);

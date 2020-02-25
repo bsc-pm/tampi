@@ -1,6 +1,6 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
-	
+
 	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
@@ -10,7 +10,7 @@
 
 extern "C" {
 	/* Polling service API */
-	
+
 	//! \brief Function that the runtime calls periodically
 	//!
 	//! \param service_data a pointer to data that the function uses and that
@@ -20,7 +20,7 @@ extern "C" {
 	//! achieved and that the function should not be called again with the given
 	//! service_data
 	typedef int (*nanos6_polling_service_t)(void *data);
-	
+
 	//! \brief Register a function and parameter of that function that the runtime
 	//! must call periodically to perform operations in a non-blocking fashion
 	//!
@@ -47,7 +47,7 @@ extern "C" {
 	//! \param service_data an opaque pointer to data that is passed to the service
 	//! function
 	void nanos6_register_polling_service(char const *name, nanos6_polling_service_t service, void *data);
-	
+
 	//! \brief Unregister a function and parameter of that function previously
 	//! registered through a call to nanos6_register_polling_service.
 	//!
@@ -63,10 +63,10 @@ extern "C" {
 	//! \param service_data an opaque pointer to the data that was passed to the
 	//! service function
 	void nanos6_unregister_polling_service(char const *name, nanos6_polling_service_t service, void *data);
-	
-	
+
+
 	/* Block/Unblock API */
-	
+
 	//! \brief Get a handler that allows to block and unblock the current task
 	//!
 	//! \returns an opaque pointer that is used for blocking and unblocking
@@ -79,7 +79,7 @@ extern "C" {
 	//! and a call to nanos6_unblock_task, the handler is discarded and a new
 	//! one must be obtained to perform another cycle of blocking and unblocking.
 	void *nanos6_get_current_blocking_context(void);
-	
+
 	//! \brief Block the current task
 	//!
 	//! \param blocking_context the value returned by a call to nanos6_get_current_blocking_context
@@ -91,7 +91,7 @@ extern "C" {
 	//! The runtime may choose to execute other tasks within the execution scope
 	//! of this call.
 	void nanos6_block_current_task(void *blocking_context);
-	
+
 	//! \brief Unblock a task previously or about to be blocked
 	//!
 	//! Mark as unblocked a task previously or about to be blocked inside a call
@@ -105,15 +105,15 @@ extern "C" {
 	//!
 	//! \param[in] blocking_context the handler used to block the task
 	void nanos6_unblock_task(void *blocking_context);
-	
-	
+
+
 	/* External Events API */
-	
+
 	//! \brief Get the event counter associated with the current task
 	//!
 	//! \returns the associated event counter with the executing task
 	void *nanos6_get_current_event_counter(void);
-	
+
 	//! \brief Increase the counter of events of the current task to prevent the release of dependencies
 	//!
 	//! This function atomically increases the counter of events of a task
@@ -121,7 +121,7 @@ extern "C" {
 	//! \param[in] event_counter The event counter according with the current task
 	//! \param[in] value The value to be incremented (must be positive or zero)
 	void nanos6_increase_current_task_event_counter(void *event_counter, unsigned int increment);
-	
+
 	//! \brief Decrease the counter of events of a task and release the dependencies if required
 	//!
 	//! This function atomically decreases the counter of events of a task and
@@ -131,7 +131,7 @@ extern "C" {
 	//! \param[in] event_counter The event counter of the task
 	//! \param[in] value The value to be decremented (must be positive or zero)
 	void nanos6_decrease_task_event_counter(void *event_counter, unsigned int decrement);
-	
+
 	//! \brief Notify that the external events API could be used
 	//!
 	//! This function notifies the runtime system as soon as possible
@@ -139,7 +139,7 @@ extern "C" {
 	//! function is required when TAMPI is configured with the option
 	//! "--enable-external-events-api-notification".
 	void nanos6_notify_task_event_counter_api(void);
-	
+
 	//! Prototypes of the API functions
 	typedef void register_polling_service_t(char const *, nanos6_polling_service_t, void *);
 	typedef void unregister_polling_service_t(char const *, nanos6_polling_service_t, void *);

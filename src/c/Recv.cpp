@@ -1,6 +1,6 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
-	
+
 	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
@@ -25,7 +25,7 @@ extern "C" {
 			static MPI_Recv_t *symbol = (MPI_Recv_t *) Symbol::loadNextSymbol(__func__);
 			err = (*symbol)(buf, count, datatype, source, tag, comm, status);
 		}
-		
+
 		return err;
 	}
 } // extern C

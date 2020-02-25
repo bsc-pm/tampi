@@ -1,6 +1,6 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
-	
+
 	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
@@ -25,10 +25,10 @@ private:
 	typedef typename Lang::status_ptr_t status_ptr_t;
 	typedef ::TicketManager<Lang> TicketManager;
 	typedef ::Ticket<Lang> Ticket;
-	
+
 public:
 	static void processRequest(request_t &request, status_ptr_t status = Lang::STATUS_IGNORE, bool blocking = true);
-	
+
 	static void processRequests(util::ArrayView<request_t> requests, status_ptr_t statuses = Lang::STATUSES_IGNORE, bool blocking = true);
 };
 
@@ -39,10 +39,10 @@ inline void RequestManager<C>::processRequest(request_t &request, status_ptr_t s
 	int finished = 0;
 	err = PMPI_Test(&request, &finished, status);
 	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Test");
-	
+
 	if (!finished) {
 		TicketManager &manager = Environment<C>::getTicketManager();
-		
+
 		if (blocking) {
 			Ticket ticket(status);
 			manager.addBlockingRequest(request, ticket);
@@ -51,7 +51,7 @@ inline void RequestManager<C>::processRequest(request_t &request, status_ptr_t s
 			manager.addNonBlockingRequest(request, status);
 		}
 	}
-	
+
 	// Nullify the request
 	request = C::REQUEST_NULL;
 }
@@ -60,15 +60,15 @@ template <>
 inline void RequestManager<C>::processRequests(util::ArrayView<request_t> requests, status_ptr_t statuses, bool blocking)
 {
 	assert(!requests.empty());
-	
+
 	int err;
 	int finished = 0;
 	err = PMPI_Testall(requests.size(), requests.begin(), &finished, statuses);
 	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Testall");
-	
+
 	if (!finished) {
 		TicketManager &manager = Environment<C>::getTicketManager();
-		
+
 		if (blocking) {
 			Ticket ticket(statuses);
 			manager.addBlockingRequests(requests, ticket);
@@ -77,7 +77,7 @@ inline void RequestManager<C>::processRequests(util::ArrayView<request_t> reques
 			manager.addNonBlockingRequests(requests, statuses);
 		}
 	}
-	
+
 	// Nullify the requests
 	for (int i = 0; i < requests.size(); ++i) {
 		requests[i] = C::REQUEST_NULL;
@@ -91,10 +91,10 @@ inline void RequestManager<Fortran>::processRequest(request_t &request, status_p
 	int finished = 0;
 	pmpi_test_(&request, &finished, status, &err);
 	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Test");
-	
+
 	if (!finished) {
 		TicketManager &manager = Environment<Fortran>::getTicketManager();
-		
+
 		if (blocking) {
 			Ticket ticket(status);
 			manager.addBlockingRequest(request, ticket);
@@ -103,7 +103,7 @@ inline void RequestManager<Fortran>::processRequest(request_t &request, status_p
 			manager.addNonBlockingRequest(request, status);
 		}
 	}
-	
+
 	// Nullify the request
 	request = Fortran::REQUEST_NULL;
 }
@@ -112,16 +112,16 @@ template <>
 inline void RequestManager<Fortran>::processRequests(util::ArrayView<request_t> requests, status_ptr_t statuses, bool blocking)
 {
 	assert(!requests.empty());
-	
+
 	int err;
 	int finished = 0;
 	int size = requests.size();
 	pmpi_testall_(&size, requests.begin(), &finished, statuses, &err);
 	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Testall");
-	
+
 	if (!finished) {
 		TicketManager &manager = Environment<Fortran>::getTicketManager();
-		
+
 		if (blocking) {
 			Ticket ticket(statuses);
 			manager.addBlockingRequests(requests, ticket);
@@ -130,7 +130,7 @@ inline void RequestManager<Fortran>::processRequests(util::ArrayView<request_t> 
 			manager.addNonBlockingRequests(requests, statuses);
 		}
 	}
-	
+
 	// Nullify the requests
 	for (int i = 0; i < requests.size(); ++i) {
 		requests[i] = Fortran::REQUEST_NULL;

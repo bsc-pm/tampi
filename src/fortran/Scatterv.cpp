@@ -1,6 +1,6 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
-	
+
 	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
@@ -17,7 +17,7 @@ extern "C" {
 	void mpi_iscatterv_(void *sendbuf, MPI_Fint sendcounts[], MPI_Fint displs[], MPI_Fint *sendtype,
 			void *recvbuf, MPI_Fint *recvcount, MPI_Fint *recvtype, MPI_Fint *root,
 			MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
-	
+
 	void mpi_scatterv_(void *sendbuf, MPI_Fint sendcounts[], MPI_Fint displs[], MPI_Fint *sendtype,
 			void *recvbuf, MPI_Fint *recvcount, MPI_Fint *recvtype, MPI_Fint *root, MPI_Fint *comm, MPI_Fint *err)
 	{
@@ -31,13 +31,13 @@ extern "C" {
 			(*symbol)(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, err);
 		}
 	}
-	
+
 	void tampi_iscatterv_internal_(void *sendbuf, MPI_Fint sendcounts[], MPI_Fint displs[], MPI_Fint *sendtype,
 			void *recvbuf, MPI_Fint *recvcount, MPI_Fint *recvtype, MPI_Fint *root,
 			MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err)
 	{
 		mpi_iscatterv_(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, request, err);
-		
+
 		if (Environment<Fortran>::isNonBlockingEnabled()) {
 			if (*err == MPI_SUCCESS) {
 				tampi_iwait_(request, MPI_F_STATUS_IGNORE, err);

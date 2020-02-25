@@ -1,6 +1,6 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
-	
+
 	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
@@ -24,7 +24,7 @@ extern "C" {
 			if (err != MPI_SUCCESS) return err;
 			err = MPI_Isend(sendbuf, sendcount, sendtype, dest, sendtag, comm, &requests[1]);
 			if (err != MPI_SUCCESS) return err;
-			
+
 			if (status != MPI_STATUS_IGNORE) {
 				MPI_Status statuses[2];
 				RequestManager<C>::processRequests({requests, 2}, statuses);

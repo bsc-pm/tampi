@@ -1,6 +1,6 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
-	
+
 	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
 */
 
@@ -97,7 +97,7 @@ public:
 		ErrorHandler::failIf(!symbol, "Symbol ", symbolName, " could not be found");
 		return symbol;
 	}
-	
+
 	static inline void *tryLoadNextSymbol(const std::string &symbolName)
 	{
 		return dlsym(RTLD_NEXT, symbolName.c_str());
