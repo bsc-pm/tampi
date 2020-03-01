@@ -54,6 +54,9 @@ AC_DEFUN([AX_CHECK_MPI],[
   AX_VAR_PUSHVALUE([LDFLAGS])
   AX_VAR_PUSHVALUE([LIBS])
 
+  AX_APPEND_FLAG([${MPI_CXXFLAGS}], [CXXFLAGS])
+  AX_APPEND_FLAG([${MPI_CXXLDFLAGS}], [LDFLAGS])
+
   AC_DEFINE([MPICH_IGNORE_CXX_SEEK],[],[Avoid SEEK_SET conflict in mpicxx.h])
   AC_DEFINE([MPICH_SKIP_MPICXX],[],[Avoids inclusion of C++ bindings. This library does not use them.])
 

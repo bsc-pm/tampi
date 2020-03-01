@@ -1,6 +1,10 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
+#	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
+#
+#	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
+
 AC_PREREQ([2.69])
 AC_INIT([tampi], [1.0.1], [pm-tools@bsc.es])
 
@@ -19,8 +23,8 @@ AM_CONDITIONAL(DEFINES_OMPI_CXX, test x"${OMPI_CXX}" != x"")
 AM_CONDITIONAL(DEFINES_MPICH_CXX, test x"${MPICH_CXX}" != x"")
 AM_CONDITIONAL(DEFINES_I_MPI_CXX, test x"${I_MPI_CXX}" != x"")
 
-# Check if debug mode is enabled
-AX_DEBUG_MODE
+# Prepare compilation flags before AC_PROG_CXX
+AX_COMPILE_FLAGS
 
 # AC_PROG_CXX does not search for full paths,
 # to allow MPICXX to be paths we need to set CXX
@@ -39,11 +43,8 @@ AM_SILENT_RULES([yes])
 # Checks for header files.
 AC_CHECK_HEADERS([unistd.h])
 
-# Check for libraries
-# MPI
+# Find and check the MPI library
 LX_FIND_MPI
-AX_APPEND_FLAG([${MPI_CXXFLAGS}], [CXXFLAGS])
-AX_APPEND_FLAG([${MPI_CXXLDFLAGS}], [LDFLAGS])
 AX_CHECK_MPI
 
 # Boost is no longer required
@@ -78,7 +79,10 @@ echo ""
 echo "Configuration summary:"
 echo "    Installation prefix... ${prefix}"
 echo ""
-echo "    MPI CXX compiler... ${MPICXX}"
+echo "    CXXFLAGS... ${tampi_CXXFLAGS} ${CXXFLAGS}"
+echo "    CPPFLAGS... ${tampi_CPPFLAGS} ${CPPFLAGS}"
+echo ""
+echo "    MPI C++ compiler... ${MPICXX}"
 echo ""
 echo "    Boost CPPFLAGS... ${BOOST_CPPFLAGS}"
 echo "    Boost LDFLAGS... ${BOOST_LDFLAGS}"

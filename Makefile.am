@@ -1,3 +1,7 @@
+#	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
+#
+#	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
+
 ACLOCAL_AMFLAGS=-I m4
 
 AM_CPPFLAGS=\
@@ -5,15 +9,11 @@ AM_CPPFLAGS=\
  -I@top_srcdir@/src \
  -I@top_srcdir@/src/common \
  -include "config.h" \
- $(CPPFLAGS)
+ $(tampi_CPPFLAGS)
 
-if debug_mode_enabled
-AM_CXXFLAGS=-O0 -g3 -Wall -Wextra $(CXXFLAGS)
-else
-AM_CXXFLAGS=-O3 -fno-rtti -fno-exceptions -fvisibility-inlines-hidden -Wall -Wextra $(CXXFLAGS)
-endif
+AM_CXXFLAGS=$(MPI_CXXFLAGS) $(tampi_CXXFLAGS)
 
-AM_LDFLAGS=$(BOOST_LDFLAGS) -ldl $(LDFLAGS)
+AM_LDFLAGS=$(BOOST_LDFLAGS) -ldl $(MPI_CXXLDFLAGS)
 LIBS=
 
 if DEFINES_I_MPI_CXX
