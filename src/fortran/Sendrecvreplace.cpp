@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #include <mpi.h>
@@ -68,7 +68,7 @@ extern "C" {
 				}
 			}
 		} else {
-			static mpi_sendrecv_replace_t *symbol = (mpi_sendrecv_replace_t *) Symbol::loadNextSymbol(__func__);
+			static mpi_sendrecv_replace_t *symbol = (mpi_sendrecv_replace_t *) Symbol::load(__func__);
 			(*symbol)(buf, count, datatype, dest, sendtag, source, recvtag, comm, status, err);
 		}
 	}

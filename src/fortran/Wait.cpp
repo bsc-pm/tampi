@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #include <mpi.h>
@@ -19,7 +19,7 @@ extern "C" {
 		if (Environment<Fortran>::isBlockingEnabled()) {
 			RequestManager<Fortran>::processRequest(*request, status);
 		} else {
-			static mpi_wait_t *symbol = (mpi_wait_t *) Symbol::loadNextSymbol(__func__);
+			static mpi_wait_t *symbol = (mpi_wait_t *) Symbol::load(__func__);
 			(*symbol)(request, status, err);
 		}
 	}

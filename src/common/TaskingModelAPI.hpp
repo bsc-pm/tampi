@@ -1,11 +1,13 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2019-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TASKING_MODEL_API_HPP
 #define TASKING_MODEL_API_HPP
+
+#include <cstdint>
 
 
 extern "C" {
@@ -140,17 +142,46 @@ extern "C" {
 	//! "--enable-external-events-api-notification".
 	void nanos6_notify_task_event_counter_api(void);
 
+	//! \brief Spawn asynchronously a function
+	//!
+	//! \param function the function to be spawned
+	//! \param args a parameter that is passed to the function
+	//! \param completion_callback an optional function that will be called when the function finishes
+	//! \param completion_args a parameter that is passed to the completion callback
+	//! \param label an optional name for the function
+	void nanos6_spawn_function(
+		void (*function)(void *),
+		void *args,
+		void (*completion_callback)(void *),
+		void *completion_args,
+		char const *label);
+
+	//! \brief Pause the current task for an amount of microseconds
+	//!
+	//! The task is paused for approximately the amount of microseconds
+	//! passed as a parameter. The runtime may choose to execute other
+	//! tasks within the execution scope of this call
+	//!
+	//! \param time_us the time that should be spent while paused
+	//! in microseconds
+	//!
+	//! \returns the actual time spent during the pause
+	uint64_t nanos6_wait_for(uint64_t time_us);
+
+
 	//! Prototypes of the API functions
-	typedef void register_polling_service_t(char const *, nanos6_polling_service_t, void *);
-	typedef void unregister_polling_service_t(char const *, nanos6_polling_service_t, void *);
+	typedef nanos6_polling_service_t polling_service_t;
+	typedef void register_polling_service_t(char const *, polling_service_t, void *);
+	typedef void unregister_polling_service_t(char const *, polling_service_t, void *);
 	typedef void*get_current_blocking_context_t(void);
-	typedef void block_current_task_t(void*);
-	typedef void unblock_task_t(void*);
+	typedef void block_current_task_t(void *);
+	typedef void unblock_task_t(void *);
 	typedef void*get_current_event_counter_t(void);
-	typedef void increase_current_task_event_counter_t(void*, unsigned int);
-	typedef void decrease_task_event_counter_t(void*, unsigned int);
+	typedef void increase_current_task_event_counter_t(void *, unsigned int);
+	typedef void decrease_task_event_counter_t(void *, unsigned int);
 	typedef void notify_task_event_counter_api_t(void);
+	typedef void spawn_function_t(void (*)(void *), void *, void (*)(void *), void *, char const *);
+	typedef uint64_t wait_for_t(uint64_t);
 }
 
 #endif // TASKING_MODEL_API_HPP
-

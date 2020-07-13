@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #include <config.h>
@@ -20,7 +20,7 @@ extern "C" {
 
 void mpi_init_(MPI_Fint *err)
 {
-	static mpi_init_t *symbol = (mpi_init_t *) Symbol::loadNextSymbol(__func__);
+	static mpi_init_t *symbol = (mpi_init_t *) Symbol::load(__func__);
 
 	// Disable both TAMPI modes
 	Environment<Fortran>::initialize(false, false);
@@ -31,7 +31,7 @@ void mpi_init_(MPI_Fint *err)
 
 void mpi_init_thread_(MPI_Fint *required, MPI_Fint *provided, MPI_Fint *err)
 {
-	static mpi_init_thread_t *symbol = (mpi_init_thread_t *) Symbol::loadNextSymbol(__func__);
+	static mpi_init_thread_t *symbol = (mpi_init_thread_t *) Symbol::load(__func__);
 
 	// Assuming that MPI does not provide MPI_TASK_MULTIPLE
 	MPI_Fint irequired = *required;
@@ -64,7 +64,7 @@ void mpi_init_thread_(MPI_Fint *required, MPI_Fint *provided, MPI_Fint *err)
 
 void mpi_finalize_(MPI_Fint *err)
 {
-	static mpi_finalize_t *symbol = (mpi_finalize_t *) Symbol::loadNextSymbol(__func__);
+	static mpi_finalize_t *symbol = (mpi_finalize_t *) Symbol::load(__func__);
 
 	// Call MPI_Finalize
 	(*symbol)(err);

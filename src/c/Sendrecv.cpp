@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #include <dlfcn.h>
@@ -33,7 +33,7 @@ extern "C" {
 				RequestManager<C>::processRequests({requests, 2});
 			}
 		} else {
-			static MPI_Sendrecv_t *symbol = (MPI_Sendrecv_t *) Symbol::loadNextSymbol(__func__);
+			static MPI_Sendrecv_t *symbol = (MPI_Sendrecv_t *) Symbol::load(__func__);
 			err = (*symbol)(sendbuf, sendcount, sendtype, dest, sendtag,
 					recvbuf, recvcount, recvtype, source, recvtag,
 					comm, status);

@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #include <config.h>
@@ -21,7 +21,7 @@ extern "C" {
 
 int MPI_Init(int *argc, char*** argv)
 {
-	static MPI_Init_t *symbol = (MPI_Init_t *) Symbol::loadNextSymbol(__func__);
+	static MPI_Init_t *symbol = (MPI_Init_t *) Symbol::load(__func__);
 
 	// Disable both TAMPI modes
 	Environment<C>::initialize(false, false);
@@ -32,7 +32,7 @@ int MPI_Init(int *argc, char*** argv)
 
 int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
 {
-	static MPI_Init_thread_t *symbol = (MPI_Init_thread_t *) Symbol::loadNextSymbol(__func__);
+	static MPI_Init_thread_t *symbol = (MPI_Init_thread_t *) Symbol::load(__func__);
 
 	// Assuming that MPI does not provide MPI_TASK_MULTIPLE
 	int irequired = required;
@@ -67,7 +67,7 @@ int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
 
 int MPI_Finalize()
 {
-	static MPI_Finalize_t *symbol = (MPI_Finalize_t *) Symbol::loadNextSymbol(__func__);
+	static MPI_Finalize_t *symbol = (MPI_Finalize_t *) Symbol::load(__func__);
 
 	// Call MPI_Finalize
 	int err = (*symbol)();

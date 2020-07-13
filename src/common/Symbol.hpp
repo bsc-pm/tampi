@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef SYMBOL_HPP
@@ -14,6 +14,18 @@
 
 #include "Definitions.hpp"
 #include "util/ErrorHandler.hpp"
+
+class Symbol {
+public:
+	static inline void *load(const std::string &symbolName, bool mandatory = true)
+	{
+		void *symbol = dlsym(RTLD_NEXT, symbolName.c_str());
+		if (symbol == nullptr && mandatory) {
+			ErrorHandler::fail("Could not find symbol ", symbolName);
+		}
+		return symbol;
+	}
+};
 
 // MPI Test fortran specializations
 extern "C" {
@@ -88,20 +100,5 @@ typedef void mpi_scatter_t(void*, MPI_Fint*, MPI_Fint*, void*, MPI_Fint*, MPI_Fi
 typedef void mpi_scatterv_t(void*, MPI_Fint[], MPI_Fint[], MPI_Fint*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_scan_t(void*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_exscan_t(void*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
-
-class Symbol {
-public:
-	static inline void *loadNextSymbol(const std::string &symbolName)
-	{
-		void *symbol = dlsym(RTLD_NEXT, symbolName.c_str());
-		ErrorHandler::failIf(!symbol, "Symbol ", symbolName, " could not be found");
-		return symbol;
-	}
-
-	static inline void *tryLoadNextSymbol(const std::string &symbolName)
-	{
-		return dlsym(RTLD_NEXT, symbolName.c_str());
-	}
-};
 
 #endif // SYMBOL_HPP

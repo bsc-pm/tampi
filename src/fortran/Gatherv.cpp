@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #include <mpi.h>
@@ -28,7 +28,7 @@ extern "C" {
 			if (*err == MPI_SUCCESS)
 				RequestManager<Fortran>::processRequest(request);
 		} else {
-			static mpi_gatherv_t *symbol = (mpi_gatherv_t *) Symbol::loadNextSymbol(__func__);
+			static mpi_gatherv_t *symbol = (mpi_gatherv_t *) Symbol::load(__func__);
 			(*symbol)(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, err);
 		}
 	}

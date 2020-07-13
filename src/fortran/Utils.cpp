@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #include <mpi.h>
@@ -19,7 +19,7 @@ extern "C" {
 			*provided = MPI_TASK_MULTIPLE;
 			*err = MPI_SUCCESS;
 		} else {
-			static mpi_query_thread_t *symbol = (mpi_query_thread_t *) Symbol::loadNextSymbol(__func__);
+			static mpi_query_thread_t *symbol = (mpi_query_thread_t *) Symbol::load(__func__);
 			(*symbol)(provided, err);
 		}
 	}

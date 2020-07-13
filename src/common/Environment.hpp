@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef ENVIRONMENT_HPP
@@ -15,23 +15,18 @@
 #include "TaskingModel.hpp"
 #include "TicketManager.hpp"
 
+
 template <typename Lang>
 class Environment {
 private:
 	static std::atomic<bool> _blockingEnabled;
 	static std::atomic<bool> _nonBlockingEnabled;
 
-	static int poll(__attribute__((unused)) void *data)
-	{
-		getTicketManager().checkRequests();
-		return 0;
-	}
+	static TaskingModel::polling_handle_t _pollingHandle;
 
 public:
 	Environment() = delete;
-
 	Environment(const Environment &) = delete;
-
 	const Environment& operator= (const Environment &) = delete;
 
 	static inline bool isBlockingEnabled()
@@ -44,42 +39,36 @@ public:
 		return _nonBlockingEnabled.load();
 	}
 
-	static inline bool isAnyModeEnabled()
-	{
-		return isBlockingEnabled() || isNonBlockingEnabled();
-	}
-
 	static void initialize(bool blockingMode, bool nonBlockingMode)
 	{
+		assert(!_blockingEnabled);
+		assert(!_nonBlockingEnabled);
+
 #if !HAVE_BLOCKING_MODE
 		blockingMode = false;
 #endif
 #if !HAVE_NONBLOCKING_MODE
 		nonBlockingMode = false;
 #endif
-		if (!isAnyModeEnabled()) {
-			enableBlocking(blockingMode);
-			enableNonBlocking(nonBlockingMode);
 
-			Lang::initialize();
-			TaskingModel::initialize(blockingMode, nonBlockingMode);
+		_blockingEnabled = blockingMode;
+		_nonBlockingEnabled = nonBlockingMode;
 
-			if (nonBlockingMode) {
-				TaskingModel::notifyTaskEventCounterAPI();
-			}
+		Lang::initialize();
+		TaskingModel::initialize(blockingMode, nonBlockingMode);
 
-			if (blockingMode || nonBlockingMode) {
-				TaskingModel::registerPollingService("TAMPI", Environment::poll);
-			}
+		if (blockingMode || nonBlockingMode) {
+			_pollingHandle = TaskingModel::registerPolling("TAMPI", Environment::polling);
 		}
 	}
 
 	static void finalize()
 	{
-		if (isAnyModeEnabled()) {
-			TaskingModel::unregisterPollingService("TAMPI", Environment::poll);
-			enableBlocking(false);
-			enableNonBlocking(false);
+		if (isBlockingEnabled() || isNonBlockingEnabled()) {
+			TaskingModel::unregisterPolling(_pollingHandle);
+
+			_blockingEnabled = false;
+			_nonBlockingEnabled = false;
 		}
 	}
 
@@ -90,15 +79,17 @@ public:
 	}
 
 private:
-	static inline void enableNonBlocking(bool enable)
+	static void polling(void *)
 	{
-		_nonBlockingEnabled.store(enable);
-	}
-
-	static inline void enableBlocking(bool enable)
-	{
-		_blockingEnabled.store(enable);
+		getTicketManager().checkRequests();
 	}
 };
+
+template <typename Lang>
+std::atomic<bool> Environment<Lang>::_blockingEnabled;
+template <typename Lang>
+std::atomic<bool> Environment<Lang>::_nonBlockingEnabled;
+template <typename Lang>
+TaskingModel::polling_handle_t Environment<Lang>::_pollingHandle;
 
 #endif // ENVIRONMENT_HPP

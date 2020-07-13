@@ -113,6 +113,7 @@ noinst_HEADERS = \
  src/common/TicketManager.hpp \
  src/common/TicketManagerInternals.hpp \
  src/common/util/ArrayView.hpp \
+ src/common/util/EnvironmentVariable.hpp \
  src/common/util/ErrorHandler.hpp \
  src/common/util/LockFreeQueue.hpp \
  src/common/util/SpinLock.hpp \

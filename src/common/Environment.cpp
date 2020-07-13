@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #include <cstdio>
@@ -12,16 +12,6 @@
 #include "TicketManager.hpp"
 #include "util/ErrorHandler.hpp"
 
-
-template<>
-std::atomic<bool> Environment<C>::_blockingEnabled(false);
-template<>
-std::atomic<bool> Environment<C>::_nonBlockingEnabled(false);
-
-template<>
-std::atomic<bool> Environment<Fortran>::_blockingEnabled(false);
-template<>
-std::atomic<bool> Environment<Fortran>::_nonBlockingEnabled(false);
 
 C::request_t C::REQUEST_NULL;
 C::status_ptr_t C::STATUS_IGNORE;

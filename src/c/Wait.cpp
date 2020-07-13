@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #include <dlfcn.h>
@@ -20,7 +20,7 @@ extern "C" {
 			assert(request != NULL);
 			RequestManager<C>::processRequest(*request, status);
 		} else {
-			static MPI_Wait_t *symbol = (MPI_Wait_t *) Symbol::loadNextSymbol(__func__);
+			static MPI_Wait_t *symbol = (MPI_Wait_t *) Symbol::load(__func__);
 			err = (*symbol)(request, status);
 		}
 		return err;
