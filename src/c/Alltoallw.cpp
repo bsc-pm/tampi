@@ -17,7 +17,7 @@ extern "C" {
 			void *recvbuf, MPI3CONST int recvcounts[], MPI3CONST int rdispls[], MPI3CONST MPI_Datatype recvtypes[], MPI_Comm comm)
 	{
 		int err = MPI_SUCCESS;
-		if (Environment<C>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			MPI_Request request;
 			err = MPI_Ialltoallw(sendbuf, sendcounts, sdispls, sendtypes,
 					recvbuf, recvcounts, rdispls, recvtypes,

@@ -18,7 +18,7 @@ extern "C" {
 			MPI_Datatype recvtype, MPI_Comm comm)
 	{
 		int err = MPI_SUCCESS;
-		if (Environment<C>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			MPI_Request request;
 			err = MPI_Iallgatherv(sendbuf, sendcount, sendtype,
 					recvbuf, recvcounts, displs, recvtype,

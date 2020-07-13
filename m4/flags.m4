@@ -6,7 +6,7 @@
 
 AC_DEFUN([AX_COMPILE_FLAGS], [
 	AC_ARG_ENABLE([debug-mode], [AS_HELP_STRING([--enable-debug-mode],
-		[Adds compiler debug flags and enables additional internal debugging mechanisms [default=disabled]])])
+		[Adds compiler debug flags and enables additional internal debugging mechanisms @<:@default=disabled@:>@])])
 
 	AS_IF([test "$enable_debug_mode" = yes],[
 		# Debug mode is enabled

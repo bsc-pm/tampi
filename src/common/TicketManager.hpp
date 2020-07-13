@@ -317,13 +317,17 @@ inline void TicketManager<Lang>::internalCheckEntryQueues()
 	do {
 		numBlk = std::min(numAvailable - total, NRPG);
 		numBlk = _blockingEntries.retrieve((BlockingEntry *)blockings, numBlk);
-		transferEntries((BlockingEntry *)blockings, numBlk);
-		total += numBlk;
+		if (numBlk > 0) {
+			transferEntries((BlockingEntry *)blockings, numBlk);
+			total += numBlk;
+		}
 
 		numNonBlk = std::min(numAvailable - total, NRPG);
 		numNonBlk = _nonBlockingEntries.retrieve((NonBlockingEntry *)nonBlockings, numNonBlk);
-		transferEntries((NonBlockingEntry *)nonBlockings, numNonBlk);
-		total += numNonBlk;
+		if (numNonBlk > 0) {
+			transferEntries((NonBlockingEntry *)nonBlockings, numNonBlk);
+			total += numNonBlk;
+		}
 	} while (total < numAvailable && (numBlk > 0 || numNonBlk > 0));
 }
 

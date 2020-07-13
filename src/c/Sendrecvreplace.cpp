@@ -17,7 +17,7 @@ extern "C" {
 			int sendtag, int source, int recvtag, MPI_Comm comm, MPI_Status *status)
 	{
 		int err = MPI_SUCCESS;
-		if (Environment<C>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			if (source == MPI_PROC_NULL || dest == MPI_PROC_NULL || count == 0) {
 				err = MPI_Sendrecv(
 						buf, count, datatype, dest, sendtag,

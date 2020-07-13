@@ -22,7 +22,7 @@ extern "C" {
 			MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
 			MPI_Fint *comm, MPI_Fint *err)
 	{
-		if (Environment<Fortran>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			MPI_Fint request;
 			mpi_ireduce_(sendbuf, recvbuf, count, datatype, op, root, comm, &request, err);
 			if (*err == MPI_SUCCESS)
@@ -39,7 +39,7 @@ extern "C" {
 	{
 		mpi_ireduce_(sendbuf, recvbuf, count, datatype, op, root, comm, request, err);
 
-		if (Environment<Fortran>::isNonBlockingEnabled()) {
+		if (Environment::isNonBlockingEnabled()) {
 			if (*err == MPI_SUCCESS) {
 				tampi_iwait_(request, MPI_F_STATUS_IGNORE, err);
 			}

@@ -19,7 +19,7 @@ extern "C" {
 
 	void mpi_recv_(void *buf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *source, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *status, MPI_Fint *err)
 	{
-		if (Environment<Fortran>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			MPI_Fint request;
 			mpi_irecv_(buf, count, datatype, source, tag, comm, &request, err);
 			if (*err == MPI_SUCCESS)
@@ -36,7 +36,7 @@ extern "C" {
 	{
 		mpi_irecv_(buf, count, datatype, source, tag, comm, request, err);
 
-		if (Environment<Fortran>::isNonBlockingEnabled()) {
+		if (Environment::isNonBlockingEnabled()) {
 			if (*err == MPI_SUCCESS) {
 				tampi_iwait_(request, status, err);
 			}

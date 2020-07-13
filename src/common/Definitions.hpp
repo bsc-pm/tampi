@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef DEFINITIONS_HPP
@@ -29,7 +29,7 @@ public:
 	static status_ptr_t STATUS_IGNORE;
 	static status_ptr_t STATUSES_IGNORE;
 
-	static void initialize()
+	static inline void initialize()
 	{
 		REQUEST_NULL = MPI_REQUEST_NULL;
 		STATUS_IGNORE = MPI_STATUS_IGNORE;
@@ -47,7 +47,7 @@ public:
 	static status_ptr_t STATUS_IGNORE;
 	static status_ptr_t STATUSES_IGNORE;
 
-	static void initialize()
+	static inline void initialize()
 	{
 		REQUEST_NULL = MPI_Request_c2f(MPI_REQUEST_NULL);
 		STATUS_IGNORE = MPI_F_STATUS_IGNORE;

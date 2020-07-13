@@ -18,7 +18,7 @@ extern "C" {
 
 	void mpi_barrier_(MPI_Fint *comm, MPI_Fint *err)
 	{
-		if (Environment<Fortran>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			MPI_Fint request;
 			mpi_ibarrier_(comm, &request, err);
 			if (*err == MPI_SUCCESS)
@@ -33,7 +33,7 @@ extern "C" {
 	{
 		mpi_ibarrier_(comm, request, err);
 
-		if (Environment<Fortran>::isNonBlockingEnabled()) {
+		if (Environment::isNonBlockingEnabled()) {
 			if (*err == MPI_SUCCESS) {
 				tampi_iwait_(request, MPI_F_STATUS_IGNORE, err);
 			}

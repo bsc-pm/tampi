@@ -16,7 +16,6 @@
 #include "TicketManager.hpp"
 
 
-template <typename Lang>
 class Environment {
 private:
 	static std::atomic<bool> _blockingEnabled;
@@ -43,18 +42,18 @@ public:
 	{
 		assert(!_blockingEnabled);
 		assert(!_nonBlockingEnabled);
-
-#if !HAVE_BLOCKING_MODE
-		blockingMode = false;
-#endif
-#if !HAVE_NONBLOCKING_MODE
-		nonBlockingMode = false;
-#endif
+		assert(!_pollingHandle);
 
 		_blockingEnabled = blockingMode;
 		_nonBlockingEnabled = nonBlockingMode;
 
-		Lang::initialize();
+#ifndef DISABLE_C_LANG
+		C::initialize();
+#endif
+#ifndef DISABLE_FORTRAN_LANG
+		Fortran::initialize();
+#endif
+
 		TaskingModel::initialize(blockingMode, nonBlockingMode);
 
 		if (blockingMode || nonBlockingMode) {
@@ -72,6 +71,7 @@ public:
 		}
 	}
 
+	template <typename Lang>
 	static inline TicketManager<Lang> &getTicketManager()
 	{
 		static TicketManager<Lang> _ticketManager;
@@ -81,15 +81,15 @@ public:
 private:
 	static void polling(void *)
 	{
-		getTicketManager().checkRequests();
+#ifndef DISABLE_C_LANG
+		TicketManager<C> &cManager = getTicketManager<C>();
+		cManager.checkRequests();
+#endif
+#ifndef DISABLE_FORTRAN_LANG
+		TicketManager<Fortran> &fortranManager = getTicketManager<Fortran>();
+		fortranManager.checkRequests();
+#endif
 	}
 };
-
-template <typename Lang>
-std::atomic<bool> Environment<Lang>::_blockingEnabled;
-template <typename Lang>
-std::atomic<bool> Environment<Lang>::_nonBlockingEnabled;
-template <typename Lang>
-TaskingModel::polling_handle_t Environment<Lang>::_pollingHandle;
 
 #endif // ENVIRONMENT_HPP

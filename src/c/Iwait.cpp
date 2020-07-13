@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #include <dlfcn.h>
@@ -21,7 +21,7 @@
 extern "C" {
 	int TAMPI_Iwait(MPI_Request *request, MPI_Status *status)
 	{
-		if (Environment<C>::isNonBlockingEnabled()) {
+		if (Environment::isNonBlockingEnabled()) {
 			RequestManager<C>::processRequest(*request, status, /* Non-blocking */ false);
 		}
 		return MPI_SUCCESS;

@@ -18,7 +18,7 @@ extern "C" {
 			MPI_Comm comm, MPI_Status *status)
 	{
 		int err = MPI_SUCCESS;
-		if (Environment<C>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			MPI_Request requests[2];
 			err = MPI_Irecv(recvbuf, recvcount, recvtype, source, recvtag, comm, &requests[0]);
 			if (err != MPI_SUCCESS) return err;

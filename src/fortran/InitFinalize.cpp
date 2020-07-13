@@ -23,7 +23,7 @@ void mpi_init_(MPI_Fint *err)
 	static mpi_init_t *symbol = (mpi_init_t *) Symbol::load(__func__);
 
 	// Disable both TAMPI modes
-	Environment<Fortran>::initialize(false, false);
+	Environment::initialize(false, false);
 
 	// Call to MPI_Init
 	(*symbol)(err);
@@ -46,17 +46,17 @@ void mpi_init_thread_(MPI_Fint *required, MPI_Fint *provided, MPI_Fint *err)
 	bool enableBlockingMode = false;
 	bool enableNonBlockingMode = false;
 	if (*provided == MPI_THREAD_MULTIPLE) {
-#if HAVE_BLOCKING_MODE
+#ifndef DISABLE_BLOCKING_MODE
 		if (*required == MPI_TASK_MULTIPLE) {
 			enableBlockingMode = true;
 		}
 #endif
-#if HAVE_NONBLOCKING_MODE
+#ifndef DISABLE_NONBLOCKING_MODE
 		enableNonBlockingMode = true;
 #endif
 	}
 
-	Environment<Fortran>::initialize(enableBlockingMode, enableNonBlockingMode);
+	Environment::initialize(enableBlockingMode, enableNonBlockingMode);
 	if (enableBlockingMode) {
 		*provided = MPI_TASK_MULTIPLE;
 	}
@@ -71,7 +71,7 @@ void mpi_finalize_(MPI_Fint *err)
 	if (*err != MPI_SUCCESS) return;
 
 	// Finalize the interoperability
-	Environment<Fortran>::finalize();
+	Environment::finalize();
 }
 
 } // extern C

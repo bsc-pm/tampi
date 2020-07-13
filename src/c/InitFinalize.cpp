@@ -24,7 +24,7 @@ int MPI_Init(int *argc, char*** argv)
 	static MPI_Init_t *symbol = (MPI_Init_t *) Symbol::load(__func__);
 
 	// Disable both TAMPI modes
-	Environment<C>::initialize(false, false);
+	Environment::initialize(false, false);
 
 	// Call MPI_Init
 	return (*symbol)(argc, argv);
@@ -47,17 +47,17 @@ int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
 	bool enableBlockingMode = false;
 	bool enableNonBlockingMode = false;
 	if (*provided == MPI_THREAD_MULTIPLE) {
-#if HAVE_BLOCKING_MODE
+#ifndef DISABLE_BLOCKING_MODE
 		if (required == MPI_TASK_MULTIPLE) {
 			enableBlockingMode = true;
 		}
 #endif
-#if HAVE_NONBLOCKING_MODE
+#ifndef DISABLE_NONBLOCKING_MODE
 		enableNonBlockingMode = true;
 #endif
 	}
 
-	Environment<C>::initialize(enableBlockingMode, enableNonBlockingMode);
+	Environment::initialize(enableBlockingMode, enableNonBlockingMode);
 	if (enableBlockingMode) {
 		*provided = MPI_TASK_MULTIPLE;
 	}
@@ -74,7 +74,7 @@ int MPI_Finalize()
 	if (err != MPI_SUCCESS) return err;
 
 	// Finalize the environment
-	Environment<C>::finalize();
+	Environment::finalize();
 
 	return err;
 }

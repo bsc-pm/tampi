@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef REQUEST_MANAGER_HPP
@@ -41,7 +41,7 @@ inline void RequestManager<C>::processRequest(request_t &request, status_ptr_t s
 	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Test");
 
 	if (!finished) {
-		TicketManager &manager = Environment<C>::getTicketManager();
+		TicketManager &manager = Environment::getTicketManager<C>();
 
 		if (blocking) {
 			Ticket ticket(status);
@@ -67,7 +67,7 @@ inline void RequestManager<C>::processRequests(util::ArrayView<request_t> reques
 	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Testall");
 
 	if (!finished) {
-		TicketManager &manager = Environment<C>::getTicketManager();
+		TicketManager &manager = Environment::getTicketManager<C>();
 
 		if (blocking) {
 			Ticket ticket(statuses);
@@ -93,7 +93,7 @@ inline void RequestManager<Fortran>::processRequest(request_t &request, status_p
 	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Test");
 
 	if (!finished) {
-		TicketManager &manager = Environment<Fortran>::getTicketManager();
+		TicketManager &manager = Environment::getTicketManager<Fortran>();
 
 		if (blocking) {
 			Ticket ticket(status);
@@ -120,7 +120,7 @@ inline void RequestManager<Fortran>::processRequests(util::ArrayView<request_t> 
 	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Testall");
 
 	if (!finished) {
-		TicketManager &manager = Environment<Fortran>::getTicketManager();
+		TicketManager &manager = Environment::getTicketManager<Fortran>();
 
 		if (blocking) {
 			Ticket ticket(statuses);

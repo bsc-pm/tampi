@@ -30,7 +30,7 @@ extern "C" {
 			void *buf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *dest, MPI_Fint *sendtag,
 			MPI_Fint *source, MPI_Fint *recvtag, MPI_Fint *comm, MPI_Fint *status, MPI_Fint *err)
 	{
-		if (Environment<Fortran>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			if (*source == MPI_PROC_NULL || *dest == MPI_PROC_NULL || *count == 0) {
 				return mpi_sendrecv_(
 						buf, count, datatype, dest, sendtag,

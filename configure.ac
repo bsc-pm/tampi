@@ -56,8 +56,7 @@ AC_CHECK_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 
 # Enable/disable blocking and non-blocking modes
-AX_CHECK_BLOCKING_MODE
-AX_CHECK_NONBLOCKING_MODE
+AX_CHECK_TAMPI_MODES
 
 AX_CHECK_CPUS
 
@@ -78,6 +77,9 @@ echo ""
 echo ""
 echo "Configuration summary:"
 echo "    Installation prefix... ${prefix}"
+echo ""
+echo "    TAMPI blocking mode... ${ac_blocking_mode}"
+echo "    TAMPI non-blocking mode... ${ac_nonblocking_mode}"
 echo ""
 echo "    CXXFLAGS... ${tampi_CXXFLAGS} ${CXXFLAGS}"
 echo "    CPPFLAGS... ${tampi_CPPFLAGS} ${CPPFLAGS}"

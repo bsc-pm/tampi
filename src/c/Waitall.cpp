@@ -16,7 +16,7 @@ extern "C" {
 	int MPI_Waitall(int count, MPI_Request array_of_requests[], MPI_Status array_of_statuses[])
 	{
 		int err = MPI_SUCCESS;
-		if (Environment<C>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			RequestManager<C>::processRequests({array_of_requests, count}, array_of_statuses);
 		} else {
 			static MPI_Waitall_t *symbol = (MPI_Waitall_t *) Symbol::load(__func__);

@@ -16,7 +16,7 @@
 extern "C" {
 	void mpi_waitall_(MPI_Fint *count, MPI_Fint array_of_requests[], MPI_Fint *array_of_statuses, MPI_Fint *err)
 	{
-		if (Environment<Fortran>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			RequestManager<Fortran>::processRequests({array_of_requests, *count}, array_of_statuses);
 			*err = MPI_SUCCESS;
 		} else {
@@ -28,7 +28,7 @@ extern "C" {
 	void tampi_waitall_internal_(MPI_Fint *count, MPI_Fint array_of_requests[], MPI_Fint *array_of_statuses, MPI_Fint *err)
 	{
 		*err = MPI_SUCCESS;
-		if (!Environment<Fortran>::isNonBlockingEnabled()) {
+		if (!Environment::isNonBlockingEnabled()) {
 			mpi_waitall_(count, array_of_requests, array_of_statuses, err);
 		}
 	}

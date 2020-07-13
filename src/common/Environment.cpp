@@ -13,6 +13,10 @@
 #include "util/ErrorHandler.hpp"
 
 
+std::atomic<bool> Environment::_blockingEnabled;
+std::atomic<bool> Environment::_nonBlockingEnabled;
+TaskingModel::polling_handle_t Environment::_pollingHandle;
+
 C::request_t C::REQUEST_NULL;
 C::status_ptr_t C::STATUS_IGNORE;
 C::status_ptr_t C::STATUSES_IGNORE;

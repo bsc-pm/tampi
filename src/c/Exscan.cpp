@@ -16,7 +16,7 @@ extern "C" {
 	int MPI_Exscan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 	{
 		int err = MPI_SUCCESS;
-		if (Environment<C>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			MPI_Request request;
 			err = MPI_Iexscan(sendbuf, recvbuf, count, datatype, op, comm, &request);
 			if (err == MPI_SUCCESS)

@@ -16,7 +16,7 @@ extern "C" {
 	int MPI_Bsend(MPI3CONST void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
 	{
 		int err = MPI_SUCCESS;
-		if (Environment<C>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			MPI_Request request;
 			err = MPI_Ibsend(buf, count, datatype, dest, tag, comm, &request);
 			if (err == MPI_SUCCESS)

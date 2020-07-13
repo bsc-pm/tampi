@@ -15,7 +15,7 @@
 extern "C" {
 	void mpi_query_thread_(MPI_Fint *provided, MPI_Fint *err)
 	{
-		if (Environment<Fortran>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			*provided = MPI_TASK_MULTIPLE;
 			*err = MPI_SUCCESS;
 		} else {
@@ -27,14 +27,14 @@ extern "C" {
 	void tampi_blocking_enabled(MPI_Fint *flag, MPI_Fint *err)
 	{
 		assert(flag != NULL);
-		*flag = Environment<Fortran>::isBlockingEnabled() ? 1 : 0;
+		*flag = Environment::isBlockingEnabled() ? 1 : 0;
 		*err = MPI_SUCCESS;
 	}
 
 	void tampi_nonblocking_enabled(MPI_Fint *flag, MPI_Fint *err)
 	{
 		assert(flag != NULL);
-		*flag = Environment<Fortran>::isNonBlockingEnabled() ? 1 : 0;
+		*flag = Environment::isNonBlockingEnabled() ? 1 : 0;
 		*err = MPI_SUCCESS;
 	}
 } // extern C

@@ -120,7 +120,12 @@ noinst_HEADERS = \
  src/common/util/Utils.hpp
 
 lib_LTLIBRARIES = libtampi.la libtampi-c.la libtampi-fortran.la
-libtampi_la_SOURCES=$(common_sources) $(c_api_sources) $(fortran_api_sources)
-libtampi_c_la_SOURCES = $(common_sources) $(c_api_sources)
-libtampi_fortran_la_SOURCES = $(common_sources) $(fortran_api_sources)
 
+libtampi_la_CPPFLAGS=$(AM_CPPFLAGS)
+libtampi_la_SOURCES=$(common_sources) $(c_api_sources) $(fortran_api_sources)
+
+libtampi_c_la_CPPFLAGS=$(AM_CPPFLAGS) -DDISABLE_FORTRAN_LANG
+libtampi_c_la_SOURCES = $(common_sources) $(c_api_sources)
+
+libtampi_fortran_la_CPPFLAGS=$(AM_CPPFLAGS) -DDISABLE_C_LANG
+libtampi_fortran_la_SOURCES = $(common_sources) $(fortran_api_sources)

@@ -16,7 +16,7 @@ extern "C" {
 	int MPI_Wait(MPI_Request *request, MPI_Status *status)
 	{
 		int err = MPI_SUCCESS;
-		if (Environment<C>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			assert(request != NULL);
 			RequestManager<C>::processRequest(*request, status);
 		} else {

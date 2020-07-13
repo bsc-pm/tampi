@@ -27,7 +27,7 @@ extern "C" {
 			void *recvbuf, MPI_Fint *recvcount, MPI_Fint *recvtype, MPI_Fint *source, MPI_Fint *recvtag,
 			MPI_Fint *comm, MPI_Fint *status, MPI_Fint *err)
 	{
-		if (Environment<Fortran>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			MPI_Fint requests[2];
 			mpi_irecv_(recvbuf, recvcount, recvtype, source, recvtag, comm, &requests[0], err);
 			if (*err != MPI_SUCCESS) return;

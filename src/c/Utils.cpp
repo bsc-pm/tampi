@@ -16,7 +16,7 @@ extern "C" {
 	int MPI_Query_thread(int *provided)
 	{
 		int err = MPI_SUCCESS;
-		if (Environment<C>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			assert(provided != NULL);
 			*provided = MPI_TASK_MULTIPLE;
 		} else {
@@ -29,14 +29,14 @@ extern "C" {
 	int TAMPI_Blocking_enabled(int *flag)
 	{
 		assert(flag != NULL);
-		*flag = Environment<C>::isBlockingEnabled() ? 1 : 0;
+		*flag = Environment::isBlockingEnabled() ? 1 : 0;
 		return MPI_SUCCESS;
 	}
 
 	int TAMPI_Nonblocking_enabled(int *flag)
 	{
 		assert(flag != NULL);
-		*flag = Environment<C>::isNonBlockingEnabled() ? 1 : 0;
+		*flag = Environment::isNonBlockingEnabled() ? 1 : 0;
 		return MPI_SUCCESS;
 	}
 } // extern C

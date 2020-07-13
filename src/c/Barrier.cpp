@@ -16,7 +16,7 @@ extern "C" {
 	int MPI_Barrier(MPI_Comm comm)
 	{
 		int err = MPI_SUCCESS;
-		if (Environment<C>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			MPI_Request request;
 			err = MPI_Ibarrier(comm, &request);
 			if (err == MPI_SUCCESS)

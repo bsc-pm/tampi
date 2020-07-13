@@ -17,7 +17,7 @@ extern "C" {
 			void* recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
 	{
 		int err = MPI_SUCCESS;
-		if (Environment<C>::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabled()) {
 			MPI_Request request;
 			err = MPI_Iscatterv(sendbuf, sendcounts, displs, sendtype,
 					recvbuf, recvcount, recvtype, root, comm, &request);
