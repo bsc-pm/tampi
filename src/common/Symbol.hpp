@@ -15,8 +15,16 @@
 #include "Definitions.hpp"
 #include "util/ErrorHandler.hpp"
 
+
+//! Class that allows the dynamic loading of symbols at run-time
 class Symbol {
 public:
+	//! \brief Load a symbol from the subsequent libraries
+	//!
+	//! \param symbolName The name of the symbol to load
+	//! \param mandatory Whether should abort the program if not found
+	//!
+	//! \returns An opaque pointer to the symbol or null if not found
 	static inline void *load(const std::string &symbolName, bool mandatory = true)
 	{
 		void *symbol = dlsym(RTLD_NEXT, symbolName.c_str());
@@ -27,7 +35,8 @@ public:
 	}
 };
 
-// MPI Test fortran specializations
+
+//! MPI Test fortran specializations
 extern "C" {
 void pmpi_abort_(MPI_Fint *, MPI_Fint *, MPI_Fint *);
 void pmpi_request_get_status_(MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
@@ -37,6 +46,7 @@ void pmpi_testany_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_F
 void pmpi_testsome_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint[], MPI_Fint*);
 } // extern C
 
+//! Prototypes of point-to-point operations in C
 typedef int MPI_Bsend_t(MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm);
 typedef int MPI_Finalize_t(void);
 typedef int MPI_Init_t(int*, char***);
@@ -51,6 +61,7 @@ typedef int MPI_Ssend_t(MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm);
 typedef int MPI_Wait_t(MPI_Request*, MPI_Status*);
 typedef int MPI_Waitall_t(int, MPI_Request[], MPI_Status[]);
 
+//! Prototypes of collective operations in C
 typedef int MPI_Allgather_t(MPI3CONST void*, int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm);
 typedef int MPI_Allgatherv_t(MPI3CONST void*, int, MPI_Datatype, void*, MPI3CONST int[], MPI3CONST int[], MPI_Datatype, MPI_Comm);
 typedef int MPI_Allreduce_t(MPI3CONST void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm);
@@ -69,6 +80,7 @@ typedef int MPI_Scatterv_t(MPI3CONST void*, MPI3CONST int[], MPI3CONST int[], MP
 typedef int MPI_Scan_t(MPI3CONST void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm);
 typedef int MPI_Exscan_t(MPI3CONST void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm);
 
+//! Prototypes of point-to-point operations in Fortran
 typedef void mpi_bsend_t(void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_finalize_t(MPI_Fint*);
 typedef void mpi_init_t(MPI_Fint*);
@@ -83,6 +95,7 @@ typedef void mpi_ssend_t(void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_
 typedef void mpi_wait_t(MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_waitall_t(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*);
 
+//! Prototypes of collective operations in Fortran
 typedef void mpi_allgather_t(void*, MPI_Fint*, MPI_Fint*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_allgatherv_t(void*, MPI_Fint*, MPI_Fint*, void*, MPI_Fint[], MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_allreduce_t(void*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);

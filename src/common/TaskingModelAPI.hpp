@@ -169,7 +169,7 @@ extern "C" {
 	uint64_t nanos6_wait_for(uint64_t time_us);
 
 
-	//! Prototypes of the API functions
+	//! Prototypes of the tasking model API functions
 	typedef nanos6_polling_service_t polling_service_t;
 	typedef void register_polling_service_t(char const *, polling_service_t, void *);
 	typedef void unregister_polling_service_t(char const *, polling_service_t, void *);

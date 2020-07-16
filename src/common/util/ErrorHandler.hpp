@@ -17,11 +17,12 @@
 #include "SpinLock.hpp"
 
 
+//! Class providing the functionality of error handling
 class ErrorHandler {
 private:
 	static SpinLock _lock;
 
-	template<typename T, typename... TS>
+	template <typename T, typename... TS>
 	static inline void emitReasonParts(std::ostringstream &oss, T const &firstReasonPart, TS... reasonParts)
 	{
 		oss << firstReasonPart;
@@ -66,7 +67,7 @@ private:
 		write(2, buffer, length);
 	}
 
-	template<typename T, typename... TS>
+	template <typename T, typename... TS>
 	static inline void safeEmitReasonParts(char *buffer, size_t size, T const &firstReasonPart, TS... reasonParts)
 	{
 		safeEmitPart(buffer, size, firstReasonPart);
@@ -78,7 +79,10 @@ private:
 	}
 
 public:
-	template<typename... TS>
+	//! \brief Print an error message and abort the execution
+	//!
+	//! \param reasonParts The reason of the failure
+	template <typename... TS>
 	static inline void fail(TS... reasonParts)
 	{
 		std::ostringstream oss;
@@ -98,7 +102,11 @@ public:
 #endif
 	}
 
-	template<typename... TS>
+	//! \brief Print an error message and abort the execution if failed
+	//!
+	//! \param failure Whether the condition failed
+	//! \param reasonParts The reason of the failure
+	template <typename... TS>
 	static inline void failIf(bool failure, TS... reasonParts)
 	{
 		if (__builtin_expect(!failure, 1)) {
@@ -108,7 +116,10 @@ public:
 		fail(reasonParts...);
 	}
 
-	template<typename... TS>
+	//! \brief Print a warning message
+	//!
+	//! \param reasonParts The reason of the warning
+	template <typename... TS>
 	static inline void warn(TS... reasonParts)
 	{
 		std::ostringstream oss;
@@ -122,7 +133,11 @@ public:
 		}
 	}
 
-	template<typename... TS>
+	//! \brief Print a warning message if failed
+	//!
+	//! \param failure Whether the condition failed
+	//! \param reasonParts The reason of the warning
+	template <typename... TS>
 	static inline void warnIf(bool failure, TS... reasonParts)
 	{
 		if (__builtin_expect(!failure, 1)) {

@@ -18,7 +18,7 @@
 	#define MPI3CONST
 #endif
 
-
+//! Class representing the C language for MPI
 class C {
 public:
 	typedef MPI_Request request_t;
@@ -37,6 +37,7 @@ public:
 	}
 };
 
+//! Class representing the Fortran language for MPI
 class Fortran {
 public:
 	typedef MPI_Fint request_t;

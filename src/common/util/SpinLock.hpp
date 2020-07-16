@@ -1,17 +1,18 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef SPIN_LOCK_HPP
 #define SPIN_LOCK_HPP
 
-#include "util/Utils.hpp"
-
 #include <atomic>
 
+#include "Utils.hpp"
 
+
+//! Class that provides the functionality of a spinlock
 class SpinLock {
 private:
 	const static size_t Size = MAX_SYSTEM_CPUS;
@@ -21,11 +22,13 @@ private:
 	alignas(CACHELINE_SIZE) size_t _next;
 
 public:
-	SpinLock()
-		: _head(0),
+	inline SpinLock() :
+		_head(0),
 		_next(0)
-	{}
+	{
+	}
 
+	//! \brief Aquire the spinlock
 	inline void lock()
 	{
 		const size_t head = _head.fetch_add(1, std::memory_order_relaxed);
@@ -35,6 +38,9 @@ public:
 		}
 	}
 
+	//! \brief Try to acquire the spinlock
+	//!
+	//! \returns Whether the spinlock was acquired
 	inline bool try_lock()
 	{
 		size_t head = _head.load(std::memory_order_relaxed);
@@ -48,6 +54,7 @@ public:
 					std::memory_order_relaxed);
 	}
 
+	//! \brief Release the spinlock
 	inline void unlock()
 	{
 		const size_t idx = ++_next % Size;

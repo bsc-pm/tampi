@@ -18,12 +18,17 @@
 #include "util/EnvironmentVariable.hpp"
 
 
+//! Class that gives access to the tasking model features
 class TaskingModel {
 public:
+	//! Prototype of a polling instance function
 	typedef void (*polling_function_t)(void *args);
+
+	//! Handle of polling instances
 	typedef size_t polling_handle_t;
 
 private:
+	//! Pointers to the tasking model functions
 	static register_polling_service_t *_registerPollingService;
 	static unregister_polling_service_t *_unregisterPollingService;
 	static get_current_blocking_context_t *_getCurrentBlockingContext;
@@ -36,6 +41,7 @@ private:
 	static spawn_function_t *_spawnFunction;
 	static wait_for_t *_waitFor;
 
+	//! Actual names of the tasking model functions
 	static const std::string _registerPollingServiceName;
 	static const std::string _unregisterPollingServiceName;
 	static const std::string _getCurrentBlockingContextName;
@@ -48,20 +54,31 @@ private:
 	static const std::string _spawnFunctionName;
 	static const std::string _waitForName;
 
+	//! Determine whether the polling feature should be done through
+	//! polling services. By default it is disabled, which makes the
+	//! polling feature to be implemented using tasks that are paused
+	//! periodically. This variable is called TAMPI_POLLING_SERVICES
 	static EnvironmentVariable<bool> _usePollingServices;
-	static EnvironmentVariable<uint64_t> _pollingInterval;
 
+	//! Internal structure to represent a polling instance
 	struct PollingInfo {
 		std::string _name;
 		polling_function_t _function;
 		void *_args;
+		uint64_t _frequency;
 		std::atomic<bool> _mustFinish;
 		std::atomic<bool> _finished;
 
-		inline PollingInfo(const std::string &name, polling_function_t function, void *args) :
+		inline PollingInfo(
+			const std::string &name,
+			polling_function_t function,
+			void *args,
+			uint64_t frequency
+		) :
 			_name(name),
 			_function(function),
 			_args(args),
+			_frequency(frequency),
 			_mustFinish(false),
 			_finished(false)
 		{
@@ -69,14 +86,35 @@ private:
 	};
 
 public:
+	//! \brief Initialize and load the symbols of the tasking model
+	//!
+	//! \param requireTaskBlockingAPI Whether needs the task blocking API
+	//! \param requireTaskEventsAPI Whether needs the task events API
 	static void initialize(bool requireTaskBlockingAPI, bool requireTaskEventsAPI);
 
+	//! \brief Register a polling instance
+	//!
+	//! This function registers a polling instance, which will call
+	//! the specified function with its argument periodically. The
+	//! polling function must accept a pointer to void and should
+	//! not return anything
+	//!
+	//! \param name The name of the polling instance
+	//! \param function The function to be called periodically
+	//! \param args The arguments of the function
+	//! \param frequency The frequency at which to call the function
+	//!                  in microseconds. This parameter is ignored
+	//!                  when leveraging polling services
+	//!
+	//! \returns A polling handle to unregister the instance once
+	//!          the polling should finish
 	static inline polling_handle_t registerPolling(
 		const std::string &name,
 		polling_function_t function,
-		void *data = nullptr
+		void *args,
+		uint64_t frequency
 	) {
-		PollingInfo *info = new PollingInfo(name, function, data);
+		PollingInfo *info = new PollingInfo(name, function, args, frequency);
 		assert(info != nullptr);
 
 		if (_usePollingServices) {
@@ -91,6 +129,15 @@ public:
 		return (polling_handle_t) info;
 	}
 
+	//! \brief Unregister a polling instance
+	//!
+	//! This function unregisters a polling instance, which will
+	//! prevent the associated polling function from being further
+	//! called. The polling function is guaranteed to not be called
+	//! after returing from this function. Note that other registered
+	//! polling instances may continue calling that function
+	//!
+	//! \param handle The handle of the polling instance to unregister
 	static inline void unregisterPolling(polling_handle_t handle)
 	{
 		PollingInfo *info = (PollingInfo *) handle;
@@ -110,36 +157,56 @@ public:
 		delete info;
 	}
 
+	//! \brief Get the blocking context of the current task
+	//!
+	//! \returns An opaque pointer of the blocking context
 	static inline void *getCurrentBlockingContext()
 	{
 		assert(_getCurrentBlockingContext);
 		return (*_getCurrentBlockingContext)();
 	}
 
+	//! \brief Block the current task
+	//!
+	//! \param context The blocking context of the current task
 	static inline void blockCurrentTask(void *context)
 	{
 		assert(_blockCurrentTask);
 		(*_blockCurrentTask)(context);
 	}
 
+	//! \brief Unblock a task
+	//!
+	//! \param context The blocking context of the task to unblock
 	static inline void unblockTask(void *context)
 	{
 		assert(_unblockTask);
 		(*_unblockTask)(context);
 	}
 
+	//! \brief Get the event counter of the current task
+	//!
+	//! \returns An opaque pointer of the event counter
 	static inline void *getCurrentEventCounter()
 	{
 		assert(_getCurrentEventCounter);
 		return (*_getCurrentEventCounter)();
 	}
 
+	//! \brief Increase the event counter of the current task
+	//!
+	//! \param counter The event counter of the current task
+	//! \param increment The amount of events to increase
 	static inline void increaseCurrentTaskEventCounter(void *counter, unsigned int increment)
 	{
 		assert(_increaseCurrentTaskEventCounter);
 		(*_increaseCurrentTaskEventCounter)(counter, increment);
 	}
 
+	//! \brief Decrease the event counter of a task
+	//!
+	//! \param counter The event counter of the target task
+	//! \param decrement The amount of events to decrease
 	static inline void decreaseTaskEventCounter(void *counter, unsigned int decrement)
 	{
 		assert(_decreaseTaskEventCounter);
@@ -147,6 +214,15 @@ public:
 	}
 
 private:
+	//! \brief Function called by all polling services
+	//!
+	//! This function is periodically called by all polling
+	//! services when implementing polling instances with
+	//! that tasking model feature
+	//!
+	//! \param args An opaque pointer to the polling info
+	//!
+	//! \returns Whether the polling service should unregister
 	static inline int pollingServiceFunction(void *args)
 	{
 		PollingInfo *info = (PollingInfo *) args;
@@ -159,27 +235,42 @@ private:
 		return 0;
 	}
 
+	//! \brief Function called by all polling tasks
+	//!
+	//! This is called only once per polling task when
+	//! implementing polling instances with that tasking
+	//! model feature. This represents the body of all
+	//! polling tasks
+	//!
+	//! \param args An opaque pointer to the polling info
 	static inline void pollingTaskFunction(void *args)
 	{
 		PollingInfo *info = (PollingInfo *) args;
 		assert(info != nullptr);
 		assert(_waitFor);
 
+		// Poll until it is externally notified to stop
 		while (!info->_mustFinish) {
 			// Call the actual polling function
 			info->_function(info->_args);
 
 			// Pause the polling task for some microseconds
-			(*_waitFor)(_pollingInterval);
+			(*_waitFor)(info->_frequency);
 		}
 	}
 
+	//! \brief Function called by a polling task when completes
+	//!
+	//! This function is called when a polling task fully
+	//! completes (e.g., all child tasks have completed)
+	//!
+	//! \param args An opaque pointer to the polling info
 	static inline void pollingTaskCompletes(void *args)
 	{
 		PollingInfo *info = (PollingInfo *) args;
 		assert(info != nullptr);
 
-		// The polling task completed
+		// The polling task has completed
 		info->_finished = true;
 	}
 };

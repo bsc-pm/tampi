@@ -9,11 +9,11 @@
 
 #include <config.h>
 
+#include <cstdint>
+
 #if defined(__SSE2__)
 #include <xmmintrin.h>
 #endif
-
-#include "util/ArrayView.hpp"
 
 #ifndef CACHELINE_SIZE
 #define CACHELINE_SIZE 64
@@ -24,30 +24,30 @@
 #endif
 
 namespace util {
-	template<class T, size_t Size = CACHELINE_SIZE>
+
+	//! Class that provides padding for a type
+	template <class T, size_t Size = CACHELINE_SIZE>
 	class Padded : public T {
-		constexpr static size_t roundup(size_t const x, size_t const y) {
-			return ((((x) + ((y) - 1)) / (y)) * (y));
+		//! \brief Computes the neareast integer multiple of a given value
+		//!
+		//! \param x The value to round
+		//! \param y The value which the result should be multiple of
+		//!
+		//! \returns The nearest multiple integer
+		constexpr static size_t roundup(size_t const x, size_t const y)
+		{
+			return (((x + (y - 1)) / y) * y);
 		}
 
+		//! The actual padding
 		uint8_t padding[roundup(sizeof(T), Size)-sizeof(T)];
 	};
 
+	//! Class providing uninitialized memory for a type
 	template <class T>
 	using Uninitialized = typename std::aligned_storage<sizeof(T), alignof(T)>::type;
 
-	template<typename Lang>
-	static inline int getActiveRequestCount(const util::ArrayView<typename Lang::request_t> &requests)
-	{
-		int active = 0;
-		for (int r = 0; r < requests.size(); ++r) {
-			if (requests[r] != Lang::REQUEST_NULL) {
-				++active;
-			}
-		}
-		return active;
-	}
-
+	//! \brief Pause the current thread to optimize spinning
 	static inline void spinWait()
 	{
 #if defined(__powerpc__) || defined(__powerpc64__) || defined(__PPC__) || defined(__PPC64__) || defined(_ARCH_PPC) || defined(_ARCH_PPC64)
