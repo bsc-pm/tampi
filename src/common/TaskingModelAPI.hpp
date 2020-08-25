@@ -138,8 +138,7 @@ extern "C" {
 	//!
 	//! This function notifies the runtime system as soon as possible
 	//! that the external events API could be used from now on. This
-	//! function is required when TAMPI is configured with the option
-	//! "--enable-external-events-api-notification".
+	//! function may be defined or not depending on the runtime system
 	void nanos6_notify_task_event_counter_api(void);
 
 	//! \brief Spawn asynchronously a function
