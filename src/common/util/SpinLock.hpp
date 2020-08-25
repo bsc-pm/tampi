@@ -12,12 +12,14 @@
 #include "Utils.hpp"
 
 
-//! Class that provides the functionality of a spinlock
+//! Class that implements a ticket array spinlock that focuses on
+//! avoiding the overhead when there are many threads trying to
+//! acquire the lock at the same time
 class SpinLock {
 private:
 	const static size_t Size = MAX_SYSTEM_CPUS;
 
-	alignas(CACHELINE_SIZE) util::Padded<std::atomic<size_t> > _buffer[Size] = {};
+	alignas(CACHELINE_SIZE) util::Padded<std::atomic<size_t> > _buffer[Size];
 	alignas(CACHELINE_SIZE) std::atomic<size_t> _head;
 	alignas(CACHELINE_SIZE) size_t _next;
 
@@ -26,6 +28,9 @@ public:
 		_head(0),
 		_next(0)
 	{
+		for (size_t i = 0; i < Size; ++i) {
+			std::atomic_init(_buffer[i].ptr_to_basetype(), (size_t) 0);
+		}
 	}
 
 	//! \brief Aquire the spinlock
@@ -48,10 +53,10 @@ public:
 		if (_buffer[idx].load(std::memory_order_relaxed) != head)
 			return false;
 
-		return std::atomic_compare_exchange_weak_explicit(
-					&_head, &head, head + 1,
-					std::memory_order_acquire,
-					std::memory_order_relaxed);
+		return std::atomic_compare_exchange_strong_explicit(
+			&_head, &head, head + 1,
+			std::memory_order_acquire,
+			std::memory_order_relaxed);
 	}
 
 	//! \brief Release the spinlock

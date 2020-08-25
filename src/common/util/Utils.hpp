@@ -28,6 +28,8 @@ namespace util {
 	//! Class that provides padding for a type
 	template <class T, size_t Size = CACHELINE_SIZE>
 	class Padded : public T {
+		using T::T;
+
 		//! \brief Computes the neareast integer multiple of a given value
 		//!
 		//! \param x The value to round
@@ -40,7 +42,16 @@ namespace util {
 		}
 
 		//! The actual padding
-		uint8_t padding[roundup(sizeof(T), Size)-sizeof(T)];
+		uint8_t padding[roundup(sizeof(T), Size) - sizeof(T)];
+
+	public:
+		//! \brief Get a pointer to the basetype object
+		//!
+		//! \returns A pointer to the basetype object
+		inline T *ptr_to_basetype()
+		{
+			return (T *) this;
+		}
 	};
 
 	//! Class providing uninitialized memory for a type
