@@ -11,11 +11,11 @@ AC_DEFUN([AX_COMPILE_FLAGS], [
 	AS_IF([test "$enable_debug_mode" = yes],[
 		# Debug mode is enabled
 		tampi_CPPFLAGS=""
-		tampi_CXXFLAGS="-O0 -g3 -Wall -Wextra"
+		tampi_CXXFLAGS="-Wall -Wextra -Wshadow -fvisibility=hidden -O0 -g3"
 	],[
 		# Debug mode is enabled
 		tampi_CPPFLAGS="-DNDEBUG"
-		tampi_CXXFLAGS="-O3 -fno-rtti -fno-exceptions -fvisibility-inlines-hidden -Wall -Wextra"
+		tampi_CXXFLAGS="-Wall -Wextra -Wshadow -fvisibility=hidden -O3"
 	])
 
 	AC_SUBST(tampi_CPPFLAGS)
