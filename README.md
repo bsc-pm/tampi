@@ -416,7 +416,7 @@ correct to specify the status to be ignored in both calls.
 
 More information about this work can be found in the articles listed below. Citations to this work should reference these articles.
 
-* Sala, K., Teruel, X., Perez, J. M., Peña, A. J., Beltran, V., & Labarta, J. (2018). **Integrating Blocking and Non-Blocking MPI Primitives with Task-Based Programming Models. Parallel Computing**. [Link to article](https://doi.org/10.1016/j.parco.2018.12.008).
+* Sala, K., Teruel, X., Perez, J. M., Peña, A. J., Beltran, V., & Labarta, J. (2019). **Integrating blocking and non-blocking MPI primitives with task-based programming models**. Parallel Computing, 85, 153-166. [Link to article](https://doi.org/10.1016/j.parco.2018.12.008).
 * Sala, K., Bellón, J., Farré, P., Teruel, X., Perez, J. M., Peña, A. J., Holmes, D., Beltran. V., & Labarta, J. (2018, September). **Improving the interoperability between MPI and task-based programming models**. In Proceedings of the 25th European MPI Users' Group Meeting (p. 6). ACM. [Link to article](https://doi.org/10.1145/3236367.3236382).
 
 
