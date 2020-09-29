@@ -12,6 +12,8 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Status *status)
 	{
@@ -30,3 +32,4 @@ extern "C" {
 	}
 } // extern C
 
+#pragma GCC visibility pop

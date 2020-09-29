@@ -12,6 +12,8 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	int	MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm)
 	{
@@ -29,3 +31,4 @@ extern "C" {
 	}
 } // extern C
 
+#pragma GCC visibility pop

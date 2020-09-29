@@ -13,6 +13,8 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	void mpi_ireduce_scatter_(void *sendbuf, void *recvbuf,
 			MPI_Fint recvcounts[], MPI_Fint *datatype, MPI_Fint *op,
@@ -47,3 +49,4 @@ extern "C" {
 	}
 } // extern C
 
+#pragma GCC visibility pop

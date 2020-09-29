@@ -12,6 +12,8 @@
 #include "Environment.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	int MPI_Query_thread(int *provided)
 	{
@@ -41,3 +43,4 @@ extern "C" {
 	}
 } // extern C
 
+#pragma GCC visibility pop

@@ -13,6 +13,8 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	void mpi_irecv_(void *buf, MPI_Fint *count, MPI_Fint *datatype, MPI_Fint *source, MPI_Fint *tag,
 			MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
@@ -44,3 +46,4 @@ extern "C" {
 	}
 } // extern C
 
+#pragma GCC visibility pop

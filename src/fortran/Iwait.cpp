@@ -17,6 +17,8 @@
 
 #include <assert.h>
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	void tampi_iwait_(MPI_Fint *request, MPI_Fint *status, MPI_Fint *err)
 	{
@@ -27,3 +29,4 @@ extern "C" {
 	}
 } // extern C
 
+#pragma GCC visibility pop

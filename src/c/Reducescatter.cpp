@@ -12,6 +12,8 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	int MPI_Reduce_scatter(MPI3CONST void *sendbuf, void *recvbuf, MPI3CONST int recvcounts[], MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 	{
@@ -27,5 +29,6 @@ extern "C" {
 		}
 		return err;
 	}
-}
+} // extern C
 
+#pragma GCC visibility pop

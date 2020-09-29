@@ -12,6 +12,8 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	int MPI_Wait(MPI_Request *request, MPI_Status *status)
 	{
@@ -27,3 +29,4 @@ extern "C" {
 	}
 } // extern C
 
+#pragma GCC visibility pop

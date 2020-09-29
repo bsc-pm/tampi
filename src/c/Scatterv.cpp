@@ -12,6 +12,8 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	int MPI_Scatterv(MPI3CONST void* sendbuf, MPI3CONST int sendcounts[], MPI3CONST int displs[], MPI_Datatype sendtype,
 			void* recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
@@ -31,3 +33,4 @@ extern "C" {
 	}
 } // extern C
 
+#pragma GCC visibility pop

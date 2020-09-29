@@ -13,6 +13,8 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	void mpi_issend_(void *buf, MPI_Fint *count, MPI_Fint *datatype,
 			MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm,
@@ -46,3 +48,4 @@ extern "C" {
 	}
 } // extern C
 
+#pragma GCC visibility pop

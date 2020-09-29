@@ -13,6 +13,8 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	void mpi_ialltoallw_(void *sendbuf, MPI_Fint sendcounts[],
 			MPI_Fint sdispls[], MPI_Fint sendtypes[],
@@ -55,5 +57,6 @@ extern "C" {
 			}
 		}
 	}
-}
+} // extern C
 
+#pragma GCC visibility pop

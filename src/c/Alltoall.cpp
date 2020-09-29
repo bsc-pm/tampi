@@ -12,6 +12,8 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	int MPI_Alltoall(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 			void *recvbuf, int recvcount, MPI_Datatype recvtype,
@@ -31,5 +33,6 @@ extern "C" {
 		}
 		return err;
 	}
-}
+} // extern C
 
+#pragma GCC visibility pop

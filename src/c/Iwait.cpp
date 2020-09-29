@@ -18,6 +18,8 @@
 
 #include <assert.h>
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	int TAMPI_Iwait(MPI_Request *request, MPI_Status *status)
 	{
@@ -28,3 +30,4 @@ extern "C" {
 	}
 } // extern C
 
+#pragma GCC visibility pop

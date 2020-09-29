@@ -13,6 +13,8 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	void mpi_ibarrier_(MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
 
@@ -41,3 +43,4 @@ extern "C" {
 	}
 } // extern C
 
+#pragma GCC visibility pop

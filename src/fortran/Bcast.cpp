@@ -13,6 +13,8 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	void mpi_ibcast_(void *buffer, MPI_Fint *count, MPI_Fint *datatype,
 			MPI_Fint *root, MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
@@ -43,3 +45,4 @@ extern "C" {
 	}
 } // extern C
 
+#pragma GCC visibility pop

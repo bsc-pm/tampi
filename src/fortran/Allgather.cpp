@@ -13,6 +13,8 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	void mpi_iallgather_(void *sendbuf, MPI_Fint *sendcount, MPI_Fint *sendtype,
 			void *recvbuf, MPI_Fint *recvcount, MPI_Fint *recvtype,
@@ -45,5 +47,6 @@ extern "C" {
 			}
 		}
 	}
-}
+} // extern C
 
+#pragma GCC visibility pop

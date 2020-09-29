@@ -17,66 +17,68 @@
 #include "Environment.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
+	int MPI_Init(int *argc, char*** argv)
+	{
+		static MPI_Init_t *symbol = (MPI_Init_t *) Symbol::load(__func__);
 
-int MPI_Init(int *argc, char*** argv)
-{
-	static MPI_Init_t *symbol = (MPI_Init_t *) Symbol::load(__func__);
+		// Disable both TAMPI modes
+		Environment::initialize(false, false);
 
-	// Disable both TAMPI modes
-	Environment::initialize(false, false);
-
-	// Call MPI_Init
-	return (*symbol)(argc, argv);
-}
-
-int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
-{
-	static MPI_Init_thread_t *symbol = (MPI_Init_thread_t *) Symbol::load(__func__);
-
-	// Assuming that MPI does not provide MPI_TASK_MULTIPLE
-	int irequired = required;
-	if (required == MPI_TASK_MULTIPLE) {
-		irequired = MPI_THREAD_MULTIPLE;
+		// Call MPI_Init
+		return (*symbol)(argc, argv);
 	}
 
-	// Call MPI_Init_thread
-	int err = (*symbol)(argc, argv, irequired, provided);
-	if (err != MPI_SUCCESS) return err;
+	int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
+	{
+		static MPI_Init_thread_t *symbol = (MPI_Init_thread_t *) Symbol::load(__func__);
 
-	bool enableBlockingMode = false;
-	bool enableNonBlockingMode = false;
-	if (*provided == MPI_THREAD_MULTIPLE) {
-#ifndef DISABLE_BLOCKING_MODE
+		// Assuming that MPI does not provide MPI_TASK_MULTIPLE
+		int irequired = required;
 		if (required == MPI_TASK_MULTIPLE) {
-			enableBlockingMode = true;
+			irequired = MPI_THREAD_MULTIPLE;
 		}
+
+		// Call MPI_Init_thread
+		int err = (*symbol)(argc, argv, irequired, provided);
+		if (err != MPI_SUCCESS) return err;
+
+		bool enableBlockingMode = false;
+		bool enableNonBlockingMode = false;
+		if (*provided == MPI_THREAD_MULTIPLE) {
+#ifndef DISABLE_BLOCKING_MODE
+			if (required == MPI_TASK_MULTIPLE) {
+				enableBlockingMode = true;
+			}
 #endif
 #ifndef DISABLE_NONBLOCKING_MODE
-		enableNonBlockingMode = true;
+			enableNonBlockingMode = true;
 #endif
+		}
+
+		Environment::initialize(enableBlockingMode, enableNonBlockingMode);
+		if (enableBlockingMode) {
+			*provided = MPI_TASK_MULTIPLE;
+		}
+
+		return MPI_SUCCESS;
 	}
 
-	Environment::initialize(enableBlockingMode, enableNonBlockingMode);
-	if (enableBlockingMode) {
-		*provided = MPI_TASK_MULTIPLE;
+	int MPI_Finalize()
+	{
+		static MPI_Finalize_t *symbol = (MPI_Finalize_t *) Symbol::load(__func__);
+
+		// Call MPI_Finalize
+		int err = (*symbol)();
+		if (err != MPI_SUCCESS) return err;
+
+		// Finalize the environment
+		Environment::finalize();
+
+		return err;
 	}
-
-	return MPI_SUCCESS;
-}
-
-int MPI_Finalize()
-{
-	static MPI_Finalize_t *symbol = (MPI_Finalize_t *) Symbol::load(__func__);
-
-	// Call MPI_Finalize
-	int err = (*symbol)();
-	if (err != MPI_SUCCESS) return err;
-
-	// Finalize the environment
-	Environment::finalize();
-
-	return err;
-}
-
 } // extern C
+
+#pragma GCC visibility pop

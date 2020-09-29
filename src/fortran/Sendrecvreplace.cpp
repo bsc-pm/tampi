@@ -13,6 +13,8 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	void mpi_alloc_mem_(MPI_Fint *size, MPI_Fint *info, void *baseptr, MPI_Fint *err);
 	void mpi_free_mem_(void *base, MPI_Fint *err);
@@ -74,3 +76,4 @@ extern "C" {
 	}
 } // extern C
 
+#pragma GCC visibility pop

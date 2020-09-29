@@ -17,6 +17,8 @@
 
 #include <assert.h>
 
+#pragma GCC visibility push(default)
+
 extern "C" {
 	void tampi_iwaitall_(MPI_Fint *count, MPI_Fint requests[], MPI_Fint *statuses, MPI_Fint *err)
 	{
@@ -27,3 +29,4 @@ extern "C" {
 	}
 } // extern C
 
+#pragma GCC visibility pop
