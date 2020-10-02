@@ -27,12 +27,12 @@ int main(int argc, char **argv)
 	const int required = MPI_THREAD_MULTIPLE;
 	CHECK(MPI_Init_thread(&argc, &argv, required, &provided));
 	ASSERT(provided == required);
-	
+
 	int rank, size;
 	CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
 	CHECK(MPI_Comm_size(MPI_COMM_WORLD, &size));
 	ASSERT(size >= 4);
-	
+
 	int * const buffer1 = (int *) std::malloc(MSG_NUM * MSG_SIZE * sizeof(int));
 	ASSERT(buffer1 != nullptr);
 
@@ -44,23 +44,23 @@ int main(int argc, char **argv)
 		ASSERT(buffer2 != nullptr);
 		ASSERT(buffer3 != nullptr);
 	}
-	
+
 	CHECK(MPI_Barrier(MPI_COMM_WORLD));
 	double startTime = getTime();
-	
+
 	#pragma omp parallel
 	#pragma omp single
 	{
 		for (int t = 0; t < TIMESTEPS; ++t) {
 			if (rank > 0) {
 				int *message = buffer1;
-				
+
 				for (int m = 0; m < MSG_NUM; ++m) {
 					#pragma omp task depend(out: message[0:MSG_SIZE-1])
 					for (int d = 0; d < MSG_SIZE; ++d) {
 						message[d] = d;
 					}
-					
+
 					#pragma omp task depend(in: message[0:MSG_SIZE-1])
 					{
 						MPI_Request requests[2];
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 				int *message1 = buffer1 + (MSG_NUM - 1) * MSG_SIZE;
 				int *message2 = buffer2 + (MSG_NUM - 1) * MSG_SIZE;
 				int *message3 = buffer3 + (MSG_NUM - 1) * MSG_SIZE;
-				
+
 				for (int m = MSG_NUM - 1; m >= 0; --m) {
 					#pragma omp task depend(out: message1[0:MSG_SIZE-1], message2[0:MSG_SIZE-1], message3[0:MSG_SIZE-1]) depend(out: statuses[m])
 					{
@@ -85,13 +85,13 @@ int main(int argc, char **argv)
 						requests[3] = MPI_REQUEST_NULL;
 						CHECK(TAMPI_Iwaitall(4, requests, statuses[m].status));
 					}
-					
+
 					#pragma omp task depend(in: message1[0:MSG_SIZE-1], message2[0:MSG_SIZE-1], message3[0:MSG_SIZE-1]) depend(in: statuses[m])
 					{
 						const MPI_Status &status1 = statuses[m].status[0];
 						const MPI_Status &status2 = statuses[m].status[1];
 						const MPI_Status &status3 = statuses[m].status[2];
-						
+
 						int count1, count2, count3;
 						CHECK(MPI_Get_count(&status1, MPI_INT, &count1));
 						CHECK(MPI_Get_count(&status2, MPI_INT, &count2));
@@ -99,14 +99,14 @@ int main(int argc, char **argv)
 						ASSERT(count1 == MSG_SIZE);
 						ASSERT(count2 == MSG_SIZE);
 						ASSERT(count3 == MSG_SIZE);
-						
+
 						ASSERT(status1.MPI_TAG == m);
 						ASSERT(status1.MPI_SOURCE == 1);
 						ASSERT(status2.MPI_TAG == m);
 						ASSERT(status2.MPI_SOURCE == 2);
 						ASSERT(status3.MPI_TAG == m);
 						ASSERT(status3.MPI_SOURCE == 3);
-						
+
 						for (int d = 0; d < MSG_SIZE; ++d) {
 							ASSERT(message1[d] == d);
 						}
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 							ASSERT(message3[d] == d);
 						}
 					}
-					
+
 					message1 -= MSG_SIZE;
 					message2 -= MSG_SIZE;
 					message3 -= MSG_SIZE;
@@ -126,21 +126,21 @@ int main(int argc, char **argv)
 		}
 		#pragma omp taskwait
 	}
-	
+
 	CHECK(MPI_Barrier(MPI_COMM_WORLD));
-	
+
 	if (rank == 0) {
 		double endTime = getTime();
 		fprintf(stdout, "Success, time: %f\n", endTime - startTime);
 	}
-	
+
 	CHECK(MPI_Finalize());
-	
+
 	std::free(buffer1);
 	if (rank == 0) {
 		std::free(buffer2);
 		std::free(buffer3);
 	}
-	
+
 	return 0;
 }

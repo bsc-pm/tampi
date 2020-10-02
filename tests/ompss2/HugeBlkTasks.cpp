@@ -26,26 +26,26 @@ int main(int argc, char **argv)
 	const int required = MPI_TASK_MULTIPLE;
 	CHECK(MPI_Init_thread(&argc, &argv, required, &provided));
 	ASSERT(provided == required);
-	
+
 	int rank, size;
 	CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
 	CHECK(MPI_Comm_size(MPI_COMM_WORLD, &size));
 	ASSERT(size > 1);
-	
+
 	int * const buffer = (int *) std::malloc(MSG_NUM * MSG_SIZE * sizeof(int));
 	ASSERT(buffer != nullptr);
-	
+
 	CHECK(MPI_Barrier(MPI_COMM_WORLD));
 	double startTime = getTime();
-	
+
 	for (int t = 0; t < TIMESTEPS; ++t) {
 		if (rank == 0) {
-			#pragma oss task out(buffer[0;TOTAL_SIZE]) label(init)
+			#pragma oss task out(buffer[0;TOTAL_SIZE]) label("init")
 			for (int d = 0; d < TOTAL_SIZE; ++d) {
 				buffer[d] = d;
 			}
-			
-			#pragma oss task in(buffer[0;TOTAL_SIZE]) shared(requests) label(send)
+
+			#pragma oss task in(buffer[0;TOTAL_SIZE]) private(requests) label("send")
 			{
 				for (int m = 0; m < MSG_NUM; ++m) {
 					CHECK(MPI_Isend(&buffer[m*MSG_SIZE], MSG_SIZE, MPI_INT, 1, m, MPI_COMM_WORLD, &requests[m]));
@@ -54,42 +54,42 @@ int main(int argc, char **argv)
 			}
 		} else if (rank == 1) {
 			int *message = buffer + (MSG_NUM - 1) * MSG_SIZE;
-			
-			#pragma oss task out(buffer[0;TOTAL_SIZE]) shared(requests) shared(statuses) label(recv)
+
+			#pragma oss task out(buffer[0;TOTAL_SIZE]) shared(requests) shared(statuses) label("recv")
 			{
 				for (int m = MSG_NUM - 1; m >= 0; --m) {
 					CHECK(MPI_Irecv(&buffer[m*MSG_SIZE], MSG_SIZE, MPI_INT, 0, m, MPI_COMM_WORLD, &requests[MSG_NUM-1-m]));
 				}
 				CHECK(MPI_Waitall(MSG_NUM, requests, statuses));
-				
+
 				for (int m = 0; m < MSG_NUM; ++m) {
 					ASSERT(statuses[m].MPI_TAG == MSG_NUM - 1 - m);
 					ASSERT(statuses[m].MPI_SOURCE == 0);
-					
+
 					int count;
 					CHECK(MPI_Get_count(&statuses[m], MPI_INT, &count));
 					ASSERT(count == MSG_SIZE);
 				}
 			}
-			
-			#pragma oss task in(buffer[0;TOTAL_SIZE]) label(check)
+
+			#pragma oss task in(buffer[0;TOTAL_SIZE]) label("check")
 			for (int d = 0; d < TOTAL_SIZE; ++d) {
 				ASSERT(buffer[d] == d);
 			}
 		}
 	}
 	#pragma oss taskwait
-	
+
 	CHECK(MPI_Barrier(MPI_COMM_WORLD));
-	
+
 	if (rank == 0) {
 		double endTime = getTime();
 		fprintf(stdout, "Success, time: %f\n", endTime - startTime);
 	}
-	
+
 	CHECK(MPI_Finalize());
-	
+
 	std::free(buffer);
-	
+
 	return 0;
 }

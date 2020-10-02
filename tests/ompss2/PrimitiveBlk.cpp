@@ -21,29 +21,29 @@ int main(int argc, char **argv)
 	const int required = MPI_TASK_MULTIPLE;
 	CHECK(MPI_Init_thread(&argc, &argv, required, &provided));
 	ASSERT(provided == required);
-	
+
 	int rank, size;
 	CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
 	CHECK(MPI_Comm_size(MPI_COMM_WORLD, &size));
 	ASSERT(size > 1);
-	
+
 	int * const buffer = (int *) std::malloc(MSG_NUM * MSG_SIZE * sizeof(int));
 	ASSERT(buffer != nullptr);
-	
+
 	CHECK(MPI_Barrier(MPI_COMM_WORLD));
 	double startTime = getTime();
-	
+
 	for (int t = 0; t < TIMESTEPS; ++t) {
 		if (rank == 0) {
 			int *message = buffer;
-			
+
 			for (int m = 0; m < MSG_NUM; ++m) {
-				#pragma oss task out(message[0;MSG_SIZE]) label(init)
+				#pragma oss task out(message[0;MSG_SIZE]) label("init")
 				for (int d = 0; d < MSG_SIZE; ++d) {
 					message[d] = d;
 				}
-				
-				#pragma oss task in(message[0;MSG_SIZE]) label(send)
+
+				#pragma oss task in(message[0;MSG_SIZE]) label("send")
 				{
 					CHECK(MPI_Send(message, MSG_SIZE, MPI_INT, 1, m, MPI_COMM_WORLD));
 				}
@@ -51,21 +51,21 @@ int main(int argc, char **argv)
 			}
 		} else if (rank == 1) {
 			int *message = buffer + (MSG_NUM - 1) * MSG_SIZE;
-			
+
 			for (int m = MSG_NUM - 1; m >= 0; --m) {
-				#pragma oss task out(message[0;MSG_SIZE]) label(recv)
+				#pragma oss task out(message[0;MSG_SIZE]) label("recv")
 				{
 					MPI_Status status;
 					CHECK(MPI_Recv(message, MSG_SIZE, MPI_INT, 0, m, MPI_COMM_WORLD, &status));
 					ASSERT(status.MPI_TAG == m);
 					ASSERT(status.MPI_SOURCE == 0);
-					
+
 					int count;
 					CHECK(MPI_Get_count(&status, MPI_INT, &count));
 					ASSERT(count == MSG_SIZE);
 				}
-				
-				#pragma oss task in(message[0;MSG_SIZE]) label(check)
+
+				#pragma oss task in(message[0;MSG_SIZE]) label("check")
 				for (int d = 0; d < MSG_SIZE; ++d) {
 					ASSERT(message[d] == d);
 				}
@@ -74,17 +74,17 @@ int main(int argc, char **argv)
 		}
 	}
 	#pragma oss taskwait
-	
+
 	CHECK(MPI_Barrier(MPI_COMM_WORLD));
-	
+
 	if (rank == 0) {
 		double endTime = getTime();
 		fprintf(stdout, "Success, time: %f\n", endTime - startTime);
 	}
-	
+
 	CHECK(MPI_Finalize());
-	
+
 	std::free(buffer);
-	
+
 	return 0;
 }

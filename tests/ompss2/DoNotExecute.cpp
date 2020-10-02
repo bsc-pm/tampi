@@ -13,16 +13,16 @@ int main(int argc, char **argv)
 	if (argc > 0) {
 		return 1;
 	}
-	
+
 	int provided;
 	const int required = MPI_TASK_MULTIPLE;
 	CHECK(MPI_Init_thread(&argc, &argv, required, &provided));
 	ASSERT(provided == required);
-	
+
 	int rank, size;
 	CHECK(MPI_Comm_rank(MPI_COMM_WORLD, &rank));
 	CHECK(MPI_Comm_size(MPI_COMM_WORLD, &size));
-	
+
 	void *sendbuf, *recvbuf;
 	MPI_Request request;
 	MPI_Status status;
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 	int count, *aux;
 	MPI_Comm comm;
 	MPI_Op op;
-	
+
 	TAMPI_Ibsend(sendbuf, count, type, count, count, comm, &request);
 	TAMPI_Irecv(recvbuf, count, type, count, count, comm, &request, &status);
 	TAMPI_Irsend(sendbuf, count, type, count, count, comm, &request);
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 	TAMPI_Issend(sendbuf, count, type, count, count, comm, &request);
 	TAMPI_Iwait(&request, &status);
 	TAMPI_Iwaitall(count, &request, &status);
-	
+
 	TAMPI_Iallgather(sendbuf, count, type, recvbuf, count, type, comm, &request);
 	TAMPI_Iallgatherv(sendbuf, count, type, recvbuf, aux, aux, type, comm, &request);
 	TAMPI_Iallreduce(sendbuf, recvbuf, count, type, op, comm, &request);
@@ -58,8 +58,8 @@ int main(int argc, char **argv)
 	TAMPI_Iexscan(sendbuf, recvbuf, count, type, op, comm, &request);
 	TAMPI_Wait(&request, &status);
 	TAMPI_Waitall(count, &request, &status);
-	
+
 	CHECK(MPI_Finalize());
-	
+
 	return 0;
 }

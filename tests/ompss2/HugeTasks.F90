@@ -45,30 +45,30 @@ start_time = MPI_Wtime()
 
 do t = 1, timesteps
   if (rank == 0) then
-    !$OSS TASK LABEL(init) DEFAULT(shared) PRIVATE(m,d) FIRSTPRIVATE(t) OUT(buffer(:,:))
+    !$OSS TASK LABEL("init") DEFAULT(shared) PRIVATE(m,d) FIRSTPRIVATE(t) OUT(buffer(:,:))
     do m = 1, msg_num
       do d = 1, msg_size
         buffer(d, m) = d + t
       enddo
     enddo
     !$OSS END TASK
-    
-    !$OSS TASK LABEL(init) DEFAULT(shared) PRIVATE(m,d,err) IN(buffer(:,:))
+
+    !$OSS TASK LABEL("init") DEFAULT(shared) PRIVATE(m,d,err,requests) IN(buffer(:,:))
     do m = 1, msg_num
       call MPI_Isend(buffer(:, m), msg_size, MPI_INTEGER, 1, m, MPI_COMM_WORLD, requests(m), err)
     enddo
     call MPI_Waitall(msg_num, requests, MPI_STATUSES_IGNORE, err)
     !$OSS END TASK
-  
+
   else if (rank == 1) then
-    !$OSS TASK LABEL(recv) DEFAULT(shared) PRIVATE(m,d,err) OUT(buffer(:,:), statuses(:,:))
+    !$OSS TASK LABEL("recv") DEFAULT(shared) PRIVATE(m,d,err) OUT(buffer(:,:), statuses(:,:))
     do m = 1, msg_num
       call MPI_Irecv(buffer(:, m), msg_size, MPI_INTEGER, 0, m, MPI_COMM_WORLD, requests(m), err)
     enddo
     call TAMPI_Iwaitall(msg_num, requests, statuses, err)
     !$OSS END TASK
-    
-    !$OSS TASK LABEL(init) DEFAULT(shared) PRIVATE(m,d,tmp,err) FIRSTPRIVATE(t) IN(buffer(:,:), statuses(:,:))
+
+    !$OSS TASK LABEL("init") DEFAULT(shared) PRIVATE(m,d,tmp,err) FIRSTPRIVATE(t) IN(buffer(:,:), statuses(:,:))
     do m = 1, msg_num
       if (statuses(MPI_SOURCE, m) /= 0) then
         write(*,'("Error: Wrong source")')
@@ -83,7 +83,7 @@ do t = 1, timesteps
         write(*,'("Error: Wrong message size")')
         stop
       endif
-      
+
       do d = 1, msg_size
         if (buffer(d, m) /= d + t) then
           write(*,'("Error: Wrong result")')
