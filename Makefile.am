@@ -9,11 +9,12 @@ AM_CPPFLAGS=\
  -I$(top_srcdir)/src \
  -I$(top_srcdir)/src/common \
  -include "config.h" \
+ $(PTHREAD_CFLAGS) \
  $(tampi_CPPFLAGS)
 
 AM_CXXFLAGS=$(MPI_CXXFLAGS) $(tampi_CXXFLAGS)
 
-AM_LDFLAGS=$(BOOST_LDFLAGS) -ldl $(MPI_CXXLDFLAGS)
+AM_LDFLAGS=$(BOOST_LDFLAGS) $(PTHREAD_CFLAGS) $(PTHREAD_LIBS) -ldl $(MPI_CXXLDFLAGS)
 LIBS=
 
 if DEFINES_I_MPI_CXX
