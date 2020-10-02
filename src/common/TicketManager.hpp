@@ -23,6 +23,8 @@
 #include "util/Utils.hpp"
 
 
+namespace tampi {
+
 //! Class that manages all the tickets and its corresponding requests
 //! created by tasks. It provides functions to efficiently add new
 //! tickets and requests to the system, and also, it defines functions
@@ -40,7 +42,7 @@ private:
 	typedef typename Lang::request_t request_t;
 	typedef typename Lang::status_t status_t;
 	typedef typename Lang::status_ptr_t status_ptr_t;
-	typedef ::Ticket<Lang> Ticket;
+	typedef tampi::Ticket<Lang> Ticket;
 	typedef std::function<void()> ProgressFunction;
 
 	//! Structure representing a blocking request in the pre-queues
@@ -474,5 +476,7 @@ const int TicketManager<Lang>::NENTRIES;
 
 template <typename Lang>
 const int TicketManager<Lang>::NRPG;
+
+} // namespace tampi
 
 #endif // TICKET_MANAGER_HPP

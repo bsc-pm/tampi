@@ -16,6 +16,8 @@
 #include "TicketManager.hpp"
 
 
+namespace tampi {
+
 //! Class that represents the environment and controls
 //! which TAMPI modes are enabled
 class Environment {
@@ -140,5 +142,7 @@ private:
 #endif
 	}
 };
+
+} // namespace tampi
 
 #endif // ENVIRONMENT_HPP

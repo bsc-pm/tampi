@@ -10,6 +10,7 @@
 #include <iterator>
 
 
+namespace tampi {
 namespace util {
 
 //! Class that encapsulates an array previously allocated
@@ -202,6 +203,6 @@ util::reverse_adaptor<T> reverse(T&& iterable)
 }
 
 } // namespace util
+} // namespace tampi
 
 #endif // ARRAY_VIEW_HPP
-

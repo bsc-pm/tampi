@@ -22,6 +22,7 @@
 #include "SpinLock.hpp"
 
 
+namespace tampi {
 namespace util {
 
 //! Class that provides the functionality of a lock free queue
@@ -96,5 +97,6 @@ public:
 };
 
 } // namespace util
+} // namespace tampi
 
 #endif // LOCK_FREE_QUEUE_HPP

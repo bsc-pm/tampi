@@ -9,6 +9,8 @@
 #include "util/ErrorHandler.hpp"
 
 
+namespace tampi {
+
 //! Enable/disable polling services
 EnvironmentVariable<bool> TaskingModel::_usePollingServices("TAMPI_POLLING_SERVICES", false);
 
@@ -90,3 +92,5 @@ const std::string TaskingModel::_decreaseTaskEventCounterName("nanos6_decrease_t
 const std::string TaskingModel::_notifyTaskEventCounterAPIName("nanos6_notify_task_event_counter_api");
 const std::string TaskingModel::_spawnFunctionName("nanos6_spawn_function");
 const std::string TaskingModel::_waitForName("nanos6_wait_for");
+
+} // namespace tampi

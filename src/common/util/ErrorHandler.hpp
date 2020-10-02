@@ -17,6 +17,8 @@
 #include "SpinLock.hpp"
 
 
+namespace tampi {
+
 //! Class providing the functionality of error handling
 class ErrorHandler {
 private:
@@ -147,5 +149,7 @@ public:
 		warn(reasonParts...);
 	}
 };
+
+} // namespace tampi
 
 #endif // ERROR_HANDLER_HPP

@@ -16,7 +16,7 @@
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
 
-#include <assert.h>
+using namespace tampi;
 
 #pragma GCC visibility push(default)
 

@@ -14,6 +14,8 @@
 #include "util/ErrorHandler.hpp"
 
 
+namespace tampi {
+
 //! Class that represents the context of a task and provides
 //! several functions to bind events to the task, either in
 //! a blocking or non-blocking manner
@@ -114,6 +116,8 @@ private:
 		}
 	}
 };
+
+} // namespace tampi
 
 #endif // TASK_CONTEXT_HPP
 

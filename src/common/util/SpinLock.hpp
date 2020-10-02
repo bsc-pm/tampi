@@ -12,6 +12,8 @@
 #include "Utils.hpp"
 
 
+namespace tampi {
+
 //! Class that implements a ticket array spinlock that focuses on
 //! avoiding the overhead when there are many threads trying to
 //! acquire the lock at the same time
@@ -67,5 +69,6 @@ public:
 	}
 };
 
-#endif // SPIN_LOCK_HPP
+} // namespace tampi
 
+#endif // SPIN_LOCK_HPP

@@ -16,6 +16,8 @@
 #include "util/ErrorHandler.hpp"
 
 
+namespace tampi {
+
 //! Class that allows the dynamic loading of symbols at run-time
 class Symbol {
 public:
@@ -34,17 +36,6 @@ public:
 		return symbol;
 	}
 };
-
-
-//! MPI Test fortran specializations
-extern "C" {
-void pmpi_abort_(MPI_Fint *, MPI_Fint *, MPI_Fint *);
-void pmpi_request_get_status_(MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
-void pmpi_test_(MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
-void pmpi_testall_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint*);
-void pmpi_testany_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
-void pmpi_testsome_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint[], MPI_Fint*);
-} // extern C
 
 //! Prototypes of point-to-point operations in C
 typedef int MPI_Bsend_t(MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm);
@@ -113,5 +104,19 @@ typedef void mpi_scatter_t(void*, MPI_Fint*, MPI_Fint*, void*, MPI_Fint*, MPI_Fi
 typedef void mpi_scatterv_t(void*, MPI_Fint[], MPI_Fint[], MPI_Fint*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_scan_t(void*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 typedef void mpi_exscan_t(void*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
+
+} // namespace tampi
+
+extern "C" {
+
+//! MPI Test fortran specializations
+void pmpi_abort_(MPI_Fint *, MPI_Fint *, MPI_Fint *);
+void pmpi_request_get_status_(MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
+void pmpi_test_(MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
+void pmpi_testall_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint*);
+void pmpi_testany_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
+void pmpi_testsome_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint[], MPI_Fint*);
+
+} // extern C
 
 #endif // SYMBOL_HPP

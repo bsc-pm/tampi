@@ -13,6 +13,8 @@
 #include "util/ErrorHandler.hpp"
 
 
+namespace tampi {
+
 std::atomic<bool> Environment::_blockingEnabled;
 std::atomic<bool> Environment::_nonBlockingEnabled;
 TaskingModel::polling_handle_t Environment::_pollingHandle;
@@ -27,6 +29,8 @@ Fortran::status_ptr_t Fortran::STATUS_IGNORE;
 Fortran::status_ptr_t Fortran::STATUSES_IGNORE;
 
 SpinLock ErrorHandler::_lock;
+
+} // namespace tampi
 
 #if !defined(NDEBUG)
 namespace boost {

@@ -18,6 +18,9 @@
 	#define MPI3CONST
 #endif
 
+
+namespace tampi {
+
 //! Class representing the C language for MPI
 class C {
 public:
@@ -55,5 +58,7 @@ public:
 		STATUSES_IGNORE = MPI_F_STATUSES_IGNORE;
 	}
 };
+
+} // namespace tampi
 
 #endif // DEFINITIONS_HPP

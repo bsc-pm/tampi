@@ -16,6 +16,8 @@
 #include "Environment.hpp"
 #include "Symbol.hpp"
 
+using namespace tampi;
+
 #pragma GCC visibility push(default)
 
 extern "C" {

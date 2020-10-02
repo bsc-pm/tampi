@@ -13,6 +13,8 @@
 #include <string>
 
 
+namespace tampi {
+
 //! Class that represents an environment variable
 template <typename T>
 class EnvironmentVariable {
@@ -90,5 +92,6 @@ public:
 	}
 };
 
+} // namespace tampi
 
 #endif // ENVIRONMENT_VARIABLE_HPP

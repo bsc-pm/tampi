@@ -15,6 +15,8 @@
 #include "TaskContext.hpp"
 
 
+namespace tampi {
+
 //! Class that tracks the pending requests issued by a task
 template <typename Lang>
 class Ticket {
@@ -129,6 +131,8 @@ private:
 		std::copy(&status, &status+1, outStatus);
 	}
 };
+
+} // namespace tampi
 
 #endif // TICKET_HPP
 

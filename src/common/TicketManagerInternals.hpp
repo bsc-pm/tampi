@@ -15,6 +15,8 @@
 #include "Ticket.hpp"
 
 
+namespace tampi {
+
 //! Class that provides storage for requests and tickets
 template <typename Lang, size_t Capacity>
 class TicketManagerInternals {
@@ -22,7 +24,7 @@ private:
 	typedef typename Lang::request_t request_t;
 	typedef typename Lang::status_t status_t;
 	typedef typename Lang::status_ptr_t status_ptr_t;
-	typedef ::Ticket<Lang> Ticket;
+	typedef tampi::Ticket<Lang> Ticket;
 
 	//! Structure to map requests and tickets. Notice that
 	//! a ticket may be associated to multiple requests
@@ -206,5 +208,7 @@ public:
 		}
 	}
 };
+
+} // namespace tampi
 
 #endif // TICKET_MANAGER_INTERNALS_HPP

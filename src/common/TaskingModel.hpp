@@ -18,6 +18,8 @@
 #include "util/EnvironmentVariable.hpp"
 
 
+namespace tampi {
+
 //! Class that gives access to the tasking model features
 class TaskingModel {
 public:
@@ -274,6 +276,8 @@ private:
 		info->_finished = true;
 	}
 };
+
+} // namespace tampi
 
 #endif // TASKING_MODEL_HPP
 

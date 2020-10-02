@@ -8,14 +8,13 @@
 
 #include "include/TAMPI_Decl.h"
 
-#include "util/ErrorHandler.hpp"
-
 #include "Definitions.hpp"
 #include "Environment.hpp"
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
+#include "util/ErrorHandler.hpp"
 
-#include <assert.h>
+using namespace tampi;
 
 #pragma GCC visibility push(default)
 
