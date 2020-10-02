@@ -186,7 +186,7 @@ of [LLVM OpenMP](https://github.com/bsc-pm/llvm) and [OmpSs-2](https://github.co
 
 ### Using the non-blocking mode
 
-To activate this mode from an applications, users must:
+To activate this mode from applications, users must:
 
 * Include the `TAMPI.h` header in C or `TAMPIf.h` in Fortran.
 * Initialize the MPI with `MPI_Init_thread` requesting at least the standard `MPI_THREAD_MULTIPLE`
@@ -470,8 +470,8 @@ $ make install
 where `$INSTALLATION_PREFIX` is the directory into which to install TAMPI, and `$BOOST_HOME` is the
 prefix of the Boost installation. An MPI installation with multi-threading support must be available
 when configuring the library. The MPI frontend compiler for C++ (usually `mpicxx`) must be provided
-by either adding the binary's path to the `PATH` environment variable (i.e., executing `export
-PATH=/path/to/mpi/bin:$PATH`) or by setting the `MPICXX` environment variable.
+when configuring by either adding the binary's path to the `PATH` environment variable (i.e.,
+executing `export PATH=/path/to/mpi/bin:$PATH`) or by setting the `MPICXX` environment variable.
 
 Other optional configuration flags are:
 * `--disable-blocking-mode`: Disables the blocking mode of TAMPI. `MPI_TASK_MULTIPLE` threading level is
