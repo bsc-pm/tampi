@@ -15,8 +15,8 @@
 
 namespace tampi {
 
-std::atomic<bool> Environment::_blockingEnabled;
-std::atomic<bool> Environment::_nonBlockingEnabled;
+std::atomic<bool> Environment::_blockingEnabled(false);
+std::atomic<bool> Environment::_nonBlockingEnabled(false);
 TaskingModel::polling_handle_t Environment::_pollingHandle;
 EnvironmentVariable<uint64_t> Environment::_pollingFrequency("TAMPI_POLLING_FREQUENCY", 500);
 
