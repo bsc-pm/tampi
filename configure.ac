@@ -13,25 +13,15 @@ AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([config.h])
 
 AC_LANG([C++])
-# MPICXX and implementation specific variables will be read for compile checks
-AC_ARG_VAR(MPICXX,[MPI C++ frontend compiler])
-AC_ARG_VAR(OMPI_CXX, [OpenMPI C++ backend compiler])
-AC_ARG_VAR(MPICH_CXX,[MPICH C++ backend compiler])
-AC_ARG_VAR(I_MPI_CXX,[Intel MPI C++ backend compiler])
-
-AM_CONDITIONAL(DEFINES_OMPI_CXX, test x"${OMPI_CXX}" != x"")
-AM_CONDITIONAL(DEFINES_MPICH_CXX, test x"${MPICH_CXX}" != x"")
-AM_CONDITIONAL(DEFINES_I_MPI_CXX, test x"${I_MPI_CXX}" != x"")
 
 # Prepare compilation flags before AC_PROG_CXX
 AX_COMPILE_FLAGS
 
-# AC_PROG_CXX does not search for full paths,
-# to allow MPICXX to be paths we need to set CXX
-: ${CXX="$MPICXX"}
-
 # Look for a valid MPI compiler
-AC_PROG_CXX([$CXX $MPICXX mpiicpc mpicxx])
+AC_PROG_CXX
+
+# Retrieve compiler version
+AX_CHECK_CXX_VERSION
 
 # AM_PROG_AR must be called before LT_INIT or a warning ensues
 AM_PROG_AR
@@ -79,6 +69,8 @@ AC_OUTPUT
 echo ""
 echo ""
 echo "Configuration summary:"
+echo "    Compiler version... ${CXX_VERSION}"
+echo ""
 echo "    Installation prefix... ${prefix}"
 echo ""
 echo "    TAMPI blocking mode... ${ac_blocking_mode}"
@@ -87,7 +79,8 @@ echo ""
 echo "    CXXFLAGS... ${tampi_CXXFLAGS} ${CXXFLAGS}"
 echo "    CPPFLAGS... ${tampi_CPPFLAGS} ${CPPFLAGS}"
 echo ""
-echo "    MPI C++ compiler... ${MPICXX}"
+echo "    MPI CXXFLAGS... ${MPI_CXXFLAGS}"
+echo "    MPI LDFLAGS... ${MPI_CXXLDFLAGS}"
 echo ""
 echo "    Boost CPPFLAGS... ${BOOST_CPPFLAGS}"
 echo "    Boost LDFLAGS... ${BOOST_LDFLAGS}"

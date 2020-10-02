@@ -108,15 +108,10 @@ Please, check that provided directories are correct.
 
   AC_SUBST([mpiflags])
 
-  # Restore variables to its original state except CXXFLAGS
-  # CXXFLAGS variable must include Intel MPI multithreading flag
-  # Otherwise, libtool will use sequential version libmpi.so as MPICXX requirement
-  # and link will fail
   AX_VAR_POPVALUE([CPPFLAGS])
   AX_VAR_POPVALUE([CXXFLAGS])
   AX_VAR_POPVALUE([LDFLAGS])
   AX_VAR_POPVALUE([LIBS])
-
 
   AC_LANG_POP([C++])
 

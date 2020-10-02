@@ -17,16 +17,6 @@ AM_CXXFLAGS=$(MPI_CXXFLAGS) $(tampi_CXXFLAGS)
 AM_LDFLAGS=$(BOOST_LDFLAGS) $(PTHREAD_CFLAGS) $(PTHREAD_LIBS) -ldl $(MPI_CXXLDFLAGS)
 LIBS=
 
-if DEFINES_I_MPI_CXX
-export I_MPI_CXX=@I_MPI_CXX@
-endif
-if DEFINES_OMPI_CXX
-export OMPI_CXX=@OMPI_CXX@
-endif
-if DEFINES_MPICH_CXX
-export MPICH_CXX=@MPICH_CXX@
-endif
-
 include_HEADERS= \
  src/include/TAMPI.h \
  src/include/TAMPI_Decl.h \

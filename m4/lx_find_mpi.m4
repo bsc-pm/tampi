@@ -178,7 +178,8 @@ AC_DEFUN([LX_QUERY_MPI_COMPILER],
          LIBS=$MPI_$3LDFLAGS
 
          AC_TRY_LINK([#include <mpi.h>],
-                     [int rank, size;
+                     [int rank, size, provided;
+                      MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
                       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
                       MPI_Comm_size(MPI_COMM_WORLD, &size);],
                      [# Add a define for testing at compile time.

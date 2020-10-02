@@ -1,8 +1,19 @@
 #
 # SYNOPSIS
 #
+#   AX_CHECK_CXX_VERSION
+#
 #   AX_COMPILE_FLAGS
 #
+
+AC_DEFUN([AX_CHECK_CXX_VERSION], [
+	AC_MSG_CHECKING([the ${CXX} version])
+	if test x"$CC" != x"" ; then
+		CXX_VERSION=$(${CXX} --version | head -1)
+	fi
+	AC_MSG_RESULT([$CXX_VERSION])
+	AC_SUBST([CXX_VERSION])
+])
 
 AC_DEFUN([AX_COMPILE_FLAGS], [
 	AC_ARG_ENABLE([debug-mode], [AS_HELP_STRING([--enable-debug-mode],
