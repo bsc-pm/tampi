@@ -329,11 +329,12 @@ not required in the standard MPI_Irecv. The following snippet shows the C protot
 and TAMPI_Isend.
 
 ```c
-int TAMPI_Irecv(const void *buf, int count, MPI_Datatype datatype, int dest,
-		int tag, MPI_Comm comm, MPI_Request *request, MPI_Status *status);
+int TAMPI_Irecv(void *buf, int count, MPI_Datatype datatype, int src,
+                int tag, MPI_Comm comm, MPI_Request *request,
+                MPI_Status *status);
 
-int TAMPI_Isend(const void *buf, int count, MPI_Datatype datatype, int dest,
-		int tag, MPI_Comm comm, MPI_Request *request);
+int TAMPI_Isend(const void *buf, int count, MPI_Datatype datatype, int dst,
+                int tag, MPI_Comm comm, MPI_Request *request);
 ```
 
 With those wrappers, we cover the conventional phase of MPI applications where they start the communications
