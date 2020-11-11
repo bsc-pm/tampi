@@ -426,8 +426,8 @@ More information about this work can be found in the articles listed below. **Ci
 Furthermore, several works have demonstrated the performance and programmability benefits of leveraging the TAMPI library in hybrid applications:
 
 * Ciesko, J., Martínez-Ferrer, P. J., Veigas, R. P., Teruel, X., & Beltran, V. (2020). **HDOT—An approach towards productive programming of hybrid applications**. Journal of Parallel and Distributed Computing, 137, 104-118. [[Article link]](https://doi.org/10.1016/j.jpdc.2019.11.003)
-* Sala, K., Rico, A., Beltran, V. (2020). **Towards Data-Flow Parallelization for Adaptive Mesh Refinement Applications**. In 2020 IEEE International Conference on Cluster Computing (CLUSTER). IEEE. *(Accepted, pending publication)*
-* Maroñas, M., Teruel, X., Bull, M., Ayguadé, E., Beltran, V. (2020). **Evaluating Worksharing Tasks on Distributed Environments**. In 2020 IEEE International Conference on Cluster Computing (CLUSTER). IEEE. *(Accepted, pending publication)*
+* Sala, K., Rico, A., & Beltran, V. (2020, September). **Towards Data-Flow Parallelization for Adaptive Mesh Refinement Applications**. In 2020 IEEE International Conference on Cluster Computing (CLUSTER) (pp. 314-325). IEEE. [[Article link]](https://doi.org/10.1109/CLUSTER49012.2020.00042)
+* Maroñas, M., Teruel, X., Bull, J. M., Ayguadé, E., & Beltran, V. (2020, September). **Evaluating Worksharing Tasks on Distributed Environments**. In 2020 IEEE International Conference on Cluster Computing (CLUSTER) (pp. 69-80). IEEE. [[Article link]](https://doi.org/10.1109/CLUSTER49012.2020.00017)
 
 
 # Getting Started
