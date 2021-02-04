@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2019-2020 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2019-2021 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TASKING_MODEL_HPP
@@ -164,8 +164,13 @@ public:
 			assert(_unregisterPollingService);
 			(*_unregisterPollingService)(info->_name.c_str(), pollingServiceFunction, info);
 		} else {
+			assert(_waitFor);
+
 			// Wait until the spawned task completes
-			while (!info->_finished);
+			while (!info->_finished) {
+				// Yield in case there is a single available CPU
+				(*_waitFor)(1000);
+			}
 		}
 		delete info;
 	}
