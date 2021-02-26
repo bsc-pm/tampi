@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2021 Barcelona Supercomputing Center (BSC)
 */
 
 #include <config.h>
@@ -15,6 +15,7 @@
 
 #include "Definitions.hpp"
 #include "Environment.hpp"
+#include "Instrument.hpp"
 #include "Symbol.hpp"
 
 using namespace tampi;
@@ -30,7 +31,14 @@ extern "C" {
 		Environment::initialize(false, false);
 
 		// Call MPI_Init
-		return (*symbol)(argc, argv);
+		int err = (*symbol)(argc, argv);
+		if (err != MPI_SUCCESS)
+			return err;
+
+		// Initialize the distributed instrumentation
+		Instrument::initialize();
+
+		return MPI_SUCCESS;
 	}
 
 	int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
@@ -64,6 +72,9 @@ extern "C" {
 		if (enableBlockingMode) {
 			*provided = MPI_TASK_MULTIPLE;
 		}
+
+		// Initialize the distributed instrumentation
+		Instrument::initialize();
 
 		return MPI_SUCCESS;
 	}

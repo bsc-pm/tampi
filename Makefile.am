@@ -1,6 +1,6 @@
 #	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 #
-#	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
+#	Copyright (C) 2015-2021 Barcelona Supercomputing Center (BSC)
 
 ACLOCAL_AMFLAGS=-I m4
 
@@ -95,6 +95,7 @@ common_sources = \
 noinst_HEADERS = \
  src/common/Definitions.hpp \
  src/common/Environment.hpp \
+ src/common/Instrument.hpp \
  src/common/RequestManager.hpp \
  src/common/Symbol.hpp \
  src/common/TaskContext.hpp \
@@ -104,6 +105,7 @@ noinst_HEADERS = \
  src/common/TicketManager.hpp \
  src/common/TicketManagerInternals.hpp \
  src/common/util/ArrayView.hpp \
+ src/common/util/Clock.hpp \
  src/common/util/EnvironmentVariable.hpp \
  src/common/util/ErrorHandler.hpp \
  src/common/util/LockFreeQueue.hpp \
