@@ -1,12 +1,13 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2021 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef ARRAY_VIEW_HPP
 #define ARRAY_VIEW_HPP
 
+#include <cassert>
 #include <iterator>
 
 
@@ -34,6 +35,7 @@ public:
 		_begin(begin),
 		_end(begin + static_cast<size_t>(length))
 	{
+		assert(length >= 0);
 	}
 
 	//! \brief Construct an arrayview

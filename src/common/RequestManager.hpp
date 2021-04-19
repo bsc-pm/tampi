@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2021 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef REQUEST_MANAGER_HPP
@@ -105,7 +105,9 @@ inline void RequestManager<C>::processRequests(
 	status_ptr_t statuses,
 	bool blocking
 ) {
-	assert(!requests.empty());
+	if (requests.empty()) {
+		return;
+	}
 
 	int err;
 	int finished = 0;
@@ -160,7 +162,9 @@ inline void RequestManager<Fortran>::processRequests(
 	status_ptr_t statuses,
 	bool blocking
 ) {
-	assert(!requests.empty());
+	if (requests.empty()) {
+		return;
+	}
 
 	int err;
 	int finished = 0;
