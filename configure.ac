@@ -53,8 +53,7 @@ AX_CHECK_TAMPI_MODES
 
 AX_CHECK_CPUS
 
-# Turn off shared libraries.
-LT_INIT([static])
+LT_INIT([shared static pic-only])
 
 # Enable/disable architecture specific code
 AS_CASE([$host],
