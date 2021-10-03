@@ -430,6 +430,12 @@ Furthermore, several works have demonstrated the performance and programmability
 * Maroñas, M., Teruel, X., Bull, J. M., Ayguadé, E., & Beltran, V. (2020, September). **Evaluating Worksharing Tasks on Distributed Environments**. In 2020 IEEE International Conference on Cluster Computing (CLUSTER) (pp. 69-80). IEEE. [[Article link]](https://doi.org/10.1109/CLUSTER49012.2020.00017)
 
 
+## Acknowledgments
+
+This work was financially supported by the PRACE project funded in part by the EU’s Horizon 2020
+Research programme (2014-2020) under grant agreement 823767.
+
+
 # Getting Started
 
 This section describes the software requirements of TAMPI, the building and installation process and how the library
