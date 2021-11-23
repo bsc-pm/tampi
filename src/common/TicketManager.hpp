@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TICKET_MANAGER_HPP
@@ -57,6 +57,13 @@ private:
 			_position(position)
 		{
 		}
+
+		inline BlockingEntry() :
+			_request(Lang::REQUEST_NULL),
+			_ticket(nullptr),
+			_position(0)
+		{
+		}
 	};
 
 	//! Structure representing a non-blocking request in the pre-queues
@@ -76,6 +83,14 @@ private:
 			_status(status),
 			_taskContext(taskContext),
 			_position(position)
+		{
+		}
+
+		inline NonBlockingEntry() :
+			_request(Lang::REQUEST_NULL),
+			_status(Lang::STATUS_IGNORE),
+			_taskContext(),
+			_position(0)
 		{
 		}
 	};
