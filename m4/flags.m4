@@ -8,7 +8,7 @@
 
 AC_DEFUN([AX_CHECK_CXX_VERSION], [
 	AC_MSG_CHECKING([the ${CXX} version])
-	if test x"$CC" != x"" ; then
+	if test x"$CXX" != x"" ; then
 		CXX_VERSION=$(${CXX} --version | head -1)
 	fi
 	AC_MSG_RESULT([$CXX_VERSION])
