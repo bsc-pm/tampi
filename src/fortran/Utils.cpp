@@ -28,14 +28,14 @@ extern "C" {
 		}
 	}
 
-	void tampi_blocking_enabled(MPI_Fint *flag, MPI_Fint *err)
+	void tampi_blocking_enabled_(MPI_Fint *flag, MPI_Fint *err)
 	{
 		assert(flag != NULL);
 		*flag = Environment::isBlockingEnabled() ? 1 : 0;
 		*err = MPI_SUCCESS;
 	}
 
-	void tampi_nonblocking_enabled(MPI_Fint *flag, MPI_Fint *err)
+	void tampi_nonblocking_enabled_(MPI_Fint *flag, MPI_Fint *err)
 	{
 		assert(flag != NULL);
 		*flag = Environment::isNonBlockingEnabled() ? 1 : 0;
