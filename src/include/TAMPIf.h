@@ -1,13 +1,13 @@
 !
 !    This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 !
-!    Copyright (C) 2015-2019 Barcelona Supercomputing Center (BSC)
+!    Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
 !
 
 #ifndef TAMPIF_H
 #define TAMPIF_H
 
-! MPI Threading level to enable the non-blocking mode of TAMPI
+! MPI Threading level to enable the blocking mode of TAMPI
 #define MPI_TASK_MULTIPLE 4
 
 

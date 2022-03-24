@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2021 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
 */
 
 #include <config.h>
@@ -31,6 +31,7 @@ extern "C" {
 
 		// Call to MPI_Init
 		(*symbol)(err);
+		if (*err != MPI_SUCCESS) return;
 
 		// Initialize the distributed instrumentation
 		Instrument::initialize();
