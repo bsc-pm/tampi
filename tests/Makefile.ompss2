@@ -45,17 +45,18 @@ TAMPI_LIBRARY_PATH=$(TAMPI_HOME)/lib
 endif
 
 TAMPI_CPPFLAGS=-I$(TAMPI_INCLUDE_PATH)
-TAMPI_LDFLAGS=-L$(TAMPI_LIBRARY_PATH) -l:libtampi.a -lstdc++
+TAMPI_LDCFLAGS=-L$(TAMPI_LIBRARY_PATH) -ltampi-c
+TAMPI_LDFFLAGS=-L$(TAMPI_LIBRARY_PATH) -ltampi-fortran
 
 all: $(PROGS)
 
 %.ompss2.test: ompss2/%.cpp
 	@echo "  MPICXX $@"
-	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(CFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDFLAGS)
+	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(CFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDCFLAGS)
 
 %.ompss2.test: ompss2/%.F90
 	@echo "  MPIF90 $@"
-	$(F90_WRAPPERS) $(MPIF90) $(CPPFLAGS) $(FFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDFLAGS)
+	$(F90_WRAPPERS) $(MPIF90) $(CPPFLAGS) $(FFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDFFLAGS)
 
 clean:
 	rm -f *.o *.test *.mod
