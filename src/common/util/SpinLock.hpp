@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef SPIN_LOCK_HPP
@@ -9,6 +9,7 @@
 
 #include <atomic>
 
+#include "SpinWait.hpp"
 #include "Utils.hpp"
 
 
@@ -40,9 +41,12 @@ public:
 	{
 		const size_t head = _head.fetch_add(1, std::memory_order_relaxed);
 		const size_t idx = head % Size;
-		while (_buffer[idx].load(std::memory_order_acquire) != head) {
+		while (_buffer[idx].load(std::memory_order_relaxed) != head) {
 			util::spinWait();
 		}
+		util::spinWaitRelease();
+
+		std::atomic_thread_fence(std::memory_order_acquire);
 	}
 
 	//! \brief Try to acquire the spinlock

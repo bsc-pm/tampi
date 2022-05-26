@@ -110,6 +110,7 @@ noinst_HEADERS = \
  src/common/util/ErrorHandler.hpp \
  src/common/util/LockFreeQueue.hpp \
  src/common/util/SpinLock.hpp \
+ src/common/util/SpinWait.hpp \
  src/common/util/Utils.hpp
 
 lib_LTLIBRARIES = libtampi.la libtampi-c.la libtampi-fortran.la

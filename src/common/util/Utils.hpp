@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef UTILS_HPP
@@ -10,10 +10,6 @@
 #include <config.h>
 
 #include <cstdint>
-
-#if defined(__SSE2__)
-#include <xmmintrin.h>
-#endif
 
 #ifndef CACHELINE_SIZE
 #define CACHELINE_SIZE 64
@@ -59,25 +55,6 @@ public:
 //! Class providing uninitialized memory for a type
 template <class T>
 using Uninitialized = typename std::aligned_storage<sizeof(T), alignof(T)>::type;
-
-//! \brief Pause the current thread to optimize spinning
-static inline void spinWait()
-{
-#if defined(__powerpc__) || defined(__powerpc64__) || defined(__PPC__) || defined(__PPC64__) || defined(_ARCH_PPC) || defined(_ARCH_PPC64)
-#define HMT_low()       asm volatile("or 1,1,1       # low priority")
-#define HMT_medium()    asm volatile("or 2,2,2       # medium priority")
-#define HMT_barrier()   asm volatile("" : : : "memory")
-	HMT_low(); HMT_medium(); HMT_barrier();
-#elif defined(__arm__) || defined(__aarch64__)
-	__asm__ __volatile__ ("yield");
-#elif defined(__SSE2__)
-	_mm_pause();
-#elif defined(__i386__) || defined(__x86_64__)
-	asm volatile("pause" ::: "memory");
-#else
-	#pragma message ("No 'pause' instruction/intrisic found for this architecture ")
-#endif
-}
 
 } // namespace util
 } // namespace tampi
