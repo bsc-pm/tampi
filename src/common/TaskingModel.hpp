@@ -13,6 +13,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <cstdint>
 #include <string>
 
 #include "Symbol.hpp"
@@ -27,10 +28,13 @@ namespace tampi {
 class TaskingModel {
 public:
 	//! Prototype of a polling instance function
-	typedef void (*polling_function_t)(void *args);
+	typedef uint64_t (*polling_function_t)(void *args, uint64_t waitTimeUs);
 
 	//! Handle of polling instances
 	typedef size_t polling_handle_t;
+
+	//! Invalid value for wait time
+	static constexpr int64_t INVALID_WAIT_TIME = -1;
 
 private:
 	//! Pointers to the tasking model functions
@@ -70,20 +74,17 @@ private:
 		std::string _name;
 		polling_function_t _function;
 		void *_args;
-		uint64_t _period;
 		std::atomic<bool> _mustFinish;
 		std::atomic<bool> _finished;
 
 		inline PollingInfo(
 			const std::string &name,
 			polling_function_t function,
-			void *args,
-			uint64_t period
+			void *args
 		) :
 			_name(name),
 			_function(function),
 			_args(args),
-			_period(period),
 			_mustFinish(false),
 			_finished(false)
 		{
@@ -107,19 +108,15 @@ public:
 	//! \param name The name of the polling instance
 	//! \param function The function to be called periodically
 	//! \param args The arguments of the function
-	//! \param period The frequency at which to call the function
-	//!                  in microseconds. This parameter is ignored
-	//!                  when leveraging polling services
 	//!
 	//! \returns A polling handle to unregister the instance once
 	//!          the polling should finish
 	static inline polling_handle_t registerPolling(
 		const std::string &name,
 		polling_function_t function,
-		void *args,
-		uint64_t period
+		void *args
 	) {
-		PollingInfo *info = new PollingInfo(name, function, args, period);
+		PollingInfo *info = new PollingInfo(name, function, args);
 		assert(info != nullptr);
 
 		if (_usePollingServices) {
@@ -247,7 +244,7 @@ private:
 		assert(info != nullptr);
 
 		// Call the actual polling function
-		info->_function(info->_args);
+		info->_function(info->_args, 0);
 
 		// Do not unregister the service
 		return 0;
@@ -267,13 +264,15 @@ private:
 		assert(info != nullptr);
 		assert(_waitFor);
 
+		uint64_t waitTimeUs = std::numeric_limits<uint64_t>::max();
+
 		// Poll until it is externally notified to stop
 		while (!info->_mustFinish) {
 			// Call the actual polling function
-			info->_function(info->_args);
+			waitTimeUs = info->_function(info->_args, waitTimeUs);
 
 			// Pause the polling task for some microseconds
-			(*_waitFor)(info->_period);
+			waitTimeUs = (*_waitFor)(waitTimeUs);
 		}
 	}
 

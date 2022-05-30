@@ -15,6 +15,7 @@
 #include <mutex>
 #include <vector>
 
+#include "Interface.hpp"
 #include "Ticket.hpp"
 #include "TicketManagerInternals.hpp"
 #include "util/ArrayView.hpp"
@@ -138,6 +139,15 @@ public:
 	TicketManager(const TicketManager &) = delete;
 	const TicketManager& operator= (const TicketManager &) = delete;
 
+	//! \brief Get the ticket manager for a specific language
+	//!
+	//! \returns A reference to the ticket manager
+	static inline TicketManager &getTicketManager()
+	{
+		static TicketManager _ticketManager;
+		return _ticketManager;
+	}
+
 	//! \brief Complete a request from the general array
 	//!
 	//! \param position The position of the request in the array
@@ -156,7 +166,11 @@ public:
 	//! array. Once a request completes, the counter of pending requests of
 	//! the owner task is decreased. This will trigger the resume of the task
 	//! or the fulfillment of its external event if that was the last request
-	inline void checkRequests()
+	//!
+	//! \param pending add the number of pending requests
+	//!
+	//! \return the number of completed requests
+	inline size_t checkRequests(size_t &pending)
 	{
 		std::lock_guard<SpinLock> guard(_mutex);
 
@@ -164,10 +178,19 @@ public:
 			internalCheckEntryQueues();
 		}
 
-		bool retry = true;
-		while (_pending > 0 && retry) {
-			retry = internalCheckRequests();
-		}
+		if (_pending == 0)
+			return 0;
+
+		size_t totalCompleted = 0;
+		size_t completed = 0;
+		do {
+			completed = internalCheckRequests();
+			totalCompleted += completed;
+		} while (_pending > 0 && completed > 0);
+
+		pending += _pending;
+
+		return totalCompleted;
 	}
 
 	//! \brief Add a ticket and its request the pre-queues

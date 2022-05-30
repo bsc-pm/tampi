@@ -11,7 +11,6 @@
 
 #include <cassert>
 
-#include "Environment.hpp"
 #include "Interface.hpp"
 #include "Ticket.hpp"
 #include "TicketManager.hpp"
@@ -103,7 +102,7 @@ inline void RequestManager<Lang>::processRequest(request_t &request, status_ptr_
 		Ticket ticket(status, blocking);
 		ticket.addPendingRequests(1);
 
-		TicketManager &manager = Environment::getTicketManager<Lang>();
+		TicketManager &manager = TicketManager::getTicketManager();
 		manager.addTicket(ticket, request);
 
 		if (blocking) {
@@ -136,7 +135,7 @@ inline void RequestManager<Lang>::processRequests(
 		Ticket ticket(statuses, blocking);
 		ticket.addPendingRequests(active);
 
-		TicketManager &manager = Environment::getTicketManager<Lang>();
+		TicketManager &manager = TicketManager::getTicketManager();
 		manager.addTicket(ticket, requests);
 
 		if (blocking) {

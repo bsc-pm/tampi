@@ -97,6 +97,7 @@ common_sources = \
 noinst_HEADERS = \
  src/common/Environment.hpp \
  src/common/Interface.hpp \
+ src/common/Polling.hpp \
  src/common/RequestManager.hpp \
  src/common/Symbol.hpp \
  src/common/TaskContext.hpp \

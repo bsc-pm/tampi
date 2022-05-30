@@ -7,6 +7,7 @@
 #include <cstdio>
 
 #include "Environment.hpp"
+#include "Polling.hpp"
 #include "Ticket.hpp"
 #include "TicketManager.hpp"
 #include "util/ErrorHandler.hpp"
@@ -16,7 +17,9 @@ namespace tampi {
 
 std::atomic<bool> Environment::_blockingEnabled(false);
 std::atomic<bool> Environment::_nonBlockingEnabled(false);
-TaskingModel::polling_handle_t Environment::_pollingHandle;
+
+TaskingModel::polling_handle_t Polling::_pollingHandle;
+PollingFrequencyCtrl Polling::_frequencyCtrl;
 
 SpinLock ErrorHandler::_lock;
 

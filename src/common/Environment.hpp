@@ -10,8 +10,10 @@
 #include <mpi.h>
 
 #include <atomic>
+#include <cstdint>
 
 #include "Interface.hpp"
+#include "Polling.hpp"
 #include "TaskContext.hpp"
 #include "TaskingModel.hpp"
 #include "TicketManager.hpp"
@@ -30,10 +32,6 @@ private:
 
 	//! Indicate whether the non-blocking TAMPI mode is enabled
 	static std::atomic<bool> _nonBlockingEnabled;
-
-	//! The handle to the polling instance that periodically checks
-	//! the completion of the in-flight MPI requests in TAMPI
-	static TaskingModel::polling_handle_t _pollingHandle;
 
 public:
 	Environment() = delete;
@@ -67,7 +65,6 @@ public:
 	{
 		assert(!_blockingEnabled);
 		assert(!_nonBlockingEnabled);
-		assert(!_pollingHandle);
 
 		_blockingEnabled = blockingMode;
 		_nonBlockingEnabled = nonBlockingMode;
@@ -92,9 +89,8 @@ public:
 
 		Instrument::initialize(rank, nranks);
 
-		if (blockingMode || nonBlockingMode) {
-			_pollingHandle = TaskingModel::registerPolling("TAMPI", Environment::polling, nullptr, getPollingPeriod());
-		}
+		if (blockingMode || nonBlockingMode)
+			Polling::initialize();
 	}
 
 	//! \brief Finalize the environment of TAMPI
@@ -107,71 +103,11 @@ public:
 		Instrument::finalize();
 
 		if (isBlockingEnabled() || isNonBlockingEnabled()) {
-			TaskingModel::unregisterPolling(_pollingHandle);
+			Polling::finalize();
 
 			_blockingEnabled = false;
 			_nonBlockingEnabled = false;
 		}
-	}
-
-	//! \brief Get the ticket manager
-	//!
-	//! This function requires a template parameter representing
-	//! the programming language, which can be C or Fortran for
-	//! the moment
-	//!
-	//! \returns A reference to the ticket manager
-	template <typename Lang>
-	static inline TicketManager<Lang> &getTicketManager()
-	{
-		static TicketManager<Lang> _ticketManager;
-		return _ticketManager;
-	}
-
-private:
-	//! \brief Polling function that checks the in-flight requests
-	//!
-	//! This function is periodically called by the tasking runtime
-	//! system and should check for the in-flight MPI requests posted
-	//! from both C and Fortran languages (if needed)
-	//!
-	//! \param args An opaque pointer to the arguments
-	static void polling(void *)
-	{
-#ifndef DISABLE_C_LANG
-		TicketManager<C> &cManager = getTicketManager<C>();
-		cManager.checkRequests();
-#endif
-#ifndef DISABLE_FORTRAN_LANG
-		TicketManager<Fortran> &fortranManager = getTicketManager<Fortran>();
-		fortranManager.checkRequests();
-#endif
-	}
-
-	//! \brief Get the polling period for TAMPI services
-	//!
-	//! Determines the polling period in which TAMPI requests will be
-	//! checked. Notice this polling period is ignored when running with
-	//! the obsolete polling services API
-	//!
-	//! \returns The polling period in microseconds
-	static uint64_t getPollingPeriod()
-	{
-		EnvironmentVariable<uint64_t> pollingFrequency("TAMPI_POLLING_FREQUENCY");
-		EnvironmentVariable<uint64_t> pollingPeriod("TAMPI_POLLING_PERIOD");
-
-		if (pollingFrequency.isPresent()) {
-			ErrorHandler::warn("TAMPI_POLLING_FREQUENCY is deprecated; use TAMPI_POLLING_PERIOD instead");
-		}
-
-		uint64_t period = 100;
-		if (pollingPeriod.isPresent()) {
-			period = pollingPeriod.get();
-		} else if (pollingFrequency.isPresent()) {
-			period = pollingFrequency.get();
-		}
-
-		return period;
 	}
 };
 
