@@ -26,7 +26,7 @@ namespace tampi {
 namespace util {
 
 //! Class that provides the functionality of a lock free queue
-template <typename T, size_t Size = 2048>
+template <typename T, size_t Size = 32*1024>
 class LockFreeQueue {
 private:
 	typedef boost::lockfree::spsc_queue<T, boost::lockfree::capacity<Size> > queue_t;
