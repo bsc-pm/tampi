@@ -37,7 +37,7 @@ private:
 	//! the frequency in time (microseconds) at which the in-flight
 	//! MPI requests are checked in TAMPI. This environment variable
 	//! is called TAMPI_POLLING_FREQUENCY and the default value is
-	//! 500 microseconds. Note that this frequency is ignored when
+	//! 100 microseconds. Note that this frequency is ignored when
 	//! using polling services; instead the environment variable
 	//! NANOS6_POLLING_FREQUENCY should be used for OmpSs-2
 	static EnvironmentVariable<uint64_t> _pollingFrequency;
