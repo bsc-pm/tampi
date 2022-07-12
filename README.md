@@ -527,46 +527,6 @@ information with the runtime system during the initialization in order to genera
 By default this option is enabled (`1`), but it can be disabled by setting the envar to `0`.
 
 
-## Frequently Asked Questions (FAQ)
-
-This section answers some of the most common questions:
-
-**Q1: Why does linking my application to the TAMPI library fail with undefined symbols?**
-
-Some MPI libraries, such as OpenMPI, do not provide the MPI symbols for Fortran by default. In the case you are
-getting undefined symbol errors and your application is C/C++, you can link to *libtampi-c* instead of *libtampi*.
-
-**Q2: Why does my application not perform as expected when using TAMPI?**
-
-One of the first aspects to check when your application does not perform as expected is the polling frequency
-in which TAMPI background services are working. By default, the TAMPI services check the internal MPI requests
-every 100us (see `TAMPI_POLLING_PERIOD` envar). This period should be enough for most applications,
-including communication-intensive ones. However, your application may need a higher polling frequency (i.e.,
-reducing the envar's value) or a lower frequency (i.e., increasing the envar's value).
-
-**Q3: Why does my application hang or report an error when using TAMPI for point-to-point communication?**
-
-Most MPI or hybrid MPI+OpenMP applications do not use specific MPI tags when sending and receiving messages.
-That's quite common because these applications usually issue MPI operations from a single thread and are always in
-the same order on both the sender and receiver sides. They rely on the message ordering guarantees of MPI, so they
-use an arbitrary MPI tag for multiple or all messages.
-
-That becomes a problem when issuing MPI operations from different concurrent threads or tasks. The order of sending
-and receiving messages in the sender and receiver sides may be different, and thus, messages can arrive and match
-in any order. To avoid this issue, you should use distinct tags for the different messages that you sending and
-receive. For instance, if you are exchanging multiple blocks of data, and you want to send a message per block
-(encapsulated in a separate task), you could use the block id as the MPI tag of the corresponding message.
-
-**Q4: Why does my application hang or report an error when using TAMPI for collective communication?**
-
-This issue is quite related to the previous one. The MPI standard does not allow identifying collective operations
-with MPI tags. The standard enforces the user to guarantee a specific order when issuing multiple **collectives of
-the same type and through the same communicator** in all involved processes. That limits the parallelism that we
-can achieve when executing multiple collective operations of the same time. If you want to run multiple collectives
-of the same type in parallel (e.g., different concurrent tasks), we recommend using separate MPI communicators.
-Notice that having many MPI communicators could damage the application's performance depending on the MPI implementation.
-
-
 ## Leveraging TAMPI in Hybrid Applications
 
 User applications should be linked against the MPI library (e.g, using `mpicc` or `mpicxx` compiler), the
@@ -626,3 +586,43 @@ accepted ways to write in a Fortran program a call to the TAMPI_Issend procedure
 
 This limitation is applied to all other wrappers presented in the [Wrapper Functions](#wrapper-functions-for-code-compatibility)
 section, including both TAMPI_Wait and TAMPI_Waitall.
+
+
+## Frequently Asked Questions (FAQ)
+
+This section answers some of the most common questions:
+
+**Q1: Why does linking my application to the TAMPI library fail with undefined symbols?**
+
+Some MPI libraries, such as OpenMPI, do not provide the MPI symbols for Fortran by default. In the case you are
+getting undefined symbol errors and your application is C/C++, you can link to *libtampi-c* instead of *libtampi*.
+
+**Q2: Why does my application not perform as expected when using TAMPI?**
+
+One of the first aspects to check when your application does not perform as expected is the polling frequency
+in which TAMPI background services are working. By default, the TAMPI services check the internal MPI requests
+every 100us (see `TAMPI_POLLING_PERIOD` envar). This period should be enough for most applications,
+including communication-intensive ones. However, your application may need a higher polling frequency (i.e.,
+reducing the envar's value) or a lower frequency (i.e., increasing the envar's value).
+
+**Q3: Why does my application hang or report an error when using TAMPI for point-to-point communication?**
+
+Most MPI or hybrid MPI+OpenMP applications do not use specific MPI tags when sending and receiving messages.
+That's quite common because these applications usually issue MPI operations from a single thread and are always in
+the same order on both the sender and receiver sides. They rely on the message ordering guarantees of MPI, so they
+use an arbitrary MPI tag for multiple or all messages.
+
+That becomes a problem when issuing MPI operations from different concurrent threads or tasks. The order of sending
+and receiving messages in the sender and receiver sides may be different, and thus, messages can arrive and match
+in any order. To avoid this issue, you should use distinct tags for the different messages that you sending and
+receive. For instance, if you are exchanging multiple blocks of data, and you want to send a message per block
+(encapsulated in a separate task), you could use the block id as the MPI tag of the corresponding message.
+
+**Q4: Why does my application hang or report an error when using TAMPI for collective communication?**
+
+This issue is quite related to the previous one. The MPI standard does not allow identifying collective operations
+with MPI tags. The standard enforces the user to guarantee a specific order when issuing multiple **collectives of
+the same type and through the same communicator** in all involved processes. That limits the parallelism that we
+can achieve when executing multiple collective operations of the same time. If you want to run multiple collectives
+of the same type in parallel (e.g., different concurrent tasks), we recommend using separate MPI communicators.
+Notice that having many MPI communicators could damage the application's performance depending on the MPI implementation.
