@@ -551,6 +551,43 @@ $ MPICH_CXX=mcxx mpicxx --ompss-2 -I${TAMPI_HOME}/include app.cpp -o app.bin -lt
 
 Finally, both OpenMP and OmpSs-2 applications can be launched as any traditional hybrid program.
 
+### Frequently Asked Questions (FAQ)
+
+**Q1: Why does linking my application to the TAMPI library fail with undefined symbols?**
+
+Some MPI libraries, such as OpenMPI, do not provide the MPI symbols for Fortran by default. In the case you are
+getting undefined symbol errors and your application is C/C++, you can link to *libtampi-c* instead of *libtampi*.
+
+**Q2: Why does my application not perform as expected when using TAMPI?**
+
+One of the first aspects to check when your application does not perform as expected is the polling frequency
+in which TAMPI background services are working. By default, the TAMPI services check the internal MPI requests
+every 100us (see `TAMPI_POLLING_FREQUENCY` envar). This frequency should be enough for most applications,
+including communication-intensive ones. However, your application may need a higher polling frequency (i.e.,
+reducing the envar's value) or a lower frequency (i.e., increasing the envar's value).
+
+**Q3: Why does my application hang or report an error when using TAMPI for point-to-point communication?**
+
+Most MPI or hybrid MPI+OpenMP applications do not use specific MPI tags when sending and receiving messages.
+That's quite common because these applications usually issue MPI operations from a single thread and are always in
+the same order on both the sender and receiver sides. They rely on the message ordering guarantees of MPI, so they
+use an arbitrary MPI tag for multiple or all messages.
+
+That becomes a problem when issuing MPI operations from different concurrent threads or tasks. The order of sending
+and receiving messages in the sender and receiver sides may be different, and thus, messages can arrive and match
+in any order. To avoid this issue, you should use distinct tags for the different messages that you sending and
+receive. For instance, if you are exchanging multiple blocks of data, and you want to send a message per block
+(encapsulated in a separate task), you could use the block id as the MPI tag of the corresponding message.
+
+**Q4: Why does my application hang or report an error when using TAMPI for collective communication?**
+
+This issue is quite related to the previous one. The MPI standard does not allow identifying collective operations
+with MPI tags. The standard enforces the user to guarantee a specific order when issuing multiple **collectives of
+the same type and through the same communicator** in all involved processes. That limits the parallelism that we
+can achieve when executing multiple collective operations of the same time. If you want to run multiple collectives
+of the same type in parallel (e.g., different concurrent tasks), we recommend using separate MPI communicators.
+Notice that having many MPI communicators could damage the application's performance depending on the MPI implementation.
+
 ### Fortran
 
 The `TAMPIf.h` header for Fortran defines some preprocessor macros. Therefore, to correctly use TAMPI
