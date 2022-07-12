@@ -522,36 +522,9 @@ information with the runtime system during the initialization in order to genera
 By default this option is enabled (`1`), but it can be disabled by setting the envar to `0`.
 
 
-## Leveraging TAMPI in Hybrid Applications
+## Frequently Asked Questions (FAQ)
 
-User applications should be linked against the MPI library (e.g, using `mpicc` or `mpicxx` compiler), the
-parallel task-based runtime system and the TAMPI library. A hybrid OpenMP + MPI application in C++ named
-`app.cpp` could be compiled and linked using the following command:
-
-```bash
-$ mpicxx -cxx=clang++ -fopenmp -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
-```
-
-Similarly, a hybrid OmpSs-2 + MPI application in C++ named `app.cpp` could be compiled and linked using the
-following command:
-
-```bash
-$ mpicxx -cxx=mcxx --ompss-2 -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
-```
-
-Please note that the options passed to `mpicc` or `mpicxx` may differ between different MPI implementations.
-The `-cxx` option indicates that `mpicxx` should use the compiler passed as a parameter to compile and link
-the source files. This can also be indicated with the environment variables `MPICH_CC` or `MPICH_CXX` for
-MPICH and MVAPICH, `I_MPI_CC` or `I_MPI_CXX` for Intel MPI, and `OMPI_CC` or `OMPI_CXX` for OpenMPI. For
-instance, the OmpSs-2 application could be compiled and linked using MPICH with the following command:
-
-```bash
-$ MPICH_CXX=mcxx mpicxx --ompss-2 -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
-```
-
-Finally, both OpenMP and OmpSs-2 applications can be launched as any traditional hybrid program.
-
-### Frequently Asked Questions (FAQ)
+This section answers some of the most common questions:
 
 **Q1: Why does linking my application to the TAMPI library fail with undefined symbols?**
 
@@ -587,6 +560,36 @@ the same type and through the same communicator** in all involved processes. Tha
 can achieve when executing multiple collective operations of the same time. If you want to run multiple collectives
 of the same type in parallel (e.g., different concurrent tasks), we recommend using separate MPI communicators.
 Notice that having many MPI communicators could damage the application's performance depending on the MPI implementation.
+
+
+## Leveraging TAMPI in Hybrid Applications
+
+User applications should be linked against the MPI library (e.g, using `mpicc` or `mpicxx` compiler), the
+parallel task-based runtime system and the TAMPI library. A hybrid OpenMP + MPI application in C++ named
+`app.cpp` could be compiled and linked using the following command:
+
+```bash
+$ mpicxx -cxx=clang++ -fopenmp -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
+```
+
+Similarly, a hybrid OmpSs-2 + MPI application in C++ named `app.cpp` could be compiled and linked using the
+following command:
+
+```bash
+$ mpicxx -cxx=mcxx --ompss-2 -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
+```
+
+Please note that the options passed to `mpicc` or `mpicxx` may differ between different MPI implementations.
+The `-cxx` option indicates that `mpicxx` should use the compiler passed as a parameter to compile and link
+the source files. This can also be indicated with the environment variables `MPICH_CC` or `MPICH_CXX` for
+MPICH and MVAPICH, `I_MPI_CC` or `I_MPI_CXX` for Intel MPI, and `OMPI_CC` or `OMPI_CXX` for OpenMPI. For
+instance, the OmpSs-2 application could be compiled and linked using MPICH with the following command:
+
+```bash
+$ MPICH_CXX=mcxx mpicxx --ompss-2 -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
+```
+
+Finally, both OpenMP and OmpSs-2 applications can be launched as any traditional hybrid program.
 
 ### Fortran
 
