@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2021 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
 */
 
 #include <cstdio>
@@ -19,7 +19,6 @@ namespace tampi {
 std::atomic<bool> Environment::_blockingEnabled(false);
 std::atomic<bool> Environment::_nonBlockingEnabled(false);
 TaskingModel::polling_handle_t Environment::_pollingHandle;
-EnvironmentVariable<uint64_t> Environment::_pollingFrequency("TAMPI_POLLING_FREQUENCY", 100);
 
 C::request_t C::REQUEST_NULL;
 C::status_ptr_t C::STATUS_IGNORE;

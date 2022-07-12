@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef ENVIRONMENT_HPP
@@ -14,6 +14,7 @@
 #include "TaskContext.hpp"
 #include "TaskingModel.hpp"
 #include "TicketManager.hpp"
+#include "util/ErrorHandler.hpp"
 
 
 namespace tampi {
@@ -31,16 +32,6 @@ private:
 	//! The handle to the polling instance that periodically checks
 	//! the completion of the in-flight MPI requests in TAMPI
 	static TaskingModel::polling_handle_t _pollingHandle;
-
-	//! Determine the polling frequency when the TAMPI polling is
-	//! implemented with tasks that are paused periodically. That is
-	//! the frequency in time (microseconds) at which the in-flight
-	//! MPI requests are checked in TAMPI. This environment variable
-	//! is called TAMPI_POLLING_FREQUENCY and the default value is
-	//! 100 microseconds. Note that this frequency is ignored when
-	//! using polling services; instead the environment variable
-	//! NANOS6_POLLING_FREQUENCY should be used for OmpSs-2
-	static EnvironmentVariable<uint64_t> _pollingFrequency;
 
 public:
 	Environment() = delete;
@@ -88,8 +79,10 @@ public:
 
 		TaskingModel::initialize(blockingMode, nonBlockingMode);
 
+		uint64_t pollingPeriod = getPollingPeriod();
+
 		if (blockingMode || nonBlockingMode) {
-			_pollingHandle = TaskingModel::registerPolling("TAMPI", Environment::polling, nullptr, _pollingFrequency);
+			_pollingHandle = TaskingModel::registerPolling("TAMPI", Environment::polling, nullptr, pollingPeriod);
 		}
 	}
 
@@ -140,6 +133,32 @@ private:
 		TicketManager<Fortran> &fortranManager = getTicketManager<Fortran>();
 		fortranManager.checkRequests();
 #endif
+	}
+
+	//! \brief Get the polling period for TAMPI services
+	//!
+	//! Determines the polling period in which TAMPI requests will be
+	//! checked. Notice this polling period is ignored when running with
+	//! the obsolete polling services API
+	//!
+	//! \returns The polling period in microseconds
+	static uint64_t getPollingPeriod()
+	{
+		EnvironmentVariable<uint64_t> pollingFrequency("TAMPI_POLLING_FREQUENCY");
+		EnvironmentVariable<uint64_t> pollingPeriod("TAMPI_POLLING_PERIOD");
+
+		if (pollingFrequency.isPresent()) {
+			ErrorHandler::warn("TAMPI_POLLING_FREQUENCY is deprecated; use TAMPI_POLLING_PERIOD instead");
+		}
+
+		uint64_t period = 100;
+		if (pollingPeriod.isPresent()) {
+			period = pollingPeriod.getValue();
+		} else if (pollingFrequency.isPresent()) {
+			period = pollingFrequency.getValue();
+		}
+
+		return period;
 	}
 };
 
