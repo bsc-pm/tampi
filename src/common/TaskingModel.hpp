@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2019-2021 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2019-2022 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TASKING_MODEL_HPP
@@ -76,7 +76,7 @@ private:
 		std::string _name;
 		polling_function_t _function;
 		void *_args;
-		uint64_t _frequency;
+		uint64_t _period;
 		std::atomic<bool> _mustFinish;
 		std::atomic<bool> _finished;
 
@@ -84,12 +84,12 @@ private:
 			const std::string &name,
 			polling_function_t function,
 			void *args,
-			uint64_t frequency
+			uint64_t period
 		) :
 			_name(name),
 			_function(function),
 			_args(args),
-			_frequency(frequency),
+			_period(period),
 			_mustFinish(false),
 			_finished(false)
 		{
@@ -113,7 +113,7 @@ public:
 	//! \param name The name of the polling instance
 	//! \param function The function to be called periodically
 	//! \param args The arguments of the function
-	//! \param frequency The frequency at which to call the function
+	//! \param period The frequency at which to call the function
 	//!                  in microseconds. This parameter is ignored
 	//!                  when leveraging polling services
 	//!
@@ -123,9 +123,9 @@ public:
 		const std::string &name,
 		polling_function_t function,
 		void *args,
-		uint64_t frequency
+		uint64_t period
 	) {
-		PollingInfo *info = new PollingInfo(name, function, args, frequency);
+		PollingInfo *info = new PollingInfo(name, function, args, period);
 		assert(info != nullptr);
 
 		if (_usePollingServices) {
@@ -317,7 +317,7 @@ private:
 			info->_function(info->_args);
 
 			// Pause the polling task for some microseconds
-			(*_waitFor)(info->_frequency);
+			(*_waitFor)(info->_period);
 		}
 	}
 
