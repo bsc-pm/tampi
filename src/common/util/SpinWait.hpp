@@ -11,23 +11,20 @@
 #define POWER9_ARCH
 #endif
 
-#if defined(__SSE2__)
-#define KNL_ARCH
-#endif
-
 #if defined(__i386__) || defined(__x86_64__)
-#define MN4_ARCH
+#define X86_ARCH
 #endif
 
 #if defined(__arm__) || defined(__aarch64__)
 #define ARM_ARCH
 #endif
 
-#ifdef KNL_ARCH
+#if defined(__SSE2__)
 #include <xmmintrin.h>
+#define SSE2_ARCH_FEATURE
 #endif
 
-#ifdef POWER9_ARCH
+#if defined(POWER9_ARCH)
 /* Macros for adjusting thread priority (hardware multi-threading) */
 #define HMT_very_low()    asm volatile("or 31,31,31   # very low priority")
 #define HMT_low()         asm volatile("or 1,1,1	  # low priority")
@@ -43,11 +40,11 @@ namespace util {
 
 static inline void spinWait()
 {
-#ifdef KNL_ARCH
+#if defined(SSE2_ARCH_FEATURE)
 	_mm_pause();
 #elif defined(POWER9_ARCH)
 	HMT_low();
-#elif defined(MN4_ARCH)
+#elif defined(X86_ARCH)
 	asm volatile("pause" ::: "memory");
 #elif defined(ARM_ARCH)
 	__asm__ __volatile__ ("yield");
@@ -58,7 +55,7 @@ static inline void spinWait()
 
 static inline void spinWaitRelease()
 {
-#ifdef POWER9_ARCH
+#if defined(POWER9_ARCH)
 	HMT_medium();
 #endif
 }
