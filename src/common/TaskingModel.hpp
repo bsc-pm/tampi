@@ -45,9 +45,6 @@ private:
 	static notify_task_event_counter_api_t *_notifyTaskEventCounterAPI;
 	static spawn_function_t *_spawnFunction;
 	static wait_for_t *_waitFor;
-	static is_distributed_instrument_enabled_t *_isDistributedInstrumentEnabled;
-	static setup_distributed_instrument_t *_setupDistributedInstrument;
-	static get_instrument_start_time_t *_getInstrumentStartTime;
 
 	//! Actual names of the tasking model functions
 	static const std::string _registerPollingServiceName;
@@ -61,9 +58,6 @@ private:
 	static const std::string _notifyTaskEventCounterAPIName;
 	static const std::string _spawnFunctionName;
 	static const std::string _waitForName;
-	static const std::string _isDistributedInstrumentEnabledName;
-	static const std::string _setupDistributedInstrumentName;
-	static const std::string _getInstrumentStartTimeName;
 
 	//! Determine whether the polling feature should be done through
 	//! polling services. By default it is disabled, which makes the
@@ -235,44 +229,6 @@ public:
 	{
 		assert(_decreaseTaskEventCounter);
 		(*_decreaseTaskEventCounter)(counter, decrement);
-	}
-
-	//! \brief Check whether the instrumentation in distributed executions is enabled
-	static inline bool isDistributedInstrumentEnabled()
-	{
-		if (_isDistributedInstrumentEnabled != nullptr) {
-			return (*_isDistributedInstrumentEnabled)();
-		}
-		return false;
-	}
-
-	//! \brief Setup the instrumentation in distributed executions
-	//!
-	//! \param rank The rank of the current process
-	//! \param nranks The number of ranks
-	//! \param offset The clock offset respecting the reference (ns)
-	//! \param nsamples The size of the sample to compute the clock offset and stdev
-	//! \param stdev The stdev of the clock offset respecting the reference (ns)
-	static inline void setupDistributedInstrument(size_t rank, size_t nranks, int64_t offset, size_t nsamples, double stdev)
-	{
-		assert(_setupDistributedInstrument);
-
-		nanos6_distributed_instrument_info_t info;
-		info.rank = rank;
-		info.num_ranks = nranks;
-		info.clock_offset.offset_ns = offset;
-		info.clock_offset.num_samples = nsamples;
-		info.clock_offset.stdev_ns = stdev;
-
-		(*_setupDistributedInstrument)(&info);
-	}
-
-	//! \brief Get the start time of the instrumentation (ns)
-	static inline int64_t getInstrumentStartTime()
-	{
-		assert(_getInstrumentStartTime);
-
-		return (*_getInstrumentStartTime)();
 	}
 
 private:

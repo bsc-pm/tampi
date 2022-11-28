@@ -114,9 +114,9 @@ typedef void mpi_exscan_t(void*, void*, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fin
 
 extern "C" {
 
-//! MPI Test fortran specializations
-void pmpi_abort_(MPI_Fint *, MPI_Fint *, MPI_Fint *);
-void pmpi_request_get_status_(MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
+//! MPI Fortran declarations
+void mpi_comm_rank_(MPI_Fint*, MPI_Fint*, MPI_Fint*);
+void mpi_comm_size_(MPI_Fint*, MPI_Fint*, MPI_Fint*);
 void pmpi_test_(MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 void pmpi_testall_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint*);
 void pmpi_testany_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);

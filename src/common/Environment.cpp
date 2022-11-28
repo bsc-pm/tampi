@@ -7,7 +7,6 @@
 #include <cstdio>
 
 #include "Environment.hpp"
-#include "Instrument.hpp"
 #include "Ticket.hpp"
 #include "TicketManager.hpp"
 #include "util/ErrorHandler.hpp"
@@ -18,9 +17,6 @@ namespace tampi {
 std::atomic<bool> Environment::_blockingEnabled(false);
 std::atomic<bool> Environment::_nonBlockingEnabled(false);
 TaskingModel::polling_handle_t Environment::_pollingHandle;
-
-EnvironmentVariable<bool> Instrument::_instrumentEnabled("TAMPI_INSTRUMENT", true);
-EnvironmentVariable<size_t> Instrument::_instrumentSyncIterations("TAMPI_INSTRUMENT_SYNC_ITERATIONS", 10);
 
 SpinLock ErrorHandler::_lock;
 

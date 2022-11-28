@@ -15,6 +15,7 @@
 #include "TaskContext.hpp"
 #include "TaskingModel.hpp"
 #include "TicketManager.hpp"
+#include "instrument/Instrument.hpp"
 #include "util/ErrorHandler.hpp"
 
 
@@ -71,19 +72,28 @@ public:
 		_blockingEnabled = blockingMode;
 		_nonBlockingEnabled = nonBlockingMode;
 
-#ifndef DISABLE_C_LANG
+#if !defined(DISABLE_C_LANG)
 		Interface<C>::initialize();
 #endif
-#ifndef DISABLE_FORTRAN_LANG
+
+#if !defined(DISABLE_FORTRAN_LANG)
 		Interface<Fortran>::initialize();
+#endif
+
+#if !defined(DISABLE_C_LANG)
+		int rank = Interface<C>::rank;
+		int nranks = Interface<C>::nranks;
+#elif !defined(DISABLE_FORTRAN_LANG)
+		int rank = Interface<Fortran>::rank;
+		int nranks = Interface<Fortran>::nranks;
 #endif
 
 		TaskingModel::initialize(blockingMode, nonBlockingMode);
 
-		uint64_t pollingPeriod = getPollingPeriod();
+		Instrument::initialize(rank, nranks);
 
 		if (blockingMode || nonBlockingMode) {
-			_pollingHandle = TaskingModel::registerPolling("TAMPI", Environment::polling, nullptr, pollingPeriod);
+			_pollingHandle = TaskingModel::registerPolling("TAMPI", Environment::polling, nullptr, getPollingPeriod());
 		}
 	}
 
@@ -94,6 +104,8 @@ public:
 	//! TAMPI library cannot call any MPI function
 	static void finalize()
 	{
+		Instrument::finalize();
+
 		if (isBlockingEnabled() || isNonBlockingEnabled()) {
 			TaskingModel::unregisterPolling(_pollingHandle);
 

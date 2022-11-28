@@ -10,11 +10,12 @@ AM_CPPFLAGS=\
  -I$(top_srcdir)/src/common \
  -include "config.h" \
  $(PTHREAD_CFLAGS) \
+ $(ovni_CPPFLAGS) \
  $(tampi_CPPFLAGS)
 
 AM_CXXFLAGS=$(MPI_CXXFLAGS) $(tampi_CXXFLAGS)
 
-AM_LDFLAGS=$(BOOST_LDFLAGS) $(PTHREAD_CFLAGS) $(PTHREAD_LIBS) -ldl $(MPI_CXXLDFLAGS)
+AM_LDFLAGS=$(BOOST_LDFLAGS) $(PTHREAD_CFLAGS) $(PTHREAD_LIBS) $(ovni_LIBS) -ldl $(MPI_CXXLDFLAGS)
 LIBS=
 
 include_HEADERS= \
@@ -90,11 +91,11 @@ fortran_api_sources= \
 
 common_sources = \
  src/common/Environment.cpp \
- src/common/TaskingModel.cpp
+ src/common/TaskingModel.cpp \
+ src/common/instrument/Instrument.cpp
 
 noinst_HEADERS = \
  src/common/Environment.hpp \
- src/common/Instrument.hpp \
  src/common/Interface.hpp \
  src/common/RequestManager.hpp \
  src/common/Symbol.hpp \
@@ -104,6 +105,8 @@ noinst_HEADERS = \
  src/common/Ticket.hpp \
  src/common/TicketManager.hpp \
  src/common/TicketManagerInternals.hpp \
+ src/common/instrument/Instrument.hpp \
+ src/common/instrument/OvniInstrument.hpp \
  src/common/util/ArrayView.hpp \
  src/common/util/Clock.hpp \
  src/common/util/EnvironmentVariable.hpp \

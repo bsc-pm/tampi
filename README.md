@@ -490,6 +490,8 @@ Other optional configuration flags are:
    TAMPI_Iwaitall procedures will be ignored. The non-blocking mode is **enabled** by default.
 * `--enable-debug-mode`: Adds compiler debug flags and enables additional internal debugging mechanisms.
    Note that this flag can downgrade the overall performance. Debug mode is **disabled** by default.
+* `--with-ovni`: Build the instrumentation with [ovni](https://github.com/bsc-pm/ovni) and allow enabling
+   ovni tracing at run-time through the `TAMPI_INSTRUMENT` enviornment variable.
 
 Once TAMPI is built and installed, e.g, in `$TAMPI_HOME`, the installation folder will contain the libraries
 in `$TAMPI_HOME/lib` (or `$TAMPI_HOME/lib64`) and the headers in `$TAMPI_HOME/include`. There are three
@@ -521,10 +523,12 @@ or newer.
 instead. The TAMPI library still reads this envar for compatibility, but the support will be removed in future
 releases. Defining both `TAMPI_POLLING_PERIOD` and `TAMPI_POLLING_FREQUENCY` results in undefined behavior.
 
-* `TAMPI_INSTRUMENT` (default `1`): The TAMPI library also helps in the instrumentation of hybrid MPI+OmpSs-2
-applications. By default, if the OmpSs-2's runtime system is instrumented, the TAMPI library will exchange some
-information with the runtime system during the initialization in order to generate correct multi-process traces.
-By default this option is enabled (`1`), but it can be disabled by setting the envar to `0`.
+* `TAMPI_INSTRUMENT` (default `none`): The TAMPI library leverages [ovni](https://github.com/bsc-pm/ovni) for
+instrumenting and generating [Paraver](https://tools.bsc.es/paraver) traces. For builds with the capability of
+extracting Paraver traces, the TAMPI library should be configured passing a valid ovni installation through
+the `--with-ovni`. Then, at run-time, define the `TAMPI_INSTRUMENT=ovni` environment variable to generate an ovni
+trace. After the execution, the ovni trace can be converted to a Paraver trace with the `ovniemu` tool. You can
+find more information regarding ovni tracing at <https://github.com/bsc-pm/ovni>.
 
 
 ## Leveraging TAMPI in Hybrid Applications

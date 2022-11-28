@@ -167,32 +167,6 @@ extern "C" {
 	//! \returns the actual time spent during the pause
 	uint64_t nanos6_wait_for(uint64_t time_us);
 
-
-	/* Instrument API */
-
-	typedef struct {
-		int64_t offset_ns;
-		uint64_t num_samples;
-		double stdev_ns;
-	} nanos6_clock_offset_t;
-
-	typedef struct {
-		uint64_t rank;
-		uint64_t num_ranks;
-		nanos6_clock_offset_t clock_offset;
-	} nanos6_distributed_instrument_info_t;
-
-	//! \brief Check whether the instrumentation in distributed executions is enabled
-	int nanos6_is_distributed_instrument_enabled(void);
-
-	//! \brief Setup the instrumentation in distributed executions
-	//!
-	//! \param info the information for distributed instrumentation
-	void nanos6_setup_distributed_instrument(const nanos6_distributed_instrument_info_t *info);
-
-	//! \brief Get the start time of the instrumentation (ns)
-	int64_t nanos6_get_instrument_start_time_ns(void);
-
 	//! Prototypes of the tasking model API functions
 	typedef nanos6_polling_service_t polling_service_t;
 	typedef void register_polling_service_t(char const *, polling_service_t, void *);
@@ -206,9 +180,6 @@ extern "C" {
 	typedef void notify_task_event_counter_api_t(void);
 	typedef void spawn_function_t(void (*)(void *), void *, void (*)(void *), void *, char const *);
 	typedef uint64_t wait_for_t(uint64_t);
-	typedef int is_distributed_instrument_enabled_t(void);
-	typedef void setup_distributed_instrument_t(const nanos6_distributed_instrument_info_t *);
-	typedef int64_t get_instrument_start_time_t(void);
 }
 
 #endif // TASKING_MODEL_API_HPP

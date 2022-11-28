@@ -14,7 +14,6 @@
 #include "include/TAMPI_Decl.h"
 
 #include "Environment.hpp"
-#include "Instrument.hpp"
 #include "Interface.hpp"
 #include "Symbol.hpp"
 
@@ -34,9 +33,6 @@ extern "C" {
 		int err = (*symbol)(argc, argv);
 		if (err != MPI_SUCCESS)
 			return err;
-
-		// Initialize the distributed instrumentation
-		Instrument::initialize();
 
 		return MPI_SUCCESS;
 	}
@@ -72,9 +68,6 @@ extern "C" {
 		if (enableBlockingMode) {
 			*provided = MPI_TASK_MULTIPLE;
 		}
-
-		// Initialize the distributed instrumentation
-		Instrument::initialize();
 
 		return MPI_SUCCESS;
 	}

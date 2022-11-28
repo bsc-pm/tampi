@@ -106,8 +106,9 @@ inline void RequestManager<Lang>::processRequest(request_t &request, status_ptr_
 		TicketManager &manager = Environment::getTicketManager<Lang>();
 		manager.addRequest(request, ticket);
 
-		if (blocking)
+		if (blocking) {
 			ticket.wait();
+		}
 	}
 
 	// Nullify the request
@@ -138,8 +139,9 @@ inline void RequestManager<Lang>::processRequests(
 		TicketManager &manager = Environment::getTicketManager<Lang>();
 		manager.addRequests(requests, ticket);
 
-		if (blocking)
+		if (blocking) {
 			ticket.wait();
+		}
 	}
 
 	// Nullify the requests

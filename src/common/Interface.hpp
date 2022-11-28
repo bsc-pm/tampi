@@ -51,6 +51,8 @@ public:
 	static request_t REQUEST_NULL;
 	static status_ptr_t STATUS_IGNORE;
 	static status_ptr_t STATUSES_IGNORE;
+	static int rank;
+	static int nranks;
 
 	static void initialize();
 
@@ -65,6 +67,9 @@ inline void Interface<C>::initialize()
 	REQUEST_NULL = MPI_REQUEST_NULL;
 	STATUS_IGNORE = MPI_STATUS_IGNORE;
 	STATUSES_IGNORE = MPI_STATUS_IGNORE;
+
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &nranks);
 }
 
 template <>
@@ -73,6 +78,12 @@ inline void Interface<Fortran>::initialize()
 	REQUEST_NULL = MPI_Request_c2f(MPI_REQUEST_NULL);
 	STATUS_IGNORE = MPI_F_STATUS_IGNORE;
 	STATUSES_IGNORE = MPI_F_STATUSES_IGNORE;
+
+	MPI_Fint comm = MPI_Comm_c2f(MPI_COMM_WORLD);
+
+	int err;
+	mpi_comm_rank_(&comm, &rank, &err);
+	mpi_comm_size_(&comm, &nranks, &err);
 }
 
 template <>
@@ -132,6 +143,12 @@ typename Types<Lang>::status_ptr_t Interface<Lang>::STATUS_IGNORE;
 
 template <typename Lang>
 typename Types<Lang>::status_ptr_t Interface<Lang>::STATUSES_IGNORE;
+
+template <typename Lang>
+int Interface<Lang>::rank;
+
+template <typename Lang>
+int Interface<Lang>::nranks;
 
 } // namespace tampi
 

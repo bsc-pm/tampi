@@ -14,7 +14,6 @@
 
 #include "Environment.hpp"
 #include "Interface.hpp"
-#include "Instrument.hpp"
 #include "Symbol.hpp"
 
 using namespace tampi;
@@ -32,9 +31,6 @@ extern "C" {
 		// Call to MPI_Init
 		(*symbol)(err);
 		if (*err != MPI_SUCCESS) return;
-
-		// Initialize the distributed instrumentation
-		Instrument::initialize();
 	}
 
 	void mpi_init_thread_(MPI_Fint *required, MPI_Fint *provided, MPI_Fint *err)
@@ -68,9 +64,6 @@ extern "C" {
 		if (enableBlockingMode) {
 			*provided = MPI_TASK_MULTIPLE;
 		}
-
-		// Initialize the distributed instrumentation
-		Instrument::initialize();
 	}
 
 	void mpi_finalize_(MPI_Fint *err)

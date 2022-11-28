@@ -65,13 +65,6 @@ void TaskingModel::initialize(bool requireTaskBlockingAPI, bool requireTaskEvent
 			(*_notifyTaskEventCounterAPI)();
 		}
 	}
-
-	_isDistributedInstrumentEnabled = (is_distributed_instrument_enabled_t *)
-		Symbol::load(_isDistributedInstrumentEnabledName, false);
-	_setupDistributedInstrument = (setup_distributed_instrument_t *)
-		Symbol::load(_setupDistributedInstrumentName, false);
-	_getInstrumentStartTime = (get_instrument_start_time_t *)
-		Symbol::load(_getInstrumentStartTimeName, false);
 }
 
 //! The pointers to the tasking model API functions
@@ -86,9 +79,6 @@ decrease_task_event_counter_t *TaskingModel::_decreaseTaskEventCounter = nullptr
 notify_task_event_counter_api_t *TaskingModel::_notifyTaskEventCounterAPI = nullptr;
 spawn_function_t *TaskingModel::_spawnFunction = nullptr;
 wait_for_t *TaskingModel::_waitFor = nullptr;
-is_distributed_instrument_enabled_t *TaskingModel::_isDistributedInstrumentEnabled = nullptr;
-setup_distributed_instrument_t *TaskingModel::_setupDistributedInstrument = nullptr;
-get_instrument_start_time_t *TaskingModel::_getInstrumentStartTime = nullptr;
 
 //! Actual names of the tasking model API functions
 const std::string TaskingModel::_registerPollingServiceName("nanos6_register_polling_service");
@@ -102,8 +92,5 @@ const std::string TaskingModel::_decreaseTaskEventCounterName("nanos6_decrease_t
 const std::string TaskingModel::_notifyTaskEventCounterAPIName("nanos6_notify_task_event_counter_api");
 const std::string TaskingModel::_spawnFunctionName("nanos6_spawn_function");
 const std::string TaskingModel::_waitForName("nanos6_wait_for");
-const std::string TaskingModel::_isDistributedInstrumentEnabledName("nanos6_is_distributed_instrument_enabled");
-const std::string TaskingModel::_setupDistributedInstrumentName("nanos6_setup_distributed_instrument");
-const std::string TaskingModel::_getInstrumentStartTimeName("nanos6_get_instrument_start_time_ns");
 
 } // namespace tampi

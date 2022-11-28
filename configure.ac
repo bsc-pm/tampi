@@ -43,6 +43,9 @@ AX_BOOST_BASE([1.59], [], [ AC_MSG_ERROR([Boost library not found])])
 # Check pthread
 CHECK_PTHREAD
 
+# Check ovni instrumenter
+AC_CHECK_OVNI
+
 # Checks for typedefs, structures, and compiler characteristics.
 AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
 AC_CHECK_HEADER_STDBOOL
