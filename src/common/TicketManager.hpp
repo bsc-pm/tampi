@@ -39,9 +39,9 @@ private:
 	//! Maximum number of requests to be inserted at once
 	static const int NRPG = 64;
 
-	typedef typename Lang::request_t request_t;
-	typedef typename Lang::status_t status_t;
-	typedef typename Lang::status_ptr_t status_ptr_t;
+	typedef typename Types<Lang>::request_t request_t;
+	typedef typename Types<Lang>::status_t status_t;
+	typedef typename Types<Lang>::status_ptr_t status_ptr_t;
 	typedef tampi::Ticket<Lang> Ticket;
 	typedef std::function<void()> ProgressFunction;
 
@@ -59,7 +59,7 @@ private:
 		}
 
 		inline BlockingEntry() :
-			_request(Lang::REQUEST_NULL),
+			_request(Interface<Lang>::REQUEST_NULL),
 			_ticket(nullptr),
 			_position(0)
 		{
@@ -84,7 +84,7 @@ private:
 		}
 
 		inline NonBlockingEntry() :
-			_request(Lang::REQUEST_NULL),
+			_request(Interface<Lang>::REQUEST_NULL),
 			_ticket(),
 			_position(0)
 		{
@@ -237,39 +237,23 @@ private:
 	//! \param entries The array of entries containing the requests to transfer
 	//! \param count The number of requests to add
 	void transferEntries(NonBlockingEntry entries[], int count);
-
-	//! \brief Get the number of active requests in an array
-	//!
-	//! \param requests The array of requests
-	//!
-	//! \returns The number of active requests
-	static inline int getActiveRequestCount(const util::ArrayView<request_t> &requests)
-	{
-		int active = 0;
-		for (int r = 0; r < requests.size(); ++r) {
-			if (requests[r] != Lang::REQUEST_NULL) {
-				++active;
-			}
-		}
-		return active;
-	}
 };
 
-template <>
-inline bool TicketManager<C>::internalCheckRequests()
+template <typename Lang>
+inline bool TicketManager<Lang>::internalCheckRequests()
 {
 	assert(_pending > 0);
 
 	int completed = 0;
-	int err = PMPI_Testsome(_pending, _arrays.getRequests(), &completed, _indices, _arrays.getStatuses());
+	int err = Interface<Lang>::testsome(_pending, _arrays.getRequests(), completed, _indices, _arrays.getStatuses());
 	if (err != MPI_SUCCESS)
-		ErrorHandler::fail("Unexpected return code from MPI_Testsome");
+		ErrorHandler::fail("Unexpected return code from MPI testsome");
 
 	if (completed == MPI_UNDEFINED) {
 		// Abort the program since this case should never occur.
 		// The number of completed MPI requests is MPI_UNDEFINED
 		// when all passed requests were already inactive
-		ErrorHandler::fail("Unexpected output from MPI_Testsome");
+		ErrorHandler::fail("Unexpected output from MPI testsome");
 	} else if (completed > 0) {
 		int replacement = _pending - 1;
 		int reverse = completed - 1;
@@ -298,56 +282,11 @@ inline bool TicketManager<C>::internalCheckRequests()
 	return (completed > 0);
 }
 
-template <>
-inline bool TicketManager<Fortran>::internalCheckRequests()
-{
-	assert(_pending > 0);
-
-	int err, count = _pending;
-	int completed = 0;
-	pmpi_testsome_(&count, _arrays.getRequests(), &completed, _indices, _arrays.getStatuses(), &err);
-	if (err != MPI_SUCCESS)
-		ErrorHandler::fail("Unexpected return code from MPI_Testsome");
-
-	if (completed == MPI_UNDEFINED) {
-		// Abort the program since this case should never occur.
-		// The number of completed MPI requests is MPI_UNDEFINED
-		// when all passed requests were already inactive
-		ErrorHandler::fail("Unexpected output from MPI_Testsome");
-	} else if (completed > 0) {
-		int replacement = _pending - 1;
-		int reverse = completed - 1;
-
-		for (int c = 0; c < completed; ++c) {
-			const int current = _indices[c] - 1;
-			completeRequest(current, _arrays.getStatus(c));
-
-			bool replace = false;
-			while (replacement > current) {
-				if (replacement != _indices[reverse] - 1) {
-					replace = true;
-					break;
-				}
-				--replacement;
-				--reverse;
-			}
-
-			if (replace) {
-				_arrays.moveRequest(replacement, current);
-				--replacement;
-			}
-		}
-		_pending -= completed;
-	}
-	return (completed > 0);
-}
-
 template <typename Lang>
 inline void TicketManager<Lang>::addRequest(request_t &request, Ticket &ticket)
 {
-	assert(request != Lang::REQUEST_NULL);
-
-	ticket.addPendingRequest();
+	assert(request != Interface<Lang>::REQUEST_NULL);
+	assert(ticket.getPendingRequests() == 1);
 
 	if (ticket.isBlocking()) {
 		BlockingEntry entry(request, ticket);
@@ -374,17 +313,15 @@ inline void TicketManager<Lang>::addRequests(util::ArrayView<request_t> &request
 {
 	util::Uninitialized<EntryTy> entries[NRPG];
 
-	const int active = getActiveRequestCount(requests);
+	const int active = ticket.getPendingRequests();
 	assert(active > 0);
-
-	ticket.addPendingRequest(active);
 
 	int req = 0;
 	for (int added = 0; added < active; added += NRPG) {
 		const int size = std::min(NRPG, active - added);
 		int entry = 0;
 		while (entry < size) {
-			if (requests[req] != Lang::REQUEST_NULL) {
+			if (requests[req] != Interface<Lang>::REQUEST_NULL) {
 				new (&entries[entry]) EntryTy(requests[req], ticket, req);
 				++entry;
 			}

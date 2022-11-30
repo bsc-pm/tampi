@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2021 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
 */
 
 #include <config.h>
@@ -13,9 +13,9 @@
 
 #include "include/TAMPI_Decl.h"
 
-#include "Definitions.hpp"
 #include "Environment.hpp"
 #include "Instrument.hpp"
+#include "Interface.hpp"
 #include "Symbol.hpp"
 
 using namespace tampi;

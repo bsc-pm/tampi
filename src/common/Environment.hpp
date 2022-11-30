@@ -11,6 +11,7 @@
 
 #include <atomic>
 
+#include "Interface.hpp"
 #include "TaskContext.hpp"
 #include "TaskingModel.hpp"
 #include "TicketManager.hpp"
@@ -71,10 +72,10 @@ public:
 		_nonBlockingEnabled = nonBlockingMode;
 
 #ifndef DISABLE_C_LANG
-		C::initialize();
+		Interface<C>::initialize();
 #endif
 #ifndef DISABLE_FORTRAN_LANG
-		Fortran::initialize();
+		Interface<Fortran>::initialize();
 #endif
 
 		TaskingModel::initialize(blockingMode, nonBlockingMode);

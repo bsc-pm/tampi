@@ -6,7 +6,6 @@
 
 #include <cstdio>
 
-#include "Definitions.hpp"
 #include "Environment.hpp"
 #include "Instrument.hpp"
 #include "Ticket.hpp"
@@ -19,14 +18,6 @@ namespace tampi {
 std::atomic<bool> Environment::_blockingEnabled(false);
 std::atomic<bool> Environment::_nonBlockingEnabled(false);
 TaskingModel::polling_handle_t Environment::_pollingHandle;
-
-C::request_t C::REQUEST_NULL;
-C::status_ptr_t C::STATUS_IGNORE;
-C::status_ptr_t C::STATUSES_IGNORE;
-
-Fortran::request_t Fortran::REQUEST_NULL;
-Fortran::status_ptr_t Fortran::STATUS_IGNORE;
-Fortran::status_ptr_t Fortran::STATUSES_IGNORE;
 
 EnvironmentVariable<bool> Instrument::_instrumentEnabled("TAMPI_INSTRUMENT", true);
 EnvironmentVariable<size_t> Instrument::_instrumentSyncIterations("TAMPI_INSTRUMENT_SYNC_ITERATIONS", 10);

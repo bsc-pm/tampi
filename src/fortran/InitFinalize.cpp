@@ -12,8 +12,8 @@
 
 #include "include/TAMPI_Decl.h"
 
-#include "Definitions.hpp"
 #include "Environment.hpp"
+#include "Interface.hpp"
 #include "Instrument.hpp"
 #include "Symbol.hpp"
 

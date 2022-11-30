@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TICKET_HPP
@@ -11,7 +11,7 @@
 
 #include <cassert>
 
-#include "Definitions.hpp"
+#include "Interface.hpp"
 #include "TaskContext.hpp"
 
 
@@ -21,8 +21,8 @@ namespace tampi {
 template <typename Lang>
 class Ticket {
 private:
-	typedef typename Lang::status_t status_t;
-	typedef typename Lang::status_ptr_t status_ptr_t;
+	typedef typename Types<Lang>::status_t status_t;
+	typedef typename Types<Lang>::status_ptr_t status_ptr_t;
 
 	//! Number of pending requests assigned to the ticket
 	int _pending;
@@ -66,10 +66,16 @@ public:
 		return _taskContext.isBlocking();
 	}
 
+	//! \brief Get the number of pending requests
+	inline int getPendingRequests() const
+	{
+		return _pending;
+	}
+
 	//! \brief Add pending requests to the ticket
 	//!
 	//! \param num The number of pending requests to add
-	inline void addPendingRequest(int num = 1)
+	inline void addPendingRequests(int num)
 	{
 		_pending += num;
 		_taskContext.bindEvents(num);
@@ -78,8 +84,6 @@ public:
 	//! \brief Reset the pending requests of the ticket
 	//!
 	//! Notice this function does not alter the number of bound events
-	//!
-	//! \param num The new number of pending requests
 	inline void resetPendingRequests(int num)
 	{
 		_pending = num;
@@ -117,7 +121,7 @@ private:
 	//! \returns Whether ignore the statuses
 	inline bool ignoreStatus() const
 	{
-		return (_firstStatus == Lang::STATUS_IGNORE || _firstStatus == Lang::STATUSES_IGNORE);
+		return (_firstStatus == Interface<Lang>::STATUS_IGNORE || _firstStatus == Interface<Lang>::STATUSES_IGNORE);
 	}
 
 	//! \brief Store the status of a request

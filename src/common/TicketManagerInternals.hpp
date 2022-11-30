@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2020 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TICKET_MANAGER_INTERNALS_HPP
@@ -11,7 +11,6 @@
 #include <cstdlib>
 #include <utility>
 
-#include "Definitions.hpp"
 #include "Ticket.hpp"
 
 
@@ -21,9 +20,9 @@ namespace tampi {
 template <typename Lang, size_t Capacity>
 class TicketManagerInternals {
 private:
-	typedef typename Lang::request_t request_t;
-	typedef typename Lang::status_t status_t;
-	typedef typename Lang::status_ptr_t status_ptr_t;
+	typedef typename Types<Lang>::request_t request_t;
+	typedef typename Types<Lang>::status_t status_t;
+	typedef typename Types<Lang>::status_ptr_t status_ptr_t;
 	typedef tampi::Ticket<Lang> Ticket;
 
 	//! Structure to map requests and tickets. Notice that
