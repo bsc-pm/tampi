@@ -78,21 +78,19 @@ public:
 template <>
 inline void RequestManager<C>::processRequest(request_t &request, status_ptr_t status, bool blocking)
 {
-	int err;
 	int finished = 0;
-	err = PMPI_Test(&request, &finished, status);
-	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Test");
+	int err = PMPI_Test(&request, &finished, status);
+	if (err != MPI_SUCCESS)
+		ErrorHandler::fail("Unexpected return code from MPI_Test");
 
 	if (!finished) {
-		TicketManager &manager = Environment::getTicketManager<C>();
+		Ticket ticket(status, blocking);
 
-		if (blocking) {
-			Ticket ticket(status);
-			manager.addBlockingRequest(request, ticket);
+		TicketManager &manager = Environment::getTicketManager<C>();
+		manager.addRequest(request, ticket);
+
+		if (blocking)
 			ticket.wait();
-		} else {
-			manager.addNonBlockingRequest(request, status);
-		}
 	}
 
 	// Nullify the request
@@ -105,31 +103,27 @@ inline void RequestManager<C>::processRequests(
 	status_ptr_t statuses,
 	bool blocking
 ) {
-	if (requests.empty()) {
+	if (requests.empty())
 		return;
-	}
 
-	int err;
 	int finished = 0;
-	err = PMPI_Testall(requests.size(), requests.begin(), &finished, statuses);
-	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Testall");
+	int err = PMPI_Testall(requests.size(), requests.begin(), &finished, statuses);
+	if (err != MPI_SUCCESS)
+		ErrorHandler::fail("Unexpected return code from MPI_Testall");
 
 	if (!finished) {
-		TicketManager &manager = Environment::getTicketManager<C>();
+		Ticket ticket(statuses, blocking);
 
-		if (blocking) {
-			Ticket ticket(statuses);
-			manager.addBlockingRequests(requests, ticket);
+		TicketManager &manager = Environment::getTicketManager<C>();
+		manager.addRequests(requests, ticket);
+
+		if (blocking)
 			ticket.wait();
-		} else {
-			manager.addNonBlockingRequests(requests, statuses);
-		}
 	}
 
 	// Nullify the requests
-	for (int i = 0; i < requests.size(); ++i) {
+	for (int i = 0; i < requests.size(); ++i)
 		requests[i] = C::REQUEST_NULL;
-	}
 }
 
 template <>
@@ -138,18 +132,17 @@ inline void RequestManager<Fortran>::processRequest(request_t &request, status_p
 	int err;
 	int finished = 0;
 	pmpi_test_(&request, &finished, status, &err);
-	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Test");
+	if (err != MPI_SUCCESS)
+		ErrorHandler::fail("Unexpected return code from MPI_Test");
 
 	if (!finished) {
-		TicketManager &manager = Environment::getTicketManager<Fortran>();
+		Ticket ticket(status, blocking);
 
-		if (blocking) {
-			Ticket ticket(status);
-			manager.addBlockingRequest(request, ticket);
+		TicketManager &manager = Environment::getTicketManager<Fortran>();
+		manager.addRequest(request, ticket);
+
+		if (blocking)
 			ticket.wait();
-		} else {
-			manager.addNonBlockingRequest(request, status);
-		}
 	}
 
 	// Nullify the request
@@ -162,32 +155,29 @@ inline void RequestManager<Fortran>::processRequests(
 	status_ptr_t statuses,
 	bool blocking
 ) {
-	if (requests.empty()) {
+	if (requests.empty())
 		return;
-	}
 
 	int err;
 	int finished = 0;
 	int size = requests.size();
 	pmpi_testall_(&size, requests.begin(), &finished, statuses, &err);
-	ErrorHandler::failIf(err != MPI_SUCCESS, "Unexpected return code from MPI_Testall");
+	if (err != MPI_SUCCESS)
+		ErrorHandler::fail("Unexpected return code from MPI_Testall");
 
 	if (!finished) {
-		TicketManager &manager = Environment::getTicketManager<Fortran>();
+		Ticket ticket(statuses, blocking);
 
-		if (blocking) {
-			Ticket ticket(statuses);
-			manager.addBlockingRequests(requests, ticket);
+		TicketManager &manager = Environment::getTicketManager<Fortran>();
+		manager.addRequests(requests, ticket);
+
+		if (blocking)
 			ticket.wait();
-		} else {
-			manager.addNonBlockingRequests(requests, statuses);
-		}
 	}
 
 	// Nullify the requests
-	for (int i = 0; i < requests.size(); ++i) {
+	for (int i = 0; i < requests.size(); ++i)
 		requests[i] = Fortran::REQUEST_NULL;
-	}
 }
 
 } // namespace tampi

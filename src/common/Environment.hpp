@@ -153,9 +153,9 @@ private:
 
 		uint64_t period = 100;
 		if (pollingPeriod.isPresent()) {
-			period = pollingPeriod.getValue();
+			period = pollingPeriod.get();
 		} else if (pollingFrequency.isPresent()) {
-			period = pollingFrequency.getValue();
+			period = pollingFrequency.get();
 		}
 
 		return period;

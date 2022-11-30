@@ -65,7 +65,7 @@ public:
 	//! \brief Retrieve the current value
 	//!
 	//! \returns The current value
-	inline T getValue() const
+	inline T get() const
 	{
 		return _value;
 	}

@@ -101,6 +101,12 @@ public:
 		TaskingModel::blockCurrentTask(_taskData);
 	}
 
+	//! \brief Indicate whether the task is using the blocking mode
+	inline bool isBlocking() const
+	{
+		return _blocking;
+	}
+
 private:
 	//! \brief Get the blocking context or events counter
 	//!

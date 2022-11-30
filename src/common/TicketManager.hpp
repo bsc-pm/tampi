@@ -69,27 +69,23 @@ private:
 	//! Structure representing a non-blocking request in the pre-queues
 	struct NonBlockingEntry {
 		request_t _request;
-		status_ptr_t _status;
-		TaskContext _taskContext;
+		Ticket _ticket;
 		int _position;
 
 		inline NonBlockingEntry(
 			const request_t &request,
-			status_ptr_t status,
-			const TaskContext &taskContext,
+			Ticket &ticket,
 			int position = 0
 		) :
 			_request(request),
-			_status(status),
-			_taskContext(taskContext),
+			_ticket(ticket),
 			_position(position)
 		{
 		}
 
 		inline NonBlockingEntry() :
 			_request(Lang::REQUEST_NULL),
-			_status(Lang::STATUS_IGNORE),
-			_taskContext(),
+			_ticket(),
 			_position(0)
 		{
 		}
@@ -174,45 +170,31 @@ public:
 		}
 	}
 
-	//! \brief Add a blocking request to the pre-queues
+	//! \brief Add a request and its ticket to the pre-queues
 	//!
-	//! This function adds a blocking request and stores a pointer to the
-	//! ticket to later notify the completion of the request. This ticket
-	//! cannot be destroyed until until all its requests complete
+	//! This function adds the request to the pre-queues so that it can be
+	//! later processed and tranferred to the global array of requests and
+	//! tickets. In case the ticket is blocking, the ticket cannot be destroyed
+	//! until the request completes. The ticket must be wait on before
+	//! destroying. Otherwise, in case it is non-blocking, the ticket should
+	//! not be waited on and can be destroyed after returning.
 	//!
 	//! \param request The request to add
 	//! \param ticket The ticket which the request belongs to
-	void addBlockingRequest(request_t &request, Ticket &ticket);
+	void addRequest(request_t &request, Ticket &ticket);
 
-	//! \brief Add multiple blocking requests to the pre-queues
+	//! \brief Add multiple requests and their ticket to the pre-queues
 	//!
-	//! This function adds blocking requests and stores a pointer to the
-	//! ticket to later notify the completion of the requests. This ticket
-	//! cannot be destroyed until until all its requests complete
+	//! This function adds the requests to the pre-queues so that they can be
+	//! later processed and tranferred to the global array of requests and
+	//! tickets. In case the ticket is blocking, the ticket cannot be destroyed
+	//! until the requests complete. The ticket must be wait on before
+	//! destroying. Otherwise, in case it is non-blocking, the ticket should
+	//! not be waited on and can be destroyed after returning.
 	//!
 	//! \param request The requests to add
-	//! \param ticket The ticket which the requests belong to
-	void addBlockingRequests(util::ArrayView<request_t> &requests, Ticket &ticket);
-
-	//! \brief Add a non-blocking request to the pre-queues
-	//!
-	//! This function adds a non-blocking request. The associated ticket
-	//! is allocated and constructed in-place in an efficient way without
-	//! using dynamic memory allocation for each one
-	//!
-	//! \param request The request to add
-	//! \param status A pointer to the location where to store the status
-	void addNonBlockingRequest(request_t &request, status_ptr_t status);
-
-	//! \brief Add multiple non-blocking requests to the pre-queues
-	//!
-	//! This function adds non-blocking requests. The associated ticket
-	//! is allocated and constructed in-place in an efficient way without
-	//! using dynamic memory allocation for each one
-	//!
-	//! \param request The requests to add
-	//! \param statuses A pointer to the location where to store the statuses
-	void addNonBlockingRequests(util::ArrayView<request_t> &requests, status_ptr_t statuses);
+	//! \param ticket The ticket which the requests belongs to
+	void addRequests(util::ArrayView<request_t> &requests, Ticket &ticket);
 
 private:
 	//! \brief Internal function to check the requests that are in-flight
@@ -231,6 +213,13 @@ private:
 			internalCheckEntryQueues();
 		}
 	}
+
+	//! \brief Add multiple requests and their ticket to a specific pre-queue
+	//!
+	//! \param request The requests to add
+	//! \param ticket The ticket which the requests belongs to
+	template <typename EntryTy>
+	void addRequests(util::ArrayView<request_t> &requests, Ticket &ticket, util::LockFreeQueue<EntryTy> &queue);
 
 	//! \brief Internal function to check and transfer requests from pre-queues
 	//!
@@ -273,7 +262,6 @@ inline bool TicketManager<C>::internalCheckRequests()
 
 	int completed = 0;
 	int err = PMPI_Testsome(_pending, _arrays.getRequests(), &completed, _indices, _arrays.getStatuses());
-
 	if (err != MPI_SUCCESS)
 		ErrorHandler::fail("Unexpected return code from MPI_Testsome");
 
@@ -355,33 +343,40 @@ inline bool TicketManager<Fortran>::internalCheckRequests()
 }
 
 template <typename Lang>
-inline void TicketManager<Lang>::addBlockingRequest(request_t &request, Ticket &ticket)
+inline void TicketManager<Lang>::addRequest(request_t &request, Ticket &ticket)
 {
 	assert(request != Lang::REQUEST_NULL);
+
 	ticket.addPendingRequest();
 
-	BlockingEntry entry(request, ticket);
-	_blockingEntries.add(entry, _checkEntriesFunc);
+	if (ticket.isBlocking()) {
+		BlockingEntry entry(request, ticket);
+		_blockingEntries.add(entry, _checkEntriesFunc);
+	} else {
+		NonBlockingEntry entry(request, ticket);
+		_nonBlockingEntries.add(entry, _checkEntriesFunc);
+	}
 }
 
 template <typename Lang>
-inline void TicketManager<Lang>::addNonBlockingRequest(request_t &request, status_ptr_t status)
+inline void TicketManager<Lang>::addRequests(util::ArrayView<request_t> &requests, Ticket &ticket)
 {
-	assert(request != Lang::REQUEST_NULL);
-	TaskContext taskContext(false);
-	taskContext.bindEvents(1);
-
-	NonBlockingEntry entry(request, status, taskContext);
-	_nonBlockingEntries.add(entry, _checkEntriesFunc);
+	if (ticket.isBlocking()) {
+		addRequests(requests, ticket, _blockingEntries);
+	} else {
+		addRequests(requests, ticket, _nonBlockingEntries);
+	}
 }
 
 template <typename Lang>
-inline void TicketManager<Lang>::addBlockingRequests(util::ArrayView<request_t> &requests, Ticket &ticket)
+template <typename EntryTy>
+inline void TicketManager<Lang>::addRequests(util::ArrayView<request_t> &requests, Ticket &ticket, util::LockFreeQueue<EntryTy> &queue)
 {
-	util::Uninitialized<BlockingEntry> entries[NRPG];
+	util::Uninitialized<EntryTy> entries[NRPG];
 
 	const int active = getActiveRequestCount(requests);
 	assert(active > 0);
+
 	ticket.addPendingRequest(active);
 
 	int req = 0;
@@ -390,40 +385,12 @@ inline void TicketManager<Lang>::addBlockingRequests(util::ArrayView<request_t> 
 		int entry = 0;
 		while (entry < size) {
 			if (requests[req] != Lang::REQUEST_NULL) {
-				new (&entries[entry]) BlockingEntry(requests[req], ticket, req);
+				new (&entries[entry]) EntryTy(requests[req], ticket, req);
 				++entry;
 			}
 			++req;
 		}
-		_blockingEntries.add((BlockingEntry *)entries, size, _checkEntriesFunc);
-	}
-}
-
-template <typename Lang>
-inline void TicketManager<Lang>::addNonBlockingRequests(
-	util::ArrayView<request_t> &requests,
-	status_ptr_t statuses
-) {
-	util::Uninitialized<NonBlockingEntry> entries[NRPG];
-
-	const int active = getActiveRequestCount(requests);
-	assert(active > 0);
-
-	TaskContext taskContext(false);
-	taskContext.bindEvents(active);
-
-	int req = 0;
-	for (int added = 0; added < active; added += NRPG) {
-		const int size = std::min(NRPG, active - added);
-		int entry = 0;
-		while (entry < size) {
-			if (requests[req] != Lang::REQUEST_NULL) {
-				new (&entries[entry]) NonBlockingEntry(requests[req], statuses, taskContext, req);
-				++entry;
-			}
-			++req;
-		}
-		_nonBlockingEntries.add((NonBlockingEntry *)entries, size, _checkEntriesFunc);
+		queue.add((EntryTy *)entries, size, _checkEntriesFunc);
 	}
 }
 
@@ -462,6 +429,8 @@ inline void TicketManager<Lang>::transferEntries(BlockingEntry entries[], int co
 	const int pending = _pending;
 	for (int r = 0; r < count; ++r) {
 		BlockingEntry &entry = entries[r];
+
+		// All requests share the same ticket
 		Ticket &ticket = *(entry._ticket);
 
 		_arrays.associateRequest(pending + r,
@@ -479,7 +448,13 @@ inline void TicketManager<Lang>::transferEntries(NonBlockingEntry entries[], int
 	const int pending = _pending;
 	for (int r = 0; r < count; ++r) {
 		NonBlockingEntry &entry = entries[r];
-		Ticket &ticket = _arrays.allocateTicket(pending + r, entry._status, entry._taskContext);
+
+		// Allocate a copy of the same ticket for each request
+		Ticket &ticket = _arrays.allocateTicket(pending + r, entry._ticket);
+
+		// Since there is a ticket per request, modify the number
+		// of pending requests per ticket to one
+		ticket.resetPendingRequests(1);
 
 		_arrays.associateRequest(pending + r, entry._request, ticket, entry._position);
 	}

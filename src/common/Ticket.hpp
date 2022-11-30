@@ -34,15 +34,11 @@ private:
 	status_ptr_t _firstStatus;
 
 public:
-	//! \brief Construct a ticket
-	//!
-	//! \param firstStatus A pointer to the location where to save
-	//!                    the statuses or STATUS_IGNORE
-	//! \param blocking Whether the TAMPI operation is blocking
-	inline Ticket(status_ptr_t firstStatus, bool blocking = true) :
+	//! \brief Construct an empty ticket
+	inline Ticket() :
 		_pending(0),
-		_taskContext(blocking),
-		_firstStatus(firstStatus)
+		_taskContext(),
+		_firstStatus(nullptr)
 	{
 	}
 
@@ -50,11 +46,10 @@ public:
 	//!
 	//! \param firstStatus A pointer to the location where to save
 	//!                    the statuses or STATUS_IGNORE
-	//! \param taskContext The context of the owner task
-	//! \param pending The number of pending requests
-	inline Ticket(status_ptr_t firstStatus, const TaskContext &taskContext, int pending = 1) :
-		_pending(pending),
-		_taskContext(taskContext),
+	//! \param blocking Whether the TAMPI operation is blocking
+	inline Ticket(status_ptr_t firstStatus, bool blocking) :
+		_pending(0),
+		_taskContext(blocking),
 		_firstStatus(firstStatus)
 	{
 	}
@@ -65,12 +60,10 @@ public:
 		assert(_pending == 0);
 	}
 
-	//! \brief Indicate whether all ticket's requests completed
-	//!
-	//! \returns Whether the ticket completed
-	inline bool finished() const
+	//! \brief Indicate whether the ticket is blocking
+	inline bool isBlocking() const
 	{
-		return _pending == 0;
+		return _taskContext.isBlocking();
 	}
 
 	//! \brief Add pending requests to the ticket
@@ -80,6 +73,16 @@ public:
 	{
 		_pending += num;
 		_taskContext.bindEvents(num);
+	}
+
+	//! \brief Reset the pending requests of the ticket
+	//!
+	//! Notice this function does not alter the number of bound events
+	//!
+	//! \param num The new number of pending requests
+	inline void resetPendingRequests(int num)
+	{
+		_pending = num;
 	}
 
 	//! \brief Mark a request of the ticket as completed
