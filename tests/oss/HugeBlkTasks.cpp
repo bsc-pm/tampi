@@ -1,3 +1,9 @@
+/*
+	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
+
+	Copyright (C) 2019-2022 Barcelona Supercomputing Center (BSC)
+*/
+
 #include <mpi.h>
 #include <TAMPI.h>
 
@@ -45,7 +51,7 @@ int main(int argc, char **argv)
 				buffer[d] = d;
 			}
 
-			#pragma oss task in(buffer[0;TOTAL_SIZE]) private(requests) label("send")
+			#pragma oss task in(buffer[0;TOTAL_SIZE]) shared(requests) label("send")
 			{
 				for (int m = 0; m < MSG_NUM; ++m) {
 					CHECK(MPI_Isend(&buffer[m*MSG_SIZE], MSG_SIZE, MPI_INT, 1, m, MPI_COMM_WORLD, &requests[m]));

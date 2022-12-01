@@ -1,28 +1,27 @@
-PROGS=DoNotExecute.ompss2.test         \
-      DoNotExecutef.ompss2.test        \
-      PrimitiveBlk.ompss2.test         \
-      PrimitiveNonBlk.ompss2.test      \
-      PrimitiveWrappers.ompss2.test    \
-      MultiPrimitiveBlk.ompss2.test    \
-      MultiPrimitiveNonBlk.ompss2.test \
-      CollectiveBlk.ompss2.test        \
-      CollectiveNonBlk.ompss2.test     \
-      HugeBlkTasks.ompss2.test         \
-      HugeTasks.ompss2.test
+PROGS=DoNotExecute.oss.test         \
+      DoNotExecutef.oss.test        \
+      PrimitiveBlk.oss.test         \
+      PrimitiveNonBlk.oss.test      \
+      PrimitiveWrappers.oss.test    \
+      MultiPrimitiveBlk.oss.test    \
+      MultiPrimitiveNonBlk.oss.test \
+      CollectiveBlk.oss.test        \
+      CollectiveNonBlk.oss.test     \
+      HugeBlkTasks.oss.test         \
+      HugeTasksf.oss.test
 
 # Compilers
-CXX ?= g++
-MCXX ?= mcxx
+CLANGCXX ?= clang++
 MF90 ?= mfc
 MPICXX ?= mpicxx
 MPIF90 ?= mpif90
 
 # MPI Wrappers
-CXX_WRAPPERS=I_MPI_CXX=$(MCXX) MPICH_CXX=$(MCXX) OMPI_CXX=$(MCXX)
+CXX_WRAPPERS=I_MPI_CXX=$(CLANGCXX) MPICH_CXX=$(CLANGCXX) OMPI_CXX=$(CLANGCXX)
 F90_WRAPPERS=I_MPI_F90=$(MF90) MPICH_FC=$(MF90) OMPI_FC=$(MF90)
 
 CPPFLAGS=-I.
-CFLAGS=--ompss-2 -O3 -std=c++11
+CFLAGS=-fompss-2 -O3 -std=c++11 --gcc-toolchain=$(which gcc | sed 's,/bin/gcc$,,')
 FFLAGS=--ompss-2 -O3 --pp
 
 ifdef LARGE_INPUT
@@ -50,11 +49,11 @@ TAMPI_LDFFLAGS=-L$(TAMPI_LIBRARY_PATH) -ltampi-fortran
 
 all: $(PROGS)
 
-%.ompss2.test: ompss2/%.cpp
+%.oss.test: oss/%.cpp
 	@echo "  MPICXX $@"
 	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(CFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDCFLAGS)
 
-%.ompss2.test: ompss2/%.F90
+%.oss.test: oss/%.F90
 	@echo "  MPIF90 $@"
 	$(F90_WRAPPERS) $(MPIF90) $(CPPFLAGS) $(FFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDFFLAGS)
 

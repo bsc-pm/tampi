@@ -1,3 +1,9 @@
+/*
+	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
+
+	Copyright (C) 2019-2022 Barcelona Supercomputing Center (BSC)
+*/
+
 #include <mpi.h>
 #include <TAMPI.h>
 
@@ -6,19 +12,25 @@
 #include <vector>
 
 #ifdef LARGE_INPUT
-const int TIMESTEPS = 100;
+const int TIMESTEPS = 1000;
 const int MSG_NUM = 1000;
 const int MSG_SIZE = 100;
 #else
-const int TIMESTEPS = 50;
+const int TIMESTEPS = 100;
 const int MSG_NUM = 500;
 const int MSG_SIZE = 100;
 #endif
 
+struct statuses_t {
+	MPI_Status status[4];
+};
+
+statuses_t statuses[MSG_NUM];
+
 int main(int argc, char **argv)
 {
 	int provided;
-	const int required = MPI_TASK_MULTIPLE;
+	const int required = MPI_THREAD_MULTIPLE;
 	CHECK(MPI_Init_thread(&argc, &argv, required, &provided));
 	ASSERT(provided == required);
 
@@ -54,7 +66,10 @@ int main(int argc, char **argv)
 
 				#pragma oss task in(message[0;MSG_SIZE]) label("send")
 				{
-					CHECK(MPI_Send(message, MSG_SIZE, MPI_INT, 0, m, MPI_COMM_WORLD));
+					MPI_Request requests[2];
+					requests[0] = MPI_REQUEST_NULL;
+					CHECK(MPI_Isend(message, MSG_SIZE, MPI_INT, 0, m, MPI_COMM_WORLD, &requests[1]));
+					CHECK(TAMPI_Iwaitall(2, requests, MPI_STATUSES_IGNORE));
 				}
 				message += MSG_SIZE;
 			}
@@ -64,34 +79,37 @@ int main(int argc, char **argv)
 			int *message3 = buffer3 + (MSG_NUM - 1) * MSG_SIZE;
 
 			for (int m = MSG_NUM - 1; m >= 0; --m) {
-				#pragma oss task out(message1[0;MSG_SIZE], message2[0;MSG_SIZE], message3[0;MSG_SIZE]) label("recv")
+				#pragma oss task label("recv") out(message1[0;MSG_SIZE], message2[0;MSG_SIZE], message3[0;MSG_SIZE]) out(statuses[m])
 				{
 					MPI_Request requests[4];
-					MPI_Status statuses[4];
 					CHECK(MPI_Irecv(message1, MSG_SIZE, MPI_INT, 1, m, MPI_COMM_WORLD, &requests[0]));
-					CHECK(MPI_Irecv(message2, MSG_SIZE, MPI_INT, 2, m, MPI_COMM_WORLD, &requests[2]));
-					CHECK(MPI_Irecv(message3, MSG_SIZE, MPI_INT, 3, m, MPI_COMM_WORLD, &requests[3]));
-					requests[1] = MPI_REQUEST_NULL;
-					CHECK(MPI_Waitall(4, requests, statuses));
+					CHECK(MPI_Irecv(message2, MSG_SIZE, MPI_INT, 2, m, MPI_COMM_WORLD, &requests[1]));
+					CHECK(MPI_Irecv(message3, MSG_SIZE, MPI_INT, 3, m, MPI_COMM_WORLD, &requests[2]));
+					requests[3] = MPI_REQUEST_NULL;
+					CHECK(TAMPI_Iwaitall(4, requests, statuses[m].status));
+				}
+
+				#pragma oss task label("check") in(message1[0;MSG_SIZE], message2[0;MSG_SIZE], message3[0;MSG_SIZE]) in(statuses[m])
+				{
+					const MPI_Status &status1 = statuses[m].status[0];
+					const MPI_Status &status2 = statuses[m].status[1];
+					const MPI_Status &status3 = statuses[m].status[2];
 
 					int count1, count2, count3;
-					CHECK(MPI_Get_count(&statuses[0], MPI_INT, &count1));
-					CHECK(MPI_Get_count(&statuses[2], MPI_INT, &count2));
-					CHECK(MPI_Get_count(&statuses[3], MPI_INT, &count3));
+					CHECK(MPI_Get_count(&status1, MPI_INT, &count1));
+					CHECK(MPI_Get_count(&status2, MPI_INT, &count2));
+					CHECK(MPI_Get_count(&status3, MPI_INT, &count3));
 					ASSERT(count1 == MSG_SIZE);
 					ASSERT(count2 == MSG_SIZE);
 					ASSERT(count3 == MSG_SIZE);
 
-					ASSERT(statuses[0].MPI_TAG == m);
-					ASSERT(statuses[0].MPI_SOURCE == 1);
-					ASSERT(statuses[2].MPI_TAG == m);
-					ASSERT(statuses[2].MPI_SOURCE == 2);
-					ASSERT(statuses[3].MPI_TAG == m);
-					ASSERT(statuses[3].MPI_SOURCE == 3);
-				}
+					ASSERT(status1.MPI_TAG == m);
+					ASSERT(status1.MPI_SOURCE == 1);
+					ASSERT(status2.MPI_TAG == m);
+					ASSERT(status2.MPI_SOURCE == 2);
+					ASSERT(status3.MPI_TAG == m);
+					ASSERT(status3.MPI_SOURCE == 3);
 
-				#pragma oss task in(message1[0;MSG_SIZE], message2[0;MSG_SIZE], message3[0;MSG_SIZE]) label("check")
-				{
 					for (int d = 0; d < MSG_SIZE; ++d) {
 						ASSERT(message1[d] == d);
 					}

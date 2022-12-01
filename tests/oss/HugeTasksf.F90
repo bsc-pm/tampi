@@ -1,3 +1,9 @@
+!
+!	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
+!
+!	Copyright (C) 2019-2022 Barcelona Supercomputing Center (BSC)
+!
+
 #include "TAMPIf.h"
 
 module test
@@ -53,7 +59,7 @@ do t = 1, timesteps
     enddo
     !$OSS END TASK
 
-    !$OSS TASK LABEL("init") DEFAULT(shared) PRIVATE(m,d,err,requests) IN(buffer(:,:))
+    !$OSS TASK LABEL("init") DEFAULT(shared) PRIVATE(m,d,err) IN(buffer(:,:))
     do m = 1, msg_num
       call MPI_Isend(buffer(:, m), msg_size, MPI_INTEGER, 1, m, MPI_COMM_WORLD, requests(m), err)
     enddo

@@ -5,15 +5,18 @@ function usage {
 		echo "Error: $1"
 		echo ""
 	fi
-	echo "Usage: ./run-ompss2-tests.sh [OPTION]..."
+	echo "Usage: $0 [OPTION]..."
 	echo "  -l, --large              use large inputs (recommended only for powerful machines)"
 	echo "  -p, --path     PATH      path to the TAMPI installation (default: read \$TAMPI_HOME env. variable)"
 	echo "  -I, --includes INC_PATH  path to the directory containing the TAMPI headers (default: PATH/include)"
 	echo "  -L, --libs     LIB_PATH  path to the directory containing the TAMPI libraries (default: PATH/lib)"
+	echo "  --slurm                  use SLURM's srun for launching the tests. This is intended for running in"
+	echo "                           a SLURM session configured for at least four processes"
 	echo "  -h, --help               display this help and exit"
 	echo ""
 	echo "Note: Make sure all MPI and OmpSs-2 binaries are available (i.e. through the \$PATH env. variable) when"
-	echo "      executing this script"
+	echo "      executing this script. Also, make sure the environment is ready for launching four processes. This"
+	echo "      includes the MPI environment and the SLURM session, if applicable"
 	echo ""
 	if [ "$#" -eq 1 ]; then
 		exit 1
@@ -21,23 +24,27 @@ function usage {
 }
 
 function find_binary {
-	which $1 &> /dev/null
-	if [ $? -eq 0 ]; then
-		echo 1
-	else
-		echo 0
-	fi
+	found=0
+	for binary in "$@"; do
+		which $binary &> /dev/null
+		if [ $? -eq 0 ]; then
+			found=$binary
+			break
+		fi
+	done
+
+	echo $found
 }
 
 function check_binaries {
 	nbins=$#
 	bins=("$@")
-	
+
 	i=0
 	while (("$i" < "$nbins")); do
 		bin=${bins[$i]}
 		((i++))
-		
+
 		which $bin &> /dev/null
 		if [ $? -ne 0 ]; then
 			usage "$bin binary not found"
@@ -45,7 +52,7 @@ function check_binaries {
 	done
 }
 
-makefile=./Makefile.ompss2
+makefile=./Makefile.oss
 if [ ! -f $makefile ]; then
 	usage "Makefile $makefile not found! Execute this script from the './tampi/tests' folder."
 fi
@@ -55,8 +62,8 @@ green="\033[0;32m"
 clean="\033[0m"
 
 # Default parameters
-mpi=mpich
 large_input=0
+use_slurm=0
 tampi_path=
 tampi_inc_path=
 tampi_lib_path=
@@ -68,23 +75,26 @@ i=0
 while (("$i" < "$nargs")); do
 	opt=${args[$i]}
 	((i++))
-	
+
 	# Options without argument
 	if [ "$opt" == "-l" ] || [ "$opt" == "--large" ]; then
 		large_input=1
+		continue
+	elif [ "$opt" == "--slurm" ]; then
+		use_slurm=1
 		continue
 	elif [ "$opt" == "-h" ] || [ "$opt" == "--help" ]; then
 		usage
 		exit 0
 	fi
-	
+
 	if [ $i -eq $nargs ]; then
 		usage "No argument for option $opt"
 	fi
-	
+
 	val=${args[$i]}
 	((i++))
-	
+
 	# Options with argument
 	if [ "$opt" == "-p" ] || [ "$opt" == "--path" ]; then
 		tampi_path=$val
@@ -115,47 +125,33 @@ if [ -z "$tampi_lib_path" ]; then
 	tampi_lib_path=$tampi_path/lib
 fi
 
-# MPI Binaries
-mpicxx=mpiicpc
-found=$(find_binary $mpicxx)
-if [ $found -ne 1 ]; then
-	mpicxx=mpicxx
+# MPI/Slurm Commands
+mpicxx=$(find_binary mpiicpc mpicxx)
+mpif90=$(find_binary mpiifort mpif90)
+
+launcher=srun
+if [ $use_slurm -eq 0 ]; then
+	launcher=$(find_binary mpiexec.hydra mpiexec mpirun)
 fi
 
-mpif90=mpiifort
-found=$(find_binary $mpif90)
-if [ $found -ne 1 ]; then
-	mpif90=mpif90
-fi
-
-mpiexec=mpiexec.hydra
-found=$(find_binary $mpiexec)
-if [ $found -ne 1 ]; then
-	mpiexec=mpiexec
-fi
-found=$(find_binary $mpiexec)
-if [ $found -ne 1 ]; then
-	mpiexec=mpirun
-fi
-
-check_binaries $mpicxx $mpif90 $mpiexec mcxx mfc
+check_binaries $mpicxx $mpif90 $launcher clang++ mfc
 
 echo "---------------------------------------"
 echo "TAMPI TEST SUITE"
 echo "---------------------------------------"
 echo ""
 echo "Using TAMPI from:"
-echo "  Headers:   $tampi_inc_path"
-echo "  Libraries: $tampi_lib_path"
+echo "  Headers:       $tampi_inc_path"
+echo "  Libraries:     $tampi_lib_path"
 echo ""
 echo "Using MPI from:"
-echo "  C++:       $(which $mpicxx)"
-echo "  Fortran:   $(which $mpif90)"
-echo "  Launcher:  $(which $mpiexec)"
+echo "  C++:           $(which $mpicxx)"
+echo "  Fortran:       $(which $mpif90)"
+echo "  Launcher:      $(which $launcher)"
 echo ""
 echo "Using OmpSs-2 from:"
-echo "  mcxx:      $(which mcxx)"
-echo "  mfc:       $(which mfc)"
+echo "  clang++ (C++): $(which clang++)"
+echo "  mfc (Fortran): $(which mfc)"
 echo ""
 echo "Using input data:"
 if [ $large_input -eq 1 ]; then
@@ -176,31 +172,31 @@ if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-progs=(
-	PrimitiveBlk.ompss2.test
-	PrimitiveNonBlk.ompss2.test
-	PrimitiveWrappers.ompss2.test
-	MultiPrimitiveBlk.ompss2.test
-	MultiPrimitiveNonBlk.ompss2.test
-	CollectiveBlk.ompss2.test
-	CollectiveNonBlk.ompss2.test
-	HugeBlkTasks.ompss2.test
-	HugeTasks.ompss2.test
+oss_progs=(
+	PrimitiveBlk.oss.test
+	PrimitiveNonBlk.oss.test
+	PrimitiveWrappers.oss.test
+	MultiPrimitiveBlk.oss.test
+	MultiPrimitiveNonBlk.oss.test
+	CollectiveBlk.oss.test
+	CollectiveNonBlk.oss.test
+	HugeBlkTasks.oss.test
+	HugeTasksf.oss.test
 )
 
 nprocsxprog=(
-	2 # PrimitiveBlk.ompss2.test
-	2 # PrimitiveNonBlk.ompss2.test
-	2 # PrimitiveWrappers.ompss2.test
-	4 # MultiPrimitiveBlk.ompss2.test
-	4 # MultiPrimitiveNonBlk.ompss2.test
-	4 # CollectiveBlk.ompss2.test
-	4 # CollectiveNonBlk.ompss2.test
-	2 # HugeBlkTasks.ompss2.test
-	2 # HugeTasks.ompss2.test
+	2 # PrimitiveBlk.oss.test
+	2 # PrimitiveNonBlk.oss.test
+	2 # PrimitiveWrappers.oss.test
+	4 # MultiPrimitiveBlk.oss.test
+	4 # MultiPrimitiveNonBlk.oss.test
+	4 # CollectiveBlk.oss.test
+	4 # CollectiveNonBlk.oss.test
+	2 # HugeBlkTasks.oss.test
+	2 # HugeTasksf.oss.test
 )
 
-nprogs=${#progs[@]}
+nprogs=${#oss_progs[@]}
 nfailed=0
 
 echo "---------------------------------------"
@@ -208,12 +204,17 @@ echo "TOTAL TESTS: $nprogs"
 echo "---------------------------------------"
 
 for ((i=0;i<nprogs;i++)); do
-	prog=${progs[$i]}
+	prog=${oss_progs[$i]}
 	nprocs=${nprocsxprog[$i]}
-	
+
 	echo -n "${prog} "
-	
-	${mpiexec} -np ${nprocs} ./${prog} &> /dev/null
+
+	if [ $use_slurm -eq 1 ]; then
+		${launcher} -n ${nprocs} --cpu_bind=cores ./${prog} &> /dev/null
+	else
+		${launcher} -np ${nprocs} ./${prog} &> /dev/null
+	fi
+
 	if [ $? -eq 0 ]; then
 		echo -e "${green}PASSED${clean}"
 	else

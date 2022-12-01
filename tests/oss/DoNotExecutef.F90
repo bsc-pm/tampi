@@ -1,3 +1,9 @@
+!
+!	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
+!
+!	Copyright (C) 2019-2022 Barcelona Supercomputing Center (BSC)
+!
+
 #include "TAMPIf.h"
 
 ! NOTE: Do not take this test as an example, since
