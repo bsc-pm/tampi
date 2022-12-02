@@ -52,9 +52,10 @@ function check_binaries {
 	done
 }
 
-makefile=./Makefile.oss
-if [ ! -f $makefile ]; then
-	usage "Makefile $makefile not found! Execute this script from the './tampi/tests' folder."
+makefile_oss=./Makefile.oss
+makefile_omp=./Makefile.omp
+if [ ! -f $makefile_oss ] || [ ! -f $makefile_omp ]; then
+	usage "Makefiles not found! Execute this script from the './tampi/tests' folder."
 fi
 
 red="\033[0;31m"
@@ -167,12 +168,17 @@ if [ $large_input -eq 1 ]; then
 	compile_args="$compile_args LARGE_INPUT=1"
 fi
 
-make -f $makefile -B -s $compile_args
+make -f $makefile_oss -B -s $compile_args
 if [ $? -ne 0 ]; then
 	exit 1
 fi
 
-oss_progs=(
+make -f $makefile_omp -B -s $compile_args
+if [ $? -ne 0 ]; then
+	exit 1
+fi
+
+progs=(
 	PrimitiveBlk.oss.test
 	PrimitiveNonBlk.oss.test
 	PrimitiveWrappers.oss.test
@@ -181,6 +187,9 @@ oss_progs=(
 	CollectiveBlk.oss.test
 	CollectiveNonBlk.oss.test
 	HugeBlkTasks.oss.test
+	PrimitiveNonBlk.omp.test
+	MultiPrimitiveNonBlk.omp.test
+	CollectiveNonBlk.omp.test
 )
 
 nprocsxprog=(
@@ -192,10 +201,12 @@ nprocsxprog=(
 	4 # CollectiveBlk.oss.test
 	4 # CollectiveNonBlk.oss.test
 	2 # HugeBlkTasks.oss.test
-	2 # HugeTasksf.oss.test
+	2 # PrimitiveNonBlk.omp.test
+	4 # MultiPrimitiveNonBlk.omp.test
+	4 # CollectiveNonBlk.omp.test
 )
 
-nprogs=${#oss_progs[@]}
+nprogs=${#progs[@]}
 nfailed=0
 
 echo "---------------------------------------"
@@ -203,7 +214,7 @@ echo "TOTAL TESTS: $nprogs"
 echo "---------------------------------------"
 
 for ((i=0;i<nprogs;i++)); do
-	prog=${oss_progs[$i]}
+	prog=${progs[$i]}
 	nprocs=${nprocsxprog[$i]}
 
 	echo -n "${prog} "
@@ -222,7 +233,12 @@ for ((i=0;i<nprogs;i++)); do
 	fi
 done
 
-make -f $makefile clean -B -s $compile_args
+make -f $makefile_oss clean -B -s $compile_args
+if [ $? -ne 0 ]; then
+	exit 1
+fi
+
+make -f $makefile_omp clean -B -s $compile_args
 if [ $? -ne 0 ]; then
 	exit 1
 fi

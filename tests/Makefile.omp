@@ -2,12 +2,16 @@ PROGS=PrimitiveNonBlk.omp.test      \
       MultiPrimitiveNonBlk.omp.test \
       CollectiveNonBlk.omp.test
 
+
 # Compilers
-CXX ?= g++
+CLANGCXX ?= clang++
 MPICXX ?= mpicxx
 
+# MPI Wrappers
+CXX_WRAPPERS=I_MPI_CXX=$(CLANGCXX) MPICH_CXX=$(CLANGCXX) OMPI_CXX=$(CLANGCXX)
+
 CPPFLAGS=-I.
-CFLAGS=-fopenmp -std=c++11 -O3
+CFLAGS=-fopenmp -O3 -std=c++11 --gcc-toolchain=$(which gcc | sed 's,/bin/gcc$,,')
 
 ifdef LARGE_INPUT
 CPPFLAGS+=-DLARGE_INPUT
@@ -29,13 +33,13 @@ TAMPI_LIBRARY_PATH=$(TAMPI_HOME)/lib
 endif
 
 TAMPI_CPPFLAGS=-I$(TAMPI_INCLUDE_PATH)
-TAMPI_LDFLAGS=-L$(TAMPI_LIBRARY_PATH) -l:libtampi.a -lstdc++
+TAMPI_LDCFLAGS=-L$(TAMPI_LIBRARY_PATH) -ltampi-c
 
 all: $(PROGS)
 
 %.omp.test: omp/%.cpp
 	@echo "  MPICXX $@"
-	$(MPICXX) $(CPPFLAGS) $(CFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDFLAGS)
+	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(CFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDCFLAGS)
 
 clean:
-	rm -f *.o *.test
+	rm -f *.o *.test *.mod
