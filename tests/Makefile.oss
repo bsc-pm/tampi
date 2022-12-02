@@ -21,7 +21,7 @@ CXX_WRAPPERS=I_MPI_CXX=$(CLANGCXX) MPICH_CXX=$(CLANGCXX) OMPI_CXX=$(CLANGCXX)
 F90_WRAPPERS=I_MPI_F90=$(MF90) MPICH_FC=$(MF90) OMPI_FC=$(MF90)
 
 CPPFLAGS=-I.
-CFLAGS=-fompss-2 -O3 -std=c++11 --gcc-toolchain=$(which gcc | sed 's,/bin/gcc$,,')
+CFLAGS=-fompss-2 -O3 -std=c++11 --gcc-toolchain=$(shell which gcc | sed 's,/bin/gcc$$,,')
 FFLAGS=--ompss-2 -O3 --pp
 
 ifdef LARGE_INPUT
