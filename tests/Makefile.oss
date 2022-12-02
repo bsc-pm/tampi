@@ -1,5 +1,4 @@
 PROGS=DoNotExecute.oss.test         \
-      DoNotExecutef.oss.test        \
       PrimitiveBlk.oss.test         \
       PrimitiveNonBlk.oss.test      \
       PrimitiveWrappers.oss.test    \
@@ -7,8 +6,12 @@ PROGS=DoNotExecute.oss.test         \
       MultiPrimitiveNonBlk.oss.test \
       CollectiveBlk.oss.test        \
       CollectiveNonBlk.oss.test     \
-      HugeBlkTasks.oss.test         \
-      HugeTasksf.oss.test
+      HugeBlkTasks.oss.test
+
+ifdef USE_FORTRAN
+PROGS+=DoNotExecutef.oss.test \
+       HugeTasksf.oss.test
+endif
 
 # Compilers
 CLANGCXX ?= clang++
@@ -53,9 +56,11 @@ all: $(PROGS)
 	@echo "  MPICXX $@"
 	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(CFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDCFLAGS)
 
+ifdef USE_FORTRAN
 %.oss.test: oss/%.F90
 	@echo "  MPIF90 $@"
 	$(F90_WRAPPERS) $(MPIF90) $(CPPFLAGS) $(FFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDFFLAGS)
+endif
 
 clean:
 	rm -f *.o *.test *.mod

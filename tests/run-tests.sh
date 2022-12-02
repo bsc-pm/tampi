@@ -181,7 +181,6 @@ oss_progs=(
 	CollectiveBlk.oss.test
 	CollectiveNonBlk.oss.test
 	HugeBlkTasks.oss.test
-	HugeTasksf.oss.test
 )
 
 nprocsxprog=(
