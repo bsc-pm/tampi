@@ -52,9 +52,8 @@ function check_binaries {
 	done
 }
 
-makefile_oss=./Makefile.oss
-makefile_omp=./Makefile.omp
-if [ ! -f $makefile_oss ] || [ ! -f $makefile_omp ]; then
+makefile=./Makefile
+if [ ! -f $makefile ]; then
 	usage "Makefiles not found! Execute this script from the './tampi/tests' folder."
 fi
 
@@ -168,12 +167,7 @@ if [ $large_input -eq 1 ]; then
 	compile_args="$compile_args LARGE_INPUT=1"
 fi
 
-make -f $makefile_oss -B -s $compile_args
-if [ $? -ne 0 ]; then
-	exit 1
-fi
-
-make -f $makefile_omp -B -s $compile_args
+make -f $makefile -B -s $compile_args
 if [ $? -ne 0 ]; then
 	exit 1
 fi
@@ -233,12 +227,7 @@ for ((i=0;i<nprogs;i++)); do
 	fi
 done
 
-make -f $makefile_oss clean -B -s $compile_args
-if [ $? -ne 0 ]; then
-	exit 1
-fi
-
-make -f $makefile_omp clean -B -s $compile_args
+make -f $makefile clean -B -s $compile_args
 if [ $? -ne 0 ]; then
 	exit 1
 fi

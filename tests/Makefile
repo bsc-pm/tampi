@@ -6,7 +6,10 @@ PROGS=DoNotExecute.oss.test         \
       MultiPrimitiveNonBlk.oss.test \
       CollectiveBlk.oss.test        \
       CollectiveNonBlk.oss.test     \
-      HugeBlkTasks.oss.test
+      HugeBlkTasks.oss.test         \
+      PrimitiveNonBlk.omp.test      \
+      MultiPrimitiveNonBlk.omp.test \
+      CollectiveNonBlk.omp.test
 
 ifdef USE_FORTRAN
 PROGS+=DoNotExecutef.oss.test \
@@ -14,18 +17,18 @@ PROGS+=DoNotExecutef.oss.test \
 endif
 
 # Compilers
-CLANGCXX ?= clang++
-MF90 ?= mfc
-MPICXX ?= mpicxx
-MPIF90 ?= mpif90
+CXX=clang++
+F90=mfc
+MPICXX?=mpicxx
+MPIF90?=mpif90
 
 # MPI Wrappers
-CXX_WRAPPERS=I_MPI_CXX=$(CLANGCXX) MPICH_CXX=$(CLANGCXX) OMPI_CXX=$(CLANGCXX)
-F90_WRAPPERS=I_MPI_F90=$(MF90) MPICH_FC=$(MF90) OMPI_FC=$(MF90)
+CXX_WRAPPERS=I_MPI_CXX=$(CXX) MPICH_CXX=$(CXX) OMPI_CXX=$(CXX)
+F90_WRAPPERS=I_MPI_F90=$(F90) MPICH_FC=$(F90) OMPI_FC=$(F90)
 
 CPPFLAGS=-I.
-CFLAGS=-fompss-2 -O3 -std=c++11 --gcc-toolchain=$(shell which gcc | sed 's,/bin/gcc$$,,')
-FFLAGS=--ompss-2 -O3 --pp
+CFLAGS=-O3 -std=c++11 --gcc-toolchain=$(shell which gcc | sed 's,/bin/gcc$$,,')
+FFLAGS=-O3 --pp
 
 ifdef LARGE_INPUT
 CPPFLAGS+=-DLARGE_INPUT
@@ -54,13 +57,17 @@ all: $(PROGS)
 
 %.oss.test: oss/%.cpp
 	@echo "  MPICXX $@"
-	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(CFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDCFLAGS)
+	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(TAMPI_CPPFLAGS) $(CFLAGS) -fompss-2 $^ -o $@ $(TAMPI_LDCFLAGS)
 
 ifdef USE_FORTRAN
 %.oss.test: oss/%.F90
 	@echo "  MPIF90 $@"
-	$(F90_WRAPPERS) $(MPIF90) $(CPPFLAGS) $(FFLAGS) $(TAMPI_CPPFLAGS) $^ -o $@ $(TAMPI_LDFFLAGS)
+	$(F90_WRAPPERS) $(MPIF90) $(CPPFLAGS) $(FFLAGS) $(TAMPI_CPPFLAGS) --ompss-2 $^ -o $@ $(TAMPI_LDFFLAGS)
 endif
+
+%.omp.test: omp/%.cpp
+	@echo "  MPICXX $@"
+	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(CFLAGS) $(TAMPI_CPPFLAGS) -fopenmp $^ -o $@ $(TAMPI_LDCFLAGS)
 
 clean:
 	rm -f *.o *.test *.mod
