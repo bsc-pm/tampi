@@ -104,7 +104,7 @@ inline void RequestManager<Lang>::processRequest(request_t &request, status_ptr_
 		ticket.addPendingRequests(1);
 
 		TicketManager &manager = Environment::getTicketManager<Lang>();
-		manager.addRequest(request, ticket);
+		manager.addTicket(ticket, request);
 
 		if (blocking) {
 			ticket.wait();
@@ -137,7 +137,7 @@ inline void RequestManager<Lang>::processRequests(
 		ticket.addPendingRequests(active);
 
 		TicketManager &manager = Environment::getTicketManager<Lang>();
-		manager.addRequests(requests, ticket);
+		manager.addTicket(ticket, requests);
 
 		if (blocking) {
 			ticket.wait();

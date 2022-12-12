@@ -170,7 +170,7 @@ public:
 		}
 	}
 
-	//! \brief Add a request and its ticket to the pre-queues
+	//! \brief Add a ticket and its request the pre-queues
 	//!
 	//! This function adds the request to the pre-queues so that it can be
 	//! later processed and tranferred to the global array of requests and
@@ -181,9 +181,9 @@ public:
 	//!
 	//! \param request The request to add
 	//! \param ticket The ticket which the request belongs to
-	void addRequest(request_t &request, Ticket &ticket);
+	void addTicket(Ticket &ticket, request_t &request);
 
-	//! \brief Add multiple requests and their ticket to the pre-queues
+	//! \brief Add a ticket and their multiple requests to the pre-queues
 	//!
 	//! This function adds the requests to the pre-queues so that they can be
 	//! later processed and tranferred to the global array of requests and
@@ -194,7 +194,7 @@ public:
 	//!
 	//! \param request The requests to add
 	//! \param ticket The ticket which the requests belongs to
-	void addRequests(util::ArrayView<request_t> &requests, Ticket &ticket);
+	void addTicket(Ticket &ticket, util::ArrayView<request_t> &requests);
 
 private:
 	//! \brief Internal function to check the requests that are in-flight
@@ -219,7 +219,11 @@ private:
 	//! \param request The requests to add
 	//! \param ticket The ticket which the requests belongs to
 	template <typename EntryTy>
-	void addRequests(util::ArrayView<request_t> &requests, Ticket &ticket, util::LockFreeQueue<EntryTy> &queue);
+	void addTicketRequests(
+		Ticket &ticket,
+		util::ArrayView<request_t> &requests,
+		util::LockFreeQueue<EntryTy> &queue
+	);
 
 	//! \brief Internal function to check and transfer requests from pre-queues
 	//!
@@ -283,7 +287,7 @@ inline bool TicketManager<Lang>::internalCheckRequests()
 }
 
 template <typename Lang>
-inline void TicketManager<Lang>::addRequest(request_t &request, Ticket &ticket)
+inline void TicketManager<Lang>::addTicket(Ticket &ticket, request_t &request)
 {
 	assert(request != Interface<Lang>::REQUEST_NULL);
 	assert(ticket.getPendingRequests() == 1);
@@ -298,19 +302,22 @@ inline void TicketManager<Lang>::addRequest(request_t &request, Ticket &ticket)
 }
 
 template <typename Lang>
-inline void TicketManager<Lang>::addRequests(util::ArrayView<request_t> &requests, Ticket &ticket)
+inline void TicketManager<Lang>::addTicket(Ticket &ticket, util::ArrayView<request_t> &requests)
 {
 	if (ticket.isBlocking()) {
-		addRequests(requests, ticket, _blockingEntries);
+		addTicketRequests(ticket, requests, _blockingEntries);
 	} else {
-		addRequests(requests, ticket, _nonBlockingEntries);
+		addTicketRequests(ticket, requests, _nonBlockingEntries);
 	}
 }
 
 template <typename Lang>
 template <typename EntryTy>
-inline void TicketManager<Lang>::addRequests(util::ArrayView<request_t> &requests, Ticket &ticket, util::LockFreeQueue<EntryTy> &queue)
-{
+inline void TicketManager<Lang>::addTicketRequests(
+	Ticket &ticket,
+	util::ArrayView<request_t> &requests,
+	util::LockFreeQueue<EntryTy> &queue
+) {
 	util::Uninitialized<EntryTy> entries[NRPG];
 
 	const int active = ticket.getPendingRequests();
