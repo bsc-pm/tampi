@@ -14,6 +14,7 @@
 #include "Interface.hpp"
 #include "Ticket.hpp"
 #include "TicketManager.hpp"
+#include "instrument/Instrument.hpp"
 #include "util/ArrayView.hpp"
 #include "util/ErrorHandler.hpp"
 
@@ -93,19 +94,28 @@ public:
 template <typename Lang>
 inline void RequestManager<Lang>::processRequest(request_t &request, status_ptr_t status, bool blocking)
 {
+	Instrument::enter<TestRequest>();
+
 	int finished = 0;
 	int err = Interface<Lang>::test(request, finished, status);
 	if (err != MPI_SUCCESS)
 		ErrorHandler::fail("Unexpected return code from MPI test");
 
+	Instrument::exit<TestRequest>();
+
 	if (!finished) {
+		Instrument::enter<CreateTicket>();
+
 		Ticket ticket(status, blocking);
 		ticket.addPendingRequests(1);
+
+		Instrument::exit<CreateTicket>();
 
 		TicketManager &manager = TicketManager::getTicketManager();
 		manager.addTicket(ticket, request);
 
 		if (blocking) {
+			Instrument::Guard<WaitTicket> instrGuard;
 			ticket.wait();
 		}
 	}
@@ -123,22 +133,31 @@ inline void RequestManager<Lang>::processRequests(
 	if (requests.empty())
 		return;
 
+	Instrument::enter<TestAllRequests>();
+
 	int finished = 0;
 	int err = Interface<Lang>::testall(requests.size(), requests.begin(), finished, statuses);
 	if (err != MPI_SUCCESS)
 		ErrorHandler::fail("Unexpected return code from MPI testall");
 
+	Instrument::exit<TestAllRequests>();
+
 	if (!finished) {
+		Instrument::enter<CreateTicket>();
+
 		int active = getActiveRequestCount(requests);
 		assert(active > 0);
 
 		Ticket ticket(statuses, blocking);
 		ticket.addPendingRequests(active);
 
+		Instrument::exit<CreateTicket>();
+
 		TicketManager &manager = TicketManager::getTicketManager();
 		manager.addTicket(ticket, requests);
 
 		if (blocking) {
+			Instrument::Guard<WaitTicket> instrGuard;
 			ticket.wait();
 		}
 	}

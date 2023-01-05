@@ -12,6 +12,7 @@
 #include "Interface.hpp"
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
+#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -32,6 +33,9 @@ extern "C" {
 			MPI_Fint *comm, MPI_Fint *status, MPI_Fint *err)
 	{
 		if (Environment::isBlockingEnabledForCurrentThread()) {
+			Instrument::Guard<LibraryInterface> instrGuard;
+			Instrument::enter<IssueNonBlockingOp>();
+
 			MPI_Fint requests[2];
 			mpi_irecv_(recvbuf, recvcount, recvtype, source, recvtag, comm, &requests[0], err);
 			if (*err != MPI_SUCCESS)
@@ -40,6 +44,8 @@ extern "C" {
 			mpi_isend_(sendbuf, sendcount, sendtype, dest, sendtag, comm, &requests[1], err);
 			if (*err != MPI_SUCCESS)
 				return;
+
+			Instrument::exit<IssueNonBlockingOp>();
 
 			if (status != MPI_F_STATUS_IGNORE) {
 				MPI_Fint statuses[2];

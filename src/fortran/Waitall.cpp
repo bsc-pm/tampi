@@ -12,6 +12,7 @@
 #include "Interface.hpp"
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
+#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -21,6 +22,7 @@ extern "C" {
 	void mpi_waitall_(MPI_Fint *count, MPI_Fint array_of_requests[], MPI_Fint *array_of_statuses, MPI_Fint *err)
 	{
 		if (Environment::isBlockingEnabledForCurrentThread()) {
+			Instrument::Guard<LibraryInterface> instrGuard;
 			RequestManager<Fortran>::processRequests({array_of_requests, *count}, array_of_statuses);
 			*err = MPI_SUCCESS;
 		} else {

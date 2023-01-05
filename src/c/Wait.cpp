@@ -11,6 +11,7 @@
 #include "Interface.hpp"
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
+#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -22,6 +23,7 @@ extern "C" {
 		int err = MPI_SUCCESS;
 		if (Environment::isBlockingEnabledForCurrentThread()) {
 			assert(request != NULL);
+			Instrument::Guard<LibraryInterface> instrGuard;
 			RequestManager<C>::processRequest(*request, status);
 		} else {
 			static MPI_Wait_t *symbol = (MPI_Wait_t *) Symbol::load(__func__);

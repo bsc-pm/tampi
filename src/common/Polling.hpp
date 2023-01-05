@@ -12,6 +12,7 @@
 #include "PollingPeriodCtrl.hpp"
 #include "TaskingModel.hpp"
 #include "TicketManager.hpp"
+#include "instrument/Instrument.hpp"
 #include "util/ErrorHandler.hpp"
 #include "util/EnvironmentVariable.hpp"
 
@@ -61,6 +62,8 @@ private:
 		size_t pending = 0;
 		size_t completed = 0;
 
+		Instrument::Guard<LibraryPolling> instrGuard;
+
 #ifndef DISABLE_C_LANG
 		TicketManager<C> &cManager = TicketManager<C>::getTicketManager();
 		completed += cManager.checkRequests(pending);
@@ -69,7 +72,6 @@ private:
 		TicketManager<Fortran> &fortranManager = TicketManager<Fortran>::getTicketManager();
 		completed += fortranManager.checkRequests(pending);
 #endif
-
 		return _periodCtrl.getPeriod(completed, pending);
 	}
 };
