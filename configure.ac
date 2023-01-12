@@ -78,3 +78,11 @@ echo "    MPI CXXFLAGS... ${MPI_CXXFLAGS}"
 echo "    MPI LDFLAGS... ${MPI_CXXLDFLAGS}"
 echo ""
 echo "    Boost CPPFLAGS... ${BOOST_CPPFLAGS}"
+echo ""
+echo "    Ovni is enabled... ${ac_use_ovni}"
+
+if test x"${ac_use_ovni}" = x"yes" ; then
+	echo "    Ovni CPPFLAGS... ${ovni_CPPFLAGS}"
+	echo "    Ovni LIBS... ${ovni_LIBS}"
+fi
+echo ""
