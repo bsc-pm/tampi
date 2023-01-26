@@ -109,7 +109,6 @@ noinst_HEADERS = \
  src/common/instrument/Instrument.hpp \
  src/common/instrument/OvniInstrument.hpp \
  src/common/util/ArrayView.hpp \
- src/common/util/Clock.hpp \
  src/common/util/EnvironmentVariable.hpp \
  src/common/util/ErrorHandler.hpp \
  src/common/util/LockFreeQueue.hpp \

@@ -7,6 +7,7 @@
 #include <cstdio>
 
 #include "Instrument.hpp"
+#include "util/ErrorHandler.hpp"
 
 #ifdef HAVE_OVNI
 #include "OvniInstrument.hpp"

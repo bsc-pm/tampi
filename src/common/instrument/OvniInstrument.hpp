@@ -12,9 +12,7 @@
 #include <cstdint>
 
 #include <config.h>
-
 #include <ovni.h>
-
 
 namespace tampi {
 

@@ -13,13 +13,7 @@
 
 #include <config.h>
 
-#ifdef HAVE_OVNI
-#include <ovni.h>
-#endif
-
-#include "TaskingModel.hpp"
-#include "util/Clock.hpp"
-#include "util/ErrorHandler.hpp"
+#include "util/EnvironmentVariable.hpp"
 
 namespace tampi {
 
