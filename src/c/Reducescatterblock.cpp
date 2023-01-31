@@ -8,10 +8,8 @@
 
 #include "Declarations.hpp"
 #include "Environment.hpp"
-#include "Interface.hpp"
-#include "RequestManager.hpp"
+#include "OperationManager.hpp"
 #include "Symbol.hpp"
-#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -21,26 +19,28 @@ extern "C" {
 
 int MPI_Reduce_scatter_block(MPI3CONST void *sendbuf, void *recvbuf, int recvcount, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
-	int err = MPI_SUCCESS;
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		Instrument::enter<IssueNonBlockingOp>();
-
-		static Symbol<MPI_Ireduce_scatter_block_t> symbol("MPI_Ireduce_scatter_block");
-
-		MPI_Request request;
-		err = symbol(sendbuf, recvbuf,
-				recvcount, datatype, op, comm, &request);
-
-		Instrument::exit<IssueNonBlockingOp>();
-
-		if (err == MPI_SUCCESS)
-			RequestManager<C>::processRequest(request);
+		CollOperation<C> operation(REDUCESCATTERBLOCK, sendbuf, 0, datatype, recvbuf, recvcount, MPI_BYTE, op, 0, comm);
+		OperationManager<C>::processOperation(operation, true);
+		return MPI_SUCCESS;
 	} else {
 		static Symbol<MPI_Reduce_scatter_block_t> symbol(__func__);
-		err = symbol(sendbuf, recvbuf, recvcount, datatype, op, comm);
+		return symbol(sendbuf, recvbuf, recvcount, datatype, op, comm);
 	}
-	return err;
+}
+
+int TAMPI_Ireduce_scatter_block(MPI3CONST void *sendbuf, void *recvbuf, int recvcount, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
+{
+	if (Environment::isNonBlockingEnabled()) {
+		Instrument::Guard<LibraryInterface> instrGuard;
+		CollOperation<C> operation(REDUCESCATTERBLOCK, sendbuf, 0, datatype, recvbuf, recvcount, MPI_BYTE, op, 0, comm);
+		OperationManager<C>::processOperation(operation, false);
+		return MPI_SUCCESS;
+	} else {
+		ErrorHandler::fail(__func__, " not enabled");
+		return MPI_ERR_UNSUPPORTED_OPERATION;
+	}
 }
 
 } // extern C

@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2024 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef UTILS_HPP
@@ -58,7 +58,7 @@ public:
 
 	Padded(T value) : _value(value) {}
 
-	template<typename... Args>
+	template <typename... Args>
 	Padded(Args&&... args) : _value(std::forward<Args>(args)...) {}
 
 	//! \brief Get a reference to the object

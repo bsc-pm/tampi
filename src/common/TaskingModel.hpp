@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2019-2023 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2019-2024 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TASKING_MODEL_HPP
@@ -51,6 +51,9 @@ private:
 	using alpi_task_events_decrease_t = SymbolDecl<int, struct alpi_task *, uint64_t>;
 	using alpi_task_waitfor_ns_t = SymbolDecl<int, uint64_t, uint64_t *>;
 	using alpi_task_spawn_t = SymbolDecl<int, void (*)(void *), void *, void (*)(void *), void *, const char *, const struct alpi_attr *>;
+	using alpi_cpu_count_t = SymbolDecl<int, uint64_t *>;
+	using alpi_cpu_logical_id_t = SymbolDecl<int, uint64_t *>;
+	using alpi_cpu_system_id_t = SymbolDecl<int, uint64_t *>;
 
 	//! The symbols of the tasking model functions
 	static Symbol<alpi_error_string_t> _alpi_error_string;
@@ -63,6 +66,9 @@ private:
 	static Symbol<alpi_task_events_decrease_t> _alpi_task_events_decrease;
 	static Symbol<alpi_task_waitfor_ns_t> _alpi_task_waitfor_ns;
 	static Symbol<alpi_task_spawn_t> _alpi_task_spawn;
+	static Symbol<alpi_cpu_count_t> _alpi_cpu_count;
+	static Symbol<alpi_cpu_logical_id_t> _alpi_cpu_logical_id;
+	static Symbol<alpi_cpu_system_id_t> _alpi_cpu_system_id;
 
 public:
 	//! \brief Initialize and load the symbols of the tasking model
@@ -174,6 +180,33 @@ public:
 	{
 		if (int err = _alpi_task_events_decrease(task, decrement))
 			ErrorHandler::fail("Failed alpi_task_events_decrease: ", getError(err));
+	}
+
+	//! \brief Get the number of logical available CPUs
+	static uint64_t getNumLogicalCPUs()
+	{
+		uint64_t count;
+		if (int err = _alpi_cpu_count(&count))
+			ErrorHandler::fail("Failed alpi_cpu_count: ", getError(err));
+		return count;
+	}
+
+	//! \brief Get the virtual CPU id where the current thread is running
+	static uint64_t getCurrentLogicalCPU()
+	{
+		uint64_t id;
+		if (int err = _alpi_cpu_logical_id(&id))
+			ErrorHandler::fail("Failed alpi_cpu_logical_id: ", getError(err));
+		return id;
+	}
+
+	//! \brief Get the system CPU id where the current thread is running
+	static uint64_t getCurrentSystemCPU()
+	{
+		uint64_t id;
+		if (int err = _alpi_cpu_system_id(&id))
+			ErrorHandler::fail("Failed alpi_cpu_system_id: ", getError(err));
+		return id;
 	}
 
 private:

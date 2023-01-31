@@ -46,6 +46,9 @@ private:
 	//! The array of tickets
 	Ticket    *_tickets;
 
+	//! Auxiliary array of indices used when checking requests
+	int *_indices;
+
 public:
 	TicketManagerInternals()
 	{
@@ -54,7 +57,8 @@ public:
 		_statuses =  (status_t *) std::malloc(Capacity * sizeof(status_t));
 		_mappings =   (Mapping *) std::malloc(Capacity * sizeof(Mapping));
 		_tickets  =    (Ticket *) std::malloc(Capacity * sizeof(Ticket));
-		assert(_requests && _statuses && _mappings && _tickets);
+		_indices  =       (int *) std::malloc(Capacity * sizeof(int));
+		assert(_requests && _statuses && _mappings && _tickets && _indices);
 	}
 
 	~TicketManagerInternals()
@@ -65,6 +69,7 @@ public:
 		std::free(_statuses);
 		std::free(_mappings);
 		std::free(_tickets);
+		std::free(_indices);
 	}
 
 	//! \brief Get the maximum capacity of the arrays
@@ -129,6 +134,11 @@ public:
 	status_ptr_t getStatuses() const
 	{
 		return (status_ptr_t) _statuses;
+	}
+
+	inline int *getIndices() const
+	{
+		return _indices;
 	}
 
 	//! \brief Get the ticket associated to a request

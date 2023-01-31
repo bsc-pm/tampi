@@ -8,8 +8,7 @@
 
 #include "Declarations.hpp"
 #include "Environment.hpp"
-#include "Interface.hpp"
-#include "RequestManager.hpp"
+#include "OperationManager.hpp"
 #include "Symbol.hpp"
 #include "instrument/Instrument.hpp"
 
@@ -21,25 +20,28 @@ extern "C" {
 
 int MPI_Bsend(MPI3CONST void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
 {
-	int err = MPI_SUCCESS;
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		Instrument::enter<IssueNonBlockingOp>();
-
-		static Symbol<MPI_Ibsend_t> symbol("MPI_Ibsend");
-
-		MPI_Request request;
-		err = symbol(buf, count, datatype, dest, tag, comm, &request);
-
-		Instrument::exit<IssueNonBlockingOp>();
-
-		if (err == MPI_SUCCESS)
-			RequestManager<C>::processRequest(request);
+		Operation<C> operation(BSEND, buf, count, datatype, dest, tag, comm);
+		OperationManager<C>::processOperation(operation, true);
+		return MPI_SUCCESS;
 	} else {
 		static Symbol<MPI_Bsend_t> symbol(__func__);
-		err = symbol(buf, count, datatype, dest, tag, comm);
+		return symbol(buf, count, datatype, dest, tag, comm);
 	}
-	return err;
+}
+
+int TAMPI_Ibsend(MPI3CONST void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
+{
+	if (Environment::isNonBlockingEnabled()) {
+		Instrument::Guard<LibraryInterface> instrGuard;
+		Operation<C> operation(BSEND, buf, count, datatype, dest, tag, comm);
+		OperationManager<C>::processOperation(operation, false);
+		return MPI_SUCCESS;
+	} else {
+		ErrorHandler::fail(__func__, " not enabled");
+		return MPI_ERR_UNSUPPORTED_OPERATION;
+	}
 }
 
 } // extern C
