@@ -47,7 +47,7 @@ CHECK_PTHREAD
 AC_CHECK_OVNI
 
 # Checks for typedefs, structures, and compiler characteristics.
-AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
+AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
 AC_CHECK_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 
