@@ -35,10 +35,10 @@ template <typename Lang>
 class TicketManager {
 private:
 	//! Maximum number of in-flight requests
-	static const int NENTRIES = 32*1000;
+	static constexpr int NENTRIES = 32*1000;
 
 	//! Maximum number of requests to be inserted at once
-	static const int NRPG = 64;
+	static constexpr int NRPG = 64;
 
 	typedef typename Types<Lang>::request_t request_t;
 	typedef typename Types<Lang>::status_t status_t;
