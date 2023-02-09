@@ -19,7 +19,7 @@ std::atomic<bool> Environment::_blockingEnabled(false);
 std::atomic<bool> Environment::_nonBlockingEnabled(false);
 
 TaskingModel::polling_handle_t Polling::_pollingHandle;
-PollingFrequencyCtrl Polling::_frequencyCtrl;
+PollingPeriodCtrl Polling::_periodCtrl;
 
 SpinLock ErrorHandler::_lock;
 

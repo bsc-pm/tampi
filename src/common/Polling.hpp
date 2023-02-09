@@ -7,12 +7,9 @@
 #ifndef POLLING_HPP
 #define POLLING_HPP
 
-#include <mpi.h>
-
-#include <atomic>
-#include <cassert>
 #include <cstdint>
 
+#include "PollingPeriodCtrl.hpp"
 #include "TaskingModel.hpp"
 #include "TicketManager.hpp"
 #include "util/ErrorHandler.hpp"
@@ -21,40 +18,6 @@
 
 namespace tampi {
 
-struct PollingFrequencyCtrl {
-	//! The static period defined by TAMPI_POLLING_PERIOD
-	uint64_t _period;
-
-	//! \brief Create the frequency controller
-	//!
-	//! The controller reads the TAMPI_POLLING_PERIOD envar to determine the static
-	//! period in which TAMPI will check its MPI requests. If the envar is not defined,
-	//! the period is 100us as a default value. Notice that TAMPI_POLLING_FREQUENCY is
-	//! a deprecated envar
-	inline PollingFrequencyCtrl() : _period(100)
-	{
-		EnvironmentVariable<uint64_t> pollingFrequency("TAMPI_POLLING_FREQUENCY");
-		EnvironmentVariable<uint64_t> pollingPeriod("TAMPI_POLLING_PERIOD");
-
-		if (pollingFrequency.isPresent()) {
-			ErrorHandler::warn("TAMPI_POLLING_FREQUENCY is deprecated; use TAMPI_POLLING_PERIOD instead");
-		}
-
-		// Give precedence to TAMPI_POLLING_PERIOD
-		if (pollingPeriod.isPresent()) {
-			_period = pollingPeriod.get();
-		} else if (pollingFrequency.isPresent()) {
-			_period = pollingFrequency.get();
-		}
-	}
-
-	//! Retrieve the static period in microseconds
-	inline uint64_t getPeriod()
-	{
-		return _period;
-	}
-};
-
 //! Class that represents the polling features
 class Polling {
 private:
@@ -62,7 +25,8 @@ private:
 	//! the completion of the in-flight MPI requests in TAMPI
 	static TaskingModel::polling_handle_t _pollingHandle;
 
-	static PollingFrequencyCtrl _frequencyCtrl;
+	//! The controller of the polling period
+	static PollingPeriodCtrl _periodCtrl;
 
 public:
 	Polling() = delete;
@@ -95,15 +59,18 @@ private:
 	static uint64_t polling(void *, uint64_t)
 	{
 		size_t pending = 0;
+		size_t completed = 0;
+
 #ifndef DISABLE_C_LANG
 		TicketManager<C> &cManager = TicketManager<C>::getTicketManager();
-		cManager.checkRequests(pending);
+		completed += cManager.checkRequests(pending);
 #endif
 #ifndef DISABLE_FORTRAN_LANG
 		TicketManager<Fortran> &fortranManager = TicketManager<Fortran>::getTicketManager();
-		fortranManager.checkRequests(pending);
+		completed += fortranManager.checkRequests(pending);
 #endif
-		return _frequencyCtrl.getPeriod();
+
+		return _periodCtrl.getPeriod(completed, pending);
 	}
 };
 
