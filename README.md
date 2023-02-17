@@ -519,16 +519,14 @@ microseconds. This value may be decreased by the user in communication-intensive
 applications with low communication weights. This envar is only considered when running with OmpSs-2 2020.06
 or newer.
 
-* `TAMPI_POLLING_FREQUENCY`: This environment variable is **deprecated**; please use `TAMPI_POLLING_PERIOD`
-instead. The TAMPI library still reads this envar for compatibility, but the support will be removed in future
-releases. Defining both `TAMPI_POLLING_PERIOD` and `TAMPI_POLLING_FREQUENCY` results in undefined behavior.
-
 * `TAMPI_INSTRUMENT` (default `none`): The TAMPI library leverages [ovni](https://github.com/bsc-pm/ovni) for
 instrumenting and generating [Paraver](https://tools.bsc.es/paraver) traces. For builds with the capability of
 extracting Paraver traces, the TAMPI library should be configured passing a valid ovni installation through
 the `--with-ovni`. Then, at run-time, define the `TAMPI_INSTRUMENT=ovni` environment variable to generate an ovni
 trace. After the execution, the ovni trace can be converted to a Paraver trace with the `ovniemu` tool. You can
 find more information regarding ovni tracing at <https://github.com/bsc-pm/ovni>.
+
+**IMPORTANT:** The `TAMPI_POLLING_FREQUENCY` envar is **no longer valid**. Use `TAMPI_POLLING_PERIOD` instead.
 
 
 ## Leveraging TAMPI in Hybrid Applications

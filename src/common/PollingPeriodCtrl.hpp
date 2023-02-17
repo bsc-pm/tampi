@@ -138,18 +138,16 @@ public:
 	//!
 	//! The controller reads the TAMPI_POLLING_PERIOD envar to determine the period in
 	//! which TAMPI will check its MPI requests. If the envar is not defined, the period
-	//! is 100us as a default value. Notice that TAMPI_POLLING_FREQUENCY is deprecated
+	//! is 100us as a default value.
 	inline PollingPeriodCtrl() :
 		_periodMin(100), _periodMax(100), _dynamic(false), _position(0), _window()
 	{
 		EnvironmentVariable<std::string> pollingPeriod("TAMPI_POLLING_PERIOD");
 		EnvironmentVariable<uint64_t> pollingFrequency("TAMPI_POLLING_FREQUENCY");
 
-		if (pollingFrequency.isPresent()) {
-			ErrorHandler::warn("TAMPI_POLLING_FREQUENCY is deprecated; use TAMPI_POLLING_PERIOD");
-		}
+		if (pollingFrequency.isPresent())
+			ErrorHandler::fail("Use TAMPI_POLLING_PERIOD instead of TAMPI_POLLING_FREQUENCY");
 
-		// Give precedence to TAMPI_POLLING_PERIOD
 		if (pollingPeriod.isPresent()) {
 			std::stringstream stream(pollingPeriod.get());
 
@@ -166,9 +164,6 @@ public:
 
 			if (components.size() == 2)
 				std::istringstream(components[1]) >> _periodMax;
-		} else if (pollingFrequency.isPresent()) {
-			_periodMin = pollingFrequency.get();
-			_periodMax = pollingFrequency.get();
 		}
 
 		if (_periodMin > _periodMax)
