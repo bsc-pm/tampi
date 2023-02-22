@@ -40,9 +40,6 @@ AX_CHECK_MPI
 # Boost is no longer required
 AX_BOOST_BASE([1.59], [], [ AC_MSG_ERROR([Boost library not found])])
 
-# Check pthread
-CHECK_PTHREAD
-
 # Check ovni instrumenter
 AC_CHECK_OVNI
 

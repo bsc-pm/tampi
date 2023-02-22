@@ -9,13 +9,12 @@ AM_CPPFLAGS=\
  -I$(top_srcdir)/src \
  -I$(top_srcdir)/src/common \
  -include "config.h" \
- $(PTHREAD_CFLAGS) \
  $(ovni_CPPFLAGS) \
  $(tampi_CPPFLAGS)
 
 AM_CXXFLAGS=$(MPI_CXXFLAGS) $(tampi_CXXFLAGS)
 
-AM_LDFLAGS=$(PTHREAD_CFLAGS) $(PTHREAD_LIBS) $(ovni_LIBS) -ldl $(MPI_CXXLDFLAGS)
+AM_LDFLAGS=$(ovni_LIBS) -ldl $(MPI_CXXLDFLAGS)
 LIBS=
 
 include_HEADERS= \

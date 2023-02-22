@@ -7,8 +7,6 @@
 #ifndef TASKING_MODEL_HPP
 #define TASKING_MODEL_HPP
 
-#include <pthread.h>
-
 #include <atomic>
 #include <cassert>
 #include <cstddef>
@@ -124,17 +122,9 @@ public:
 			assert(_registerPollingService);
 			(*_registerPollingService)(name.c_str(), pollingServiceFunction, info);
 		} else {
-			// Spawn a function that will do the periodic polling. We spawn
-			// the function from an external thread due to a limitation in
-			// OmpSs-2 2020.06, which made the spawn function to set the
-			// current calling task as its parent. Spawning the function
-			// from a thread prevents it from having a parent task
-			pthread_t thread;
-			int err = pthread_create(&thread, nullptr, spawnPollingTask, info);
-			ErrorHandler::failIf(err, "Failed when creating an auxiliary thread\n");
-
-			err = pthread_join(thread, nullptr);
-			ErrorHandler::failIf(err, "Failed when joining an auxiliary thread\n");
+			// Spawn a function that will do the periodic polling
+			assert(_spawnFunction);
+			(*_spawnFunction)(pollingTaskFunction, info, pollingTaskCompletes, info, name.data());
 		}
 		return (polling_handle_t) info;
 	}
@@ -274,20 +264,6 @@ private:
 			// Pause the polling task for some microseconds
 			waitTimeUs = (*_waitFor)(waitTimeUs);
 		}
-	}
-
-	//! \brief Spawn a polling task
-	//!
-	//! \param args An opaque pointer to the polling info
-	static inline void *spawnPollingTask(void *args)
-	{
-		PollingInfo *info = (PollingInfo *) args;
-		assert(info != nullptr);
-
-		assert(_spawnFunction);
-		(*_spawnFunction)(pollingTaskFunction, info, pollingTaskCompletes, info, info->_name.c_str());
-
-		return nullptr;
 	}
 
 	//! \brief Function called by a polling task when completes
