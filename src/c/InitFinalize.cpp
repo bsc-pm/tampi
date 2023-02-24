@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include <config.h>
@@ -26,13 +26,13 @@ extern "C" {
 	{
 		static MPI_Init_t *symbol = (MPI_Init_t *) Symbol::load(__func__);
 
-		// Disable both TAMPI modes
-		Environment::initialize(false, false);
-
 		// Call MPI_Init
 		int err = (*symbol)(argc, argv);
 		if (err != MPI_SUCCESS)
 			return err;
+
+		// Disable both TAMPI modes
+		Environment::initialize(false, false);
 
 		return MPI_SUCCESS;
 	}
