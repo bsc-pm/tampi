@@ -35,7 +35,7 @@ template <typename Lang>
 class TicketManager {
 private:
 	//! Maximum number of in-flight requests
-	static constexpr int NENTRIES = 32*1000;
+	static constexpr int NENTRIES = 32*1024;
 
 	//! Maximum number of requests to be inserted at once
 	static constexpr int NRPG = 64;
