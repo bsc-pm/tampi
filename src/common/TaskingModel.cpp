@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2021 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include "Symbol.hpp"
@@ -24,7 +24,7 @@ void TaskingModel::initialize(bool requireTaskBlockingAPI, bool requireTaskEvent
 
 		// Switch to polling services if polling tasks are not available
 		if (!_usePollingServices && (!_waitFor || !_spawnFunction)) {
-			_usePollingServices.setValue(true);
+			_usePollingServices.set(true);
 		}
 
 		// Load the polling service functions if needed

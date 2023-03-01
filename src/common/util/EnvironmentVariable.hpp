@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2020-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2020-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef ENVIRONMENT_VARIABLE_HPP
@@ -85,7 +85,7 @@ public:
 	//!
 	//! \param value The new value
 	//! \param makePresent Mark it as if it had been originally defined
-	inline void setValue(T value, bool makePresent = false)
+	inline void set(T value, bool makePresent = false)
 	{
 		_value = value;
 		_isPresent |= makePresent;
