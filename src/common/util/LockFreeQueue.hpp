@@ -45,12 +45,12 @@ public:
 	{
 	}
 
-	//! \brief Add an element to the queue
+	//! \brief Push an element to the queue
 	//!
 	//! \param element The element to add
 	//! \param progressFunction The function that should be called to
 	//!                         consume elements of the queue when full
-	inline void add(const T &element, ProgressFunction progressFunction)
+	inline void push(const T &element, ProgressFunction progressFunction)
 	{
 		std::lock_guard<SpinLock> guard(_adderMutex);
 
@@ -63,13 +63,13 @@ public:
 		} while (pushed == 0);
 	}
 
-	//! \brief Add multiple elements to the queue
+	//! \brief Push multiple elements to the queue
 	//!
 	//! \param elements An array of the elements to add
 	//! \param count The number of elements to add
 	//! \param progressFunction The function that should be called to
 	//!                         consume elements of the queue when full
-	inline void add(const T elements[], int count, ProgressFunction progressFunction)
+	inline void push(const T elements[], int count, ProgressFunction progressFunction)
 	{
 		assert(elements != nullptr);
 		std::lock_guard<SpinLock> guard(_adderMutex);
@@ -83,13 +83,13 @@ public:
 		} while (pushed < count);
 	}
 
-	//! \brief Retrieve multiple elements from the queue
+	//! \brief Pop multiple elements from the queue
 	//!
 	//! \param elements The array to store the retrieved elements
 	//! \param count The maximum number of elements to retrieve
 	//!
 	//! \returns The number of elements retrieved
-	inline int retrieve(T elements[], int count)
+	inline int pop(T elements[], int count)
 	{
 		assert(elements != nullptr);
 		return _queue.pop(elements, count);

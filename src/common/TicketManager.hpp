@@ -317,10 +317,10 @@ inline void TicketManager<Lang>::addTicket(Ticket &ticket, request_t &request)
 
 	if (ticket.isBlocking()) {
 		BlockingEntry entry(request, ticket);
-		_blockingEntries.add(entry, _checkEntriesFunc);
+		_blockingEntries.push(entry, _checkEntriesFunc);
 	} else {
 		NonBlockingEntry entry(request, ticket);
-		_nonBlockingEntries.add(entry, _checkEntriesFunc);
+		_nonBlockingEntries.push(entry, _checkEntriesFunc);
 	}
 }
 
@@ -357,7 +357,7 @@ inline void TicketManager<Lang>::addTicketRequests(
 			}
 			++req;
 		}
-		queue.add((EntryTy *)entries, size, _checkEntriesFunc);
+		queue.push((EntryTy *)entries, size, _checkEntriesFunc);
 	}
 }
 
@@ -373,14 +373,14 @@ inline void TicketManager<Lang>::internalCheckEntryQueues()
 
 	do {
 		numBlk = std::min(numAvailable - total, NRPG);
-		numBlk = _blockingEntries.retrieve((BlockingEntry *)blockings, numBlk);
+		numBlk = _blockingEntries.pop((BlockingEntry *)blockings, numBlk);
 		if (numBlk > 0) {
 			transferEntries((BlockingEntry *)blockings, numBlk);
 			total += numBlk;
 		}
 
 		numNonBlk = std::min(numAvailable - total, NRPG);
-		numNonBlk = _nonBlockingEntries.retrieve((NonBlockingEntry *)nonBlockings, numNonBlk);
+		numNonBlk = _nonBlockingEntries.pop((NonBlockingEntry *)nonBlockings, numNonBlk);
 		if (numNonBlk > 0) {
 			transferEntries((NonBlockingEntry *)nonBlockings, numNonBlk);
 			total += numNonBlk;
