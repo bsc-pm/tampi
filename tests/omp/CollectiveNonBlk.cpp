@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2019-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2019-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include <mpi.h>
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 					}
 					message += MSG_SIZE;
 				}
-			} else if (rank == 1) {
+			} else {
 				int *message = buffer + (MSG_NUM - 1) * MSG_SIZE;
 
 				for (int m = MSG_NUM - 1; m >= 0; --m) {
