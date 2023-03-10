@@ -11,7 +11,6 @@
 
 #include <algorithm>
 #include <cstring>
-#include <functional>
 #include <mutex>
 #include <vector>
 
@@ -44,7 +43,6 @@ private:
 	typedef typename Types<Lang>::status_t status_t;
 	typedef typename Types<Lang>::status_ptr_t status_ptr_t;
 	typedef tampi::Ticket<Lang> Ticket;
-	typedef std::function<void()> ProgressFunction;
 
 	//! Structure representing a blocking request in the pre-queues
 	struct BlockingEntry {
@@ -104,9 +102,6 @@ private:
 	//! Lock-free pre-queues of non-blocking requests
 	util::LockFreeQueue<NonBlockingEntry> _nonBlockingEntries;
 
-	//! Progression function when failing to insert requests in pre-queues
-	ProgressFunction _checkEntriesFunc;
-
 	//! Auxiliary array of indices used when checking requests
 	int *_indices;
 
@@ -120,14 +115,11 @@ public:
 		_arrays(),
 		_blockingEntries(),
 		_nonBlockingEntries(),
-		_checkEntriesFunc(),
 		_indices(nullptr),
 		_mutex()
 	{
 		_indices = (int *) std::malloc(NENTRIES * sizeof(int));
 		assert(_indices != nullptr);
-
-		_checkEntriesFunc = std::bind(&TicketManager::checkEntryQueues, this);
 	}
 
 	~TicketManager()
@@ -317,10 +309,10 @@ inline void TicketManager<Lang>::addTicket(Ticket &ticket, request_t &request)
 
 	if (ticket.isBlocking()) {
 		BlockingEntry entry(request, ticket);
-		_blockingEntries.push(entry, _checkEntriesFunc);
+		_blockingEntries.push(entry, [this]() { checkEntryQueues(); });
 	} else {
 		NonBlockingEntry entry(request, ticket);
-		_nonBlockingEntries.push(entry, _checkEntriesFunc);
+		_nonBlockingEntries.push(entry, [this]() { checkEntryQueues(); });
 	}
 }
 
@@ -357,7 +349,7 @@ inline void TicketManager<Lang>::addTicketRequests(
 			}
 			++req;
 		}
-		queue.push((EntryTy *)entries, size, _checkEntriesFunc);
+		queue.push((EntryTy *)entries, size, [this]() { checkEntryQueues(); });
 	}
 }
 

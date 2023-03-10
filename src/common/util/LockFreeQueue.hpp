@@ -7,7 +7,6 @@
 #ifndef LOCK_FREE_QUEUE_HPP
 #define LOCK_FREE_QUEUE_HPP
 
-#include <functional>
 #include <mutex>
 
 #include <boost/version.hpp>
@@ -30,7 +29,6 @@ template <typename T, size_t Size = 32*1024>
 class LockFreeQueue {
 private:
 	typedef boost::lockfree::spsc_queue<T, boost::lockfree::capacity<Size> > queue_t;
-	typedef std::function<void()> ProgressFunction;
 
 	//! Spinlock to add elements in the queue
 	SpinLock _adderMutex;
@@ -50,6 +48,7 @@ public:
 	//! \param element The element to add
 	//! \param progressFunction The function that should be called to
 	//!                         consume elements of the queue when full
+	template <typename ProgressFunction>
 	inline void push(const T &element, ProgressFunction progressFunction)
 	{
 		std::lock_guard<SpinLock> guard(_adderMutex);
@@ -69,6 +68,7 @@ public:
 	//! \param count The number of elements to add
 	//! \param progressFunction The function that should be called to
 	//!                         consume elements of the queue when full
+	template <typename ProgressFunction>
 	inline void push(const T elements[], int count, ProgressFunction progressFunction)
 	{
 		assert(elements != nullptr);
