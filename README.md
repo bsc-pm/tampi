@@ -19,7 +19,7 @@ from inside tasks, while the non-blocking mode focuses on the efficient executio
 non-blocking or immediate MPI operations (e.g., MPI_Irecv), also from inside tasks.
 
 On the one hand, TAMPI is currently compatible with two task-based programming model
-implementations: a derivative version of the [LLVM OpenMP](https://github.com/bsc-pm/llvm) and
+implementations: a derivative version of the [LLVM/OpenMP](https://github.com/bsc-pm/llvm) and
 [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases). However, the derivative OpenMP does
 not support the full set of features provided by TAMPI. OpenMP programs can only make use of
 the non-blocking mode of TAMPI, whereas OmpSs-2 programs can leverage both blocking and
@@ -61,7 +61,7 @@ This mode provides support for the following set of blocking MPI operations:
 * **Waiters** of a *complete set* of requests: **MPI_Wait** and **MPI_Waitall**.
 	* MPI_Waitany and MPI_Waitsome are not supported yet; the standard behavior is applied.
 
-As stated previously, this mode is only supported by [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases) (version 2018.11 or greater).
+As stated previously, this mode is only supported by [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases).
 
 
 ### Using the blocking mode
@@ -180,8 +180,7 @@ calls of other previously executed tasks or even from the main function. Also, n
 requests with value `MPI_REQUEST_NULL` will be ignored.
 
 As stated in the introduction, this non-blocking mode is supported by both a derivative version
-of [LLVM OpenMP](https://github.com/bsc-pm/llvm) and [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases)
-(version 2018.11 or greater).
+of [LLVM/OpenMP](https://github.com/bsc-pm/llvm) and [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases).
 
 
 ### Using the non-blocking mode
@@ -443,8 +442,8 @@ BSC-UPC under grant agreement 2021 SGR01007. This research received funding also
 
 # Getting Started
 
-This section describes the software requirements of TAMPI, the building and installation process and how the library
-can be used from user applications.
+This section describes the software requirements of TAMPI, the building and installation process and how the
+library can be used from user applications.
 
 
 ## Software Requirements
@@ -454,10 +453,12 @@ The Task-Aware MPI library requires the installation of the following tools and 
 * Automake, autoconf, libtool, make and a C and C++ compiler.
 * An MPI library supporting the `MPI_THREAD_MULTIPLE` threading level.
 * [Boost](http://boost.org) library version 1.59 or greater.
+* [ovni](https://github.com/bsc-pm/ovni) instrumentation library (optional).
 * One of the following parallel task-based programming models (required when compiling a user application):
-	- [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases) (version 2018.11 or greater): Supports both blocking and
-	  non-blocking TAMPI modes.
-	- A derivative implementation of [LLVM OpenMP](https://github.com/bsc-pm/llvm): Supports the non-blocking TAMPI mode.
+	- [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases) (version 2020.11 or greater): Supports both
+	  blocking and non-blocking TAMPI modes.
+	- The derivative implementation of [LLVM/OpenMP](https://github.com/bsc-pm/llvm): Supports the
+	  non-blocking mode.
 
 
 ## Building and Installing
