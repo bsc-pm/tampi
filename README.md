@@ -432,8 +432,13 @@ Furthermore, several works have demonstrated the performance and programmability
 
 ## Acknowledgments
 
-This work was financially supported by the PRACE project funded in part by the EU’s Horizon 2020
-Research programme (2014-2020) under grant agreement 823767.
+This work was financially supported by the PRACE and INTERTWinE projects funded in part by the European
+Union’s Horizon 2020 Research programme (2014-2020) under grant agreements 823767 and 671602, respectively.
+This research has also received funding through The European PILOT project from the European Union's Horizon
+2020/EuroHPC research and innovation programme under grant agreement 101034126. Project PCI2021-122090-2A
+was funded by MCIN/AEI /10.13039/501100011033 and European Union NextGenerationEU/PRTR. The Departament de
+Recerca i Universitats de la Generalitat de Catalunya also funded the Programming Models research group at
+BSC-UPC under grant agreement 2021 SGR01007. This research received funding also from Huawei SoW1.
 
 
 # Getting Started
