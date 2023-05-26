@@ -526,7 +526,9 @@ the `--with-ovni`. Then, at run-time, define the `TAMPI_INSTRUMENT=ovni` environ
 trace. After the execution, the ovni trace can be converted to a Paraver trace with the `ovniemu` tool. You can
 find more information regarding ovni tracing at <https://github.com/bsc-pm/ovni>.
 
-**IMPORTANT:** The `TAMPI_POLLING_FREQUENCY` envar is **no longer valid**. Use `TAMPI_POLLING_PERIOD` instead.
+**IMPORTANT:** The `TAMPI_POLLING_FREQUENCY` envar is **deprecated** and will be removed in future versions.
+Please use `TAMPI_POLLING_PERIOD` instead. The deprecated envar is considered only when `TAMPI_POLLING_PERIOD`
+is not defined.
 
 
 ## Leveraging TAMPI in Hybrid Applications
