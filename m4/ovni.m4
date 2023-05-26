@@ -1,6 +1,6 @@
-#	This file is part of Nanos6 and is licensed under the terms contained in the COPYING file.
+#	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 #
-#	Copyright (C) 2021-2022 Barcelona Supercomputing Center (BSC)
+#	Copyright (C) 2022-2023 Barcelona Supercomputing Center (BSC)
 
 AC_DEFUN([AC_CHECK_OVNI],
 	[
@@ -25,8 +25,8 @@ AC_DEFUN([AC_CHECK_OVNI],
 			AC_MSG_RESULT([${ac_use_ovni_prefix}])
 
 			if test x"${ac_use_ovni_prefix}" != x"yes" ; then
-				ovni_LIBS="-L${ac_use_ovni_prefix}/lib"
 				ovni_CPPFLAGS="-I${ac_use_ovni_prefix}/include"
+				ovni_LIBS="-L${ac_use_ovni_prefix}/lib"
 			fi
 
 			ac_save_CPPFLAGS="${CPPFLAGS}"
@@ -38,7 +38,12 @@ AC_DEFUN([AC_CHECK_OVNI],
 			AC_CHECK_HEADERS([ovni.h], [], [AC_MSG_ERROR([ovni ovni.h header file not found])])
 			AC_CHECK_LIB([ovni],
 				[ovni_proc_init],
-				[ovni_LIBS="${ovni_LIBS} -lovni -Wl,--enable-new-dtags -Wl,-rpath=${ac_use_ovni_prefix}/lib"],
+				[
+					ovni_LIBS="${ovni_LIBS} -lovni"
+					if test x"${ac_use_ovni_prefix}" != x"yes" ; then
+						ovni_LIBS="${ovni_LIBS} -Wl,--enable-new-dtags -Wl,-rpath=${ac_use_ovni_prefix}/lib"
+					fi
+				],
 				[AC_MSG_ERROR([ovni cannot be found])],
 				[${ac_save_LIBS}]
 			)
