@@ -17,10 +17,16 @@ EnvironmentVariable<bool> TaskingModel::_usePollingServices("TAMPI_POLLING_SERVI
 
 void TaskingModel::initialize(bool requireTaskBlockingAPI, bool requireTaskEventsAPI)
 {
+	// Find the first occurrence of the desired symbol
+	const int firstAttr = Symbol::LoadAttr::FIRST;
+	const int optionalAttr = Symbol::LoadAttr::OPTIONAL;
+
 	if (requireTaskBlockingAPI || requireTaskEventsAPI) {
 		// Try to load the functions required by polling tasks
-		_waitFor = (wait_for_t *) Symbol::load(_waitForName, false);
-		_spawnFunction = (spawn_function_t *) Symbol::load(_spawnFunctionName, false);
+		_waitFor = (wait_for_t *)
+			Symbol::load(_waitForName, firstAttr | optionalAttr);
+		_spawnFunction = (spawn_function_t *)
+			Symbol::load(_spawnFunctionName, firstAttr | optionalAttr);
 
 		// Switch to polling services if polling tasks are not available
 		if (!_usePollingServices && (!_waitFor || !_spawnFunction)) {
@@ -30,33 +36,33 @@ void TaskingModel::initialize(bool requireTaskBlockingAPI, bool requireTaskEvent
 		// Load the polling service functions if needed
 		if (_usePollingServices) {
 			_registerPollingService = (register_polling_service_t *)
-				Symbol::load(_registerPollingServiceName);
+				Symbol::load(_registerPollingServiceName, firstAttr);
 			_unregisterPollingService = (unregister_polling_service_t *)
-				Symbol::load(_unregisterPollingServiceName);
+				Symbol::load(_unregisterPollingServiceName, firstAttr);
 		}
 	}
 
 	// Load the task blocking API functions if needed
 	if (requireTaskBlockingAPI) {
 		_getCurrentBlockingContext = (get_current_blocking_context_t *)
-			Symbol::load(_getCurrentBlockingContextName);
+			Symbol::load(_getCurrentBlockingContextName, firstAttr);
 		_blockCurrentTask = (block_current_task_t *)
-			Symbol::load(_blockCurrentTaskName);
+			Symbol::load(_blockCurrentTaskName, firstAttr);
 		_unblockTask = (unblock_task_t *)
-			Symbol::load(_unblockTaskName);
+			Symbol::load(_unblockTaskName, firstAttr);
 	}
 
 	// Load the task events API functions if needed
 	if (requireTaskEventsAPI) {
 		_getCurrentEventCounter = (get_current_event_counter_t *)
-			Symbol::load(_getCurrentEventCounterName);
+			Symbol::load(_getCurrentEventCounterName, firstAttr);
 		_increaseCurrentTaskEventCounter = (increase_current_task_event_counter_t *)
-			Symbol::load(_increaseCurrentTaskEventCounterName);
+			Symbol::load(_increaseCurrentTaskEventCounterName, firstAttr);
 		_decreaseTaskEventCounter = (decrease_task_event_counter_t *)
-			Symbol::load(_decreaseTaskEventCounterName);
+			Symbol::load(_decreaseTaskEventCounterName, firstAttr);
 
 		_notifyTaskEventCounterAPI = (notify_task_event_counter_api_t *)
-			Symbol::load(_notifyTaskEventCounterAPIName, false);
+			Symbol::load(_notifyTaskEventCounterAPIName, firstAttr | optionalAttr);
 
 		// Notify the tasking runtime that the event counters
 		// API may be used during the execution. This function
