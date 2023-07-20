@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2022-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef INTERFACE_HPP
@@ -149,6 +149,12 @@ int Interface<Lang>::rank;
 
 template <typename Lang>
 int Interface<Lang>::nranks;
+
+#if !defined(DISABLE_C_LANG)
+using InterfaceAny = Interface<C>;
+#elif !defined(DISABLE_FORTRAN_LANG)
+using InterfaceAny = Interface<Fortran>;
+#endif
 
 } // namespace tampi
 

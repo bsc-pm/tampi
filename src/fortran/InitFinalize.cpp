@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include <config.h>
@@ -25,12 +25,19 @@ extern "C" {
 	{
 		static mpi_init_t *symbol = (mpi_init_t *) Symbol::load(__func__);
 
-		// Disable both TAMPI modes
-		Environment::initialize(false, false);
-
 		// Call to MPI_Init
 		(*symbol)(err);
-		if (*err != MPI_SUCCESS) return;
+		if (*err != MPI_SUCCESS)
+			return;
+
+		int provided;
+		int required = MPI_THREAD_SINGLE;
+
+		// Prepare the MPI environment
+		Environment::preinitialize(required);
+
+		// Initialize the library; no mode is enabled
+		Environment::initialize(required, &provided);
 	}
 
 	void mpi_init_thread_(MPI_Fint *required, MPI_Fint *provided, MPI_Fint *err)
@@ -45,25 +52,14 @@ extern "C" {
 
 		// Call to MPI_Init_thread
 		(*symbol)(&irequired, provided, err);
-		if (*err != MPI_SUCCESS) return;
+		if (*err != MPI_SUCCESS)
+			return;
 
-		bool enableBlockingMode = false;
-		bool enableNonBlockingMode = false;
-		if (*provided == MPI_THREAD_MULTIPLE) {
-#ifndef DISABLE_BLOCKING_MODE
-			if (*required == MPI_TASK_MULTIPLE) {
-				enableBlockingMode = true;
-			}
-#endif
-#ifndef DISABLE_NONBLOCKING_MODE
-			enableNonBlockingMode = true;
-#endif
-		}
+		// Prepare the MPI enviornment
+		Environment::preinitialize(*provided);
 
-		Environment::initialize(enableBlockingMode, enableNonBlockingMode);
-		if (enableBlockingMode) {
-			*provided = MPI_TASK_MULTIPLE;
-		}
+		// Initialize the library
+		Environment::initialize(*required, provided);
 	}
 
 	void mpi_finalize_(MPI_Fint *err)
@@ -72,9 +68,10 @@ extern "C" {
 
 		// Call MPI_Finalize
 		(*symbol)(err);
-		if (*err != MPI_SUCCESS) return;
+		if (*err != MPI_SUCCESS)
+			return;
 
-		// Finalize the interoperability
+		// Finalize the library
 		Environment::finalize();
 	}
 } // extern C
