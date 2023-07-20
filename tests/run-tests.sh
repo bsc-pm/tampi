@@ -173,31 +173,43 @@ if [ $? -ne 0 ]; then
 fi
 
 progs=(
-	PrimitiveBlk.oss.test
-	PrimitiveNonBlk.oss.test
-	PrimitiveWrappers.oss.test
-	MultiPrimitiveBlk.oss.test
-	MultiPrimitiveNonBlk.oss.test
 	CollectiveBlk.oss.test
+	CollectiveNonBlk.omp.test
 	CollectiveNonBlk.oss.test
 	HugeBlkTasks.oss.test
-	PrimitiveNonBlk.omp.test
+	InitAuto.oss.test
+	InitAutoTaskAware.oss.test
+	InitExplicit.oss.test
+	InitExplicitTaskAware.oss.test
+	MultiPrimitiveBlk.oss.test
 	MultiPrimitiveNonBlk.omp.test
-	CollectiveNonBlk.omp.test
+	MultiPrimitiveNonBlk.oss.test
+	PrimitiveBlk.oss.test
+	PrimitiveNonBlk.omp.test
+	PrimitiveNonBlk.oss.test
+	PrimitiveWrappers.oss.test
+	ThreadTaskAwareness.oss.test
+	ThreadDisableTaskAwareness.oss.test
 )
 
 nprocsxprog=(
-	2 # PrimitiveBlk.oss.test
-	2 # PrimitiveNonBlk.oss.test
-	2 # PrimitiveWrappers.oss.test
-	4 # MultiPrimitiveBlk.oss.test
-	4 # MultiPrimitiveNonBlk.oss.test
 	4 # CollectiveBlk.oss.test
+	4 # CollectiveNonBlk.omp.test
 	4 # CollectiveNonBlk.oss.test
 	2 # HugeBlkTasks.oss.test
-	2 # PrimitiveNonBlk.omp.test
+	2 # InitAuto.oss.test
+	2 # InitAutoTaskAware.oss.test
+	2 # InitExplicit.oss.test
+	2 # InitExplicitTaskAware.oss.test
+	4 # MultiPrimitiveBlk.oss.test
 	4 # MultiPrimitiveNonBlk.omp.test
-	4 # CollectiveNonBlk.omp.test
+	4 # MultiPrimitiveNonBlk.oss.test
+	2 # PrimitiveBlk.oss.test
+	2 # PrimitiveNonBlk.omp.test
+	2 # PrimitiveNonBlk.oss.test
+	2 # PrimitiveWrappers.oss.test
+	2 # ThreadTaskAwareness.oss.test
+	2 # ThreadDisableTaskAwareness.oss.test
 )
 
 nprogs=${#progs[@]}

@@ -1,15 +1,21 @@
-PROGS=DoNotExecute.oss.test         \
-      PrimitiveBlk.oss.test         \
-      PrimitiveNonBlk.oss.test      \
-      PrimitiveWrappers.oss.test    \
-      MultiPrimitiveBlk.oss.test    \
-      MultiPrimitiveNonBlk.oss.test \
-      CollectiveBlk.oss.test        \
-      CollectiveNonBlk.oss.test     \
-      HugeBlkTasks.oss.test         \
-      PrimitiveNonBlk.omp.test      \
-      MultiPrimitiveNonBlk.omp.test \
-      CollectiveNonBlk.omp.test
+PROGS=CollectiveBlk.oss.test              \
+      CollectiveNonBlk.omp.test           \
+      CollectiveNonBlk.oss.test           \
+      DoNotExecute.oss.test               \
+      HugeBlkTasks.oss.test               \
+      InitAuto.oss.test                   \
+      InitAutoTaskAware.oss.test          \
+      InitExplicit.oss.test               \
+      InitExplicitTaskAware.oss.test      \
+      MultiPrimitiveBlk.oss.test          \
+      MultiPrimitiveNonBlk.omp.test       \
+      MultiPrimitiveNonBlk.oss.test       \
+      PrimitiveBlk.oss.test               \
+      PrimitiveNonBlk.omp.test            \
+      PrimitiveNonBlk.oss.test            \
+      PrimitiveWrappers.oss.test          \
+      ThreadDisableTaskAwareness.oss.test \
+      ThreadTaskAwareness.oss.test
 
 ifdef USE_FORTRAN
 PROGS+=DoNotExecutef.oss.test \
