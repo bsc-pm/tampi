@@ -7,7 +7,7 @@
 #include <dlfcn.h>
 #include <mpi.h>
 
-#include "include/TAMPI_Decl.h"
+#include "TAMPI_Decl.h"
 
 #include "util/ErrorHandler.hpp"
 

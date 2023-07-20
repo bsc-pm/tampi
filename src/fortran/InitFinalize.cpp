@@ -10,7 +10,7 @@
 #include <dlfcn.h>
 #include <cassert>
 
-#include "include/TAMPI_Decl.h"
+#include "TAMPI_Decl.h"
 
 #include "Environment.hpp"
 #include "Interface.hpp"

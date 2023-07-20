@@ -8,6 +8,7 @@ AM_CPPFLAGS=\
  $(BOOST_CPPFLAGS) -DBOOST_ENABLE_ASSERT_DEBUG_HANDLER \
  -I$(top_srcdir)/src \
  -I$(top_srcdir)/src/common \
+ -I$(top_srcdir)/src/include \
  -include "config.h" \
  $(ovni_CPPFLAGS) \
  $(tampi_CPPFLAGS)
