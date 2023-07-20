@@ -18,6 +18,10 @@ extern "C" {
 //! The MPI thread level that enables the task-aware blocking mode
 #define MPI_TASK_MULTIPLE (MPI_THREAD_MULTIPLE + 1)
 
+//! Functions to get and set library properties
+int TAMPI_Property_get(int property, int *value);
+int TAMPI_Property_set(int property, int value);
+
 //! Functions to know which TAMPI modes are enabled
 int TAMPI_Blocking_enabled(int *flag);
 int TAMPI_Nonblocking_enabled(int *flag);
@@ -27,6 +31,8 @@ int TAMPI_Iwait(MPI_Request *request, MPI_Status *status);
 int TAMPI_Iwaitall(int count, MPI_Request requests[], MPI_Status statuses[]);
 
 //! Fortran prototypes of previous C/C++ functions
+void tampi_property_get_(MPI_Fint *property, MPI_Fint *value, MPI_Fint *err);
+void tampi_property_set_(MPI_Fint *property, MPI_Fint *value, MPI_Fint *err);
 void tampi_blocking_enabled_(MPI_Fint *flag, MPI_Fint *err);
 void tampi_nonblocking_enabled_(MPI_Fint *flag, MPI_Fint *err);
 void tampi_iwait_(MPI_Fint *request, MPI_Fint *status, MPI_Fint *err);

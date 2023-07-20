@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include <mpi.h>
@@ -19,6 +19,9 @@ using namespace tampi;
 extern "C" {
 	void mpi_query_thread_(MPI_Fint *provided, MPI_Fint *err)
 	{
+		assert(provided != nullptr);
+		assert(err != nullptr);
+
 		if (Environment::isBlockingEnabled()) {
 			*provided = MPI_TASK_MULTIPLE;
 			*err = MPI_SUCCESS;
@@ -30,16 +33,40 @@ extern "C" {
 
 	void tampi_blocking_enabled_(MPI_Fint *flag, MPI_Fint *err)
 	{
-		assert(flag != NULL);
+		assert(flag != nullptr);
+		assert(err != nullptr);
+
 		*flag = Environment::isBlockingEnabled() ? 1 : 0;
 		*err = MPI_SUCCESS;
 	}
 
 	void tampi_nonblocking_enabled_(MPI_Fint *flag, MPI_Fint *err)
 	{
-		assert(flag != NULL);
+		assert(flag != nullptr);
+		assert(err != nullptr);
+
 		*flag = Environment::isNonBlockingEnabled() ? 1 : 0;
 		*err = MPI_SUCCESS;
+	}
+
+	void tampi_property_get_(MPI_Fint *property, MPI_Fint *value, MPI_Fint *err)
+	{
+		assert(property != nullptr);
+		assert(value != nullptr);
+		assert(err != nullptr);
+
+		// There is no valid property yet
+		*err = MPI_ERR_ARG;
+	}
+
+	void tampi_property_set_(MPI_Fint *property, MPI_Fint *value, MPI_Fint *err)
+	{
+		assert(property != nullptr);
+		assert(value != nullptr);
+		assert(err != nullptr);
+
+		// There is no valid property yet
+		*err = MPI_ERR_ARG;
 	}
 } // extern C
 
