@@ -38,6 +38,10 @@ private:
 		//! Indicate whether the library is initialized
 		bool initialized;
 
+		//! Indicate whether TAMPI should initialize/finalize when MPI does. By
+		//! default is enabled
+		bool autoInitialize;
+
 		//! Indicate whether the thread level provided by MPI is multithreaded
 		int nativeThreadLevel;
 
@@ -52,6 +56,7 @@ private:
 		State() :
 			preinitialized(false),
 			initialized(false),
+			autoInitialize(true),
 			nativeThreadLevel(MPI_THREAD_SINGLE),
 			blockingMode(false),
 			nonBlockingMode(false),
@@ -80,6 +85,14 @@ public:
 		return _state.nonBlockingMode.load(std::memory_order_acquire);
 	}
 
+	//! \brief Check whether the auto initialization is enabled
+	static inline bool isAutoInitializeEnabled()
+	{
+		int enabled;
+		getProperty(TAMPI_PROPERTY_AUTO_INIT, &enabled);
+		return enabled;
+	}
+
 	//! \brief Get the current value of a property
 	//!
 	//! \param property The property identifier to retrieve
@@ -97,6 +110,9 @@ public:
 			case TAMPI_PROPERTY_NONBLOCKING_MODE:
 				*value = _state.nonBlockingMode;
 				break;
+			case TAMPI_PROPERTY_AUTO_INIT:
+				*value = _state.autoInitialize;
+				break;
 			default:
 				return 1;
 		}
@@ -113,14 +129,21 @@ public:
 	//! \param value The new value
 	//!
 	//! \return Zero on success, and error otherwise
-	static inline int setProperty(int property, int)
+	static inline int setProperty(int property, int value)
 	{
 		std::lock_guard<std::mutex> lock(_state.mutex);
 
 		switch (property) {
-			// Setting these infos is never valid
 			case TAMPI_PROPERTY_BLOCKING_MODE:
 			case TAMPI_PROPERTY_NONBLOCKING_MODE:
+				// Setting these infos is never valid
+				return 1;
+			case TAMPI_PROPERTY_AUTO_INIT:
+				// Not valid to set this info after MPI_Init/MPI_Init_thread
+				if (_state.preinitialized)
+					return 1;
+				_state.autoInitialize = value;
+				break;
 			default:
 				return 1;
 		}
@@ -160,7 +183,8 @@ public:
 	//!
 	//! \param required the required thread level to TAMPI
 	//! \param provided the provided thread level by TAMPI
-	static void initialize(int required, int *provided)
+	//! \param automatic Whether it is an automatic initilization attempt
+	static void initialize(int required, int *provided, bool automatic)
 	{
 		bool enableBlocking = shouldEnableBlocking(required);
 		bool enableNonBlocking = shouldEnableNonBlocking(required);
@@ -168,7 +192,7 @@ public:
 		std::lock_guard<std::mutex> lock(_state.mutex);
 
 		// Perform several checks to decide if we must initialize
-		bool initialize = shouldInitialize();
+		bool initialize = shouldInitialize(automatic);
 		if (!initialize)
 			return;
 
@@ -205,12 +229,14 @@ public:
 	}
 
 	//! \brief Finalize the task-awareness library
-	static void finalize()
+	//!
+	//! \param automatic Whether it is an atomatic finalization attempt
+	static void finalize(bool automatic)
 	{
 		std::lock_guard<std::mutex> lock(_state.mutex);
 
 		// Perform several checks to decide if we must finalize
-		bool finalize = shouldFinalize();
+		bool finalize = shouldFinalize(automatic);
 		if (!finalize)
 			return;
 
@@ -251,18 +277,45 @@ private:
 	}
 
 	//! \brief Indicate whether should initialize
-	static bool shouldInitialize()
+	//!
+	//! \param automatic Whether the initialization attempt is automatic
+	//!
+	//! \return Whether should initialize
+	static bool shouldInitialize(bool automatic)
 	{
 		// The library should be already preinitialized
 		if (!_state.preinitialized)
 			ErrorHandler::fail("Intializing TAMPI before MPI is invalid");
 
-		return true;
+		// Cannot explicitly initialize if TAMPI_PROPERTY_AUTO_INIT is enabled
+		if (!automatic && _state.autoInitialize)
+			ErrorHandler::fail("Explicitly initializing TAMPI is invalid by default");
+
+		// Do not auto initialize when auto initialization is disabled
+		return (!automatic || _state.autoInitialize);
 	}
 
 	//! \brief Indicate whether should finalize
-	static bool shouldFinalize()
+	//!
+	//! \param automatic Whether the finalization attempt is automatic
+	static bool shouldFinalize(bool automatic)
 	{
+		// Auto finalization is disabled; the library should be finalized
+		if (automatic && !_state.autoInitialize) {
+			if (_state.initialized) {
+				// Library should be already explicitly finalized but it is not. Print
+				// a warning and finalize the library
+				ErrorHandler::warn("TAMPI_Finalize must be called before MPI_Finalize");
+				return true;
+			}
+			// Otherwise, do not finalize
+			return false;
+		}
+
+		// Cannot explicitly finalize if auto initialize is enabled
+		if (!automatic && _state.autoInitialize)
+			ErrorHandler::fail("Explicitly initializing TAMPI is invalid by default");
+
 		// The library must be initialized before finalizing
 		if (!_state.initialized)
 			ErrorHandler::fail("Finalizing TAMPI before initializing is invalid");

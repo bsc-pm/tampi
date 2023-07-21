@@ -28,9 +28,21 @@ extern "C" {
 //! setting its value is invalid
 #define TAMPI_PROPERTY_NONBLOCKING_MODE 0x2
 
+//! The TAMPI_PROPERTY_AUTO_INIT enables/disables the automatic initialization
+//! and finalization of TAMPI when MPI_Init, MPI_Init_thread and MPI_Finalized
+//! are called. The property value is treated as a boolean that enables or
+//! disables the automatic initialization. Changing this property is only valid
+//! before MPI_Init is called. By default, the TAMPI is automatically initialized
+//! and finalizes when MPI does
+#define TAMPI_PROPERTY_AUTO_INIT 0x3
+
 //! Functions to get and set library properties
 int TAMPI_Property_get(int property, int *value);
 int TAMPI_Property_set(int property, int value);
+
+//! Functions to initialize and finalize explicitly
+int TAMPI_Init(int required, int *provided);
+int TAMPI_Finalize(void);
 
 //! Functions to know which TAMPI modes are enabled
 int TAMPI_Blocking_enabled(int *flag);
@@ -43,6 +55,8 @@ int TAMPI_Iwaitall(int count, MPI_Request requests[], MPI_Status statuses[]);
 //! Fortran prototypes of previous C/C++ functions
 void tampi_property_get_(MPI_Fint *property, MPI_Fint *value, MPI_Fint *err);
 void tampi_property_set_(MPI_Fint *property, MPI_Fint *value, MPI_Fint *err);
+void tampi_init_(MPI_Fint *required, MPI_Fint *provided, MPI_Fint *err);
+void tampi_finalize_(MPI_Fint *err);
 void tampi_blocking_enabled_(MPI_Fint *flag, MPI_Fint *err);
 void tampi_nonblocking_enabled_(MPI_Fint *flag, MPI_Fint *err);
 void tampi_iwait_(MPI_Fint *request, MPI_Fint *status, MPI_Fint *err);
