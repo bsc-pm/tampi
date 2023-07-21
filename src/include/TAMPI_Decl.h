@@ -18,6 +18,16 @@ extern "C" {
 //! The MPI thread level that enables the task-aware blocking mode
 #define MPI_TASK_MULTIPLE (MPI_THREAD_MULTIPLE + 1)
 
+//! The TAMPI_PROPERTY_BLOCKING_MODE is the property to obtain whether the task-
+//! aware blocking mode is enabled. This property can only be consulted; setting
+//! its value is invalid
+#define TAMPI_PROPERTY_BLOCKING_MODE 0x1
+
+//! The TAMPI_PROPERTY_NONBLOCKING_MODE is the property to obtain whether the
+//! task-aware non-blocking mode is enabled. This property can only consulted;
+//! setting its value is invalid
+#define TAMPI_PROPERTY_NONBLOCKING_MODE 0x2
+
 //! Functions to get and set library properties
 int TAMPI_Property_get(int property, int *value);
 int TAMPI_Property_set(int property, int value);

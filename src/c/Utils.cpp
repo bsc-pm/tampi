@@ -21,21 +21,28 @@ extern "C" {
 	{
 		assert(provided != nullptr);
 
-		int err = MPI_SUCCESS;
-		if (Environment::isBlockingEnabled()) {
+		int blocking = 0;
+		int err = Environment::getProperty(TAMPI_PROPERTY_BLOCKING_MODE, &blocking);
+		if (err)
+			return MPI_ERR_ARG;
+
+		if (blocking) {
 			*provided = MPI_TASK_MULTIPLE;
 		} else {
 			static MPI_Query_thread_t *symbol = (MPI_Query_thread_t *) Symbol::load(__func__);
-			err = (*symbol)(provided);
+			return (*symbol)(provided);
 		}
-		return err;
+		return MPI_SUCCESS;
 	}
 
 	int TAMPI_Blocking_enabled(int *flag)
 	{
 		assert(flag != nullptr);
 
-		*flag = Environment::isBlockingEnabled() ? 1 : 0;
+		int err = Environment::getProperty(TAMPI_PROPERTY_BLOCKING_MODE, flag);
+		if (err)
+			return MPI_ERR_ARG;
+
 		return MPI_SUCCESS;
 	}
 
@@ -43,7 +50,10 @@ extern "C" {
 	{
 		assert(flag != nullptr);
 
-		*flag = Environment::isNonBlockingEnabled() ? 1 : 0;
+		int err = Environment::getProperty(TAMPI_PROPERTY_NONBLOCKING_MODE, flag);
+		if (err)
+			return MPI_ERR_ARG;
+
 		return MPI_SUCCESS;
 	}
 
@@ -51,14 +61,20 @@ extern "C" {
 	{
 		assert(value != nullptr);
 
-		// There is no valid property yet
-		return MPI_ERR_ARG;
+		int err = Environment::getProperty(property, value);
+		if (err)
+			return MPI_ERR_ARG;
+
+		return MPI_SUCCESS;
 	}
 
 	int TAMPI_Property_set(int property, int value)
 	{
-		// There is no valid property yet
-		return MPI_ERR_ARG;
+		int err = Environment::setProperty(property, value);
+		if (err)
+			return MPI_ERR_ARG;
+
+		return MPI_SUCCESS;
 	}
 } // extern C
 

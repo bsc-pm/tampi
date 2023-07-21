@@ -113,15 +113,14 @@ public:
 	//! \param value The new value
 	//!
 	//! \return Zero on success, and error otherwise
-	static inline int setProperty(int property, int value)
+	static inline int setProperty(int property, int)
 	{
 		std::lock_guard<std::mutex> lock(_state.mutex);
 
 		switch (property) {
+			// Setting these infos is never valid
 			case TAMPI_PROPERTY_BLOCKING_MODE:
 			case TAMPI_PROPERTY_NONBLOCKING_MODE:
-				// Setting these infos is never valid
-				return 1;
 			default:
 				return 1;
 		}
