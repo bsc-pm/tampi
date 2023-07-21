@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include <dlfcn.h>
@@ -20,7 +20,7 @@ extern "C" {
 	int MPI_Wait(MPI_Request *request, MPI_Status *status)
 	{
 		int err = MPI_SUCCESS;
-		if (Environment::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabledForCurrentThread()) {
 			assert(request != NULL);
 			RequestManager<C>::processRequest(*request, status);
 		} else {

@@ -45,6 +45,10 @@ private:
 		//! Indicate whether the thread level provided by MPI is multithreaded
 		int nativeThreadLevel;
 
+		//! Indicate whether the thread has task-awareness enabled. By default
+		//! is enabled
+		static thread_local bool threadTaskAwareness;
+
 		//! Indicate whether the blocking and non-blocking modes are enabled
 		std::atomic<bool> blockingMode;
 		std::atomic<bool> nonBlockingMode;
@@ -93,6 +97,15 @@ public:
 		return enabled;
 	}
 
+	//! \brief Check whether the blocking TAMPI mode is enabled
+	//!
+	//! This function checks whether the blocking mode is enabled globally
+	//! and whether the thread has the mode enabled
+	static inline bool isBlockingEnabledForCurrentThread()
+	{
+		return (_state.threadTaskAwareness && isBlockingEnabled());
+	}
+
 	//! \brief Get the current value of a property
 	//!
 	//! \param property The property identifier to retrieve
@@ -109,6 +122,9 @@ public:
 				break;
 			case TAMPI_PROPERTY_NONBLOCKING_MODE:
 				*value = _state.nonBlockingMode;
+				break;
+			case TAMPI_PROPERTY_THREAD_TASKAWARE:
+				*value = _state.threadTaskAwareness;
 				break;
 			case TAMPI_PROPERTY_AUTO_INIT:
 				*value = _state.autoInitialize;
@@ -138,6 +154,9 @@ public:
 			case TAMPI_PROPERTY_NONBLOCKING_MODE:
 				// Setting these infos is never valid
 				return 1;
+			case TAMPI_PROPERTY_THREAD_TASKAWARE:
+				_state.threadTaskAwareness = value;
+				break;
 			case TAMPI_PROPERTY_AUTO_INIT:
 				// Not valid to set this info after MPI_Init/MPI_Init_thread
 				if (_state.preinitialized)

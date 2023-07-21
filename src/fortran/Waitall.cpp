@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include <mpi.h>
@@ -20,7 +20,7 @@ using namespace tampi;
 extern "C" {
 	void mpi_waitall_(MPI_Fint *count, MPI_Fint array_of_requests[], MPI_Fint *array_of_statuses, MPI_Fint *err)
 	{
-		if (Environment::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabledForCurrentThread()) {
 			RequestManager<Fortran>::processRequests({array_of_requests, *count}, array_of_statuses);
 			*err = MPI_SUCCESS;
 		} else {

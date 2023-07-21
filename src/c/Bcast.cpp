@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include <dlfcn.h>
@@ -20,7 +20,7 @@ extern "C" {
 	int	MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm)
 	{
 		int err = MPI_SUCCESS;
-		if (Environment::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabledForCurrentThread()) {
 			MPI_Request request;
 			err = MPI_Ibcast(buffer, count, datatype, root, comm, &request);
 			if (err == MPI_SUCCESS)

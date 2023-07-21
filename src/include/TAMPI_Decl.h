@@ -36,6 +36,16 @@ extern "C" {
 //! and finalizes when MPI does
 #define TAMPI_PROPERTY_AUTO_INIT 0x3
 
+//! The TAMPI_PROPERTY_THREAD_TASKAWARE enables/disables the task-awareness for
+//! the calling thread. The task-awareness is the interception of blocking MPI
+//! calls and the pause/resume of communication tasks. This property is per
+//! thread and only considered when the MPI_TASK_MULTIPLE is enabled. It is user
+//! responsibility to enable and disable it whenever it is necessary. When a
+//! thread encounters a blocking MPI call, it will check this thread-local value
+//! to decide whether the communication must be task-aware or not. By default,
+//! all threads have their task-awareness enabled
+#define TAMPI_PROPERTY_THREAD_TASKAWARE 0x4
+
 //! Functions to get and set library properties
 int TAMPI_Property_get(int property, int *value);
 int TAMPI_Property_set(int property, int value);
