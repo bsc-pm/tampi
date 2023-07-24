@@ -1,12 +1,12 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include <mpi.h>
 
-#include "include/TAMPI_Decl.h"
+#include "TAMPI_Decl.h"
 
 #include "Environment.hpp"
 #include "Interface.hpp"
@@ -20,7 +20,7 @@ using namespace tampi;
 extern "C" {
 	void mpi_wait_(MPI_Fint *request, MPI_Fint *status, MPI_Fint *err)
 	{
-		if (Environment::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabledForCurrentThread()) {
 			RequestManager<Fortran>::processRequest(*request, status);
 		} else {
 			static mpi_wait_t *symbol = (mpi_wait_t *) Symbol::load(__func__);

@@ -1,12 +1,12 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include <mpi.h>
 
-#include "include/TAMPI_Decl.h"
+#include "TAMPI_Decl.h"
 
 #include "Environment.hpp"
 #include "Interface.hpp"
@@ -31,7 +31,7 @@ extern "C" {
 			void *recvbuf, MPI_Fint *recvcount, MPI_Fint *recvtype, MPI_Fint *source, MPI_Fint *recvtag,
 			MPI_Fint *comm, MPI_Fint *status, MPI_Fint *err)
 	{
-		if (Environment::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabledForCurrentThread()) {
 			MPI_Fint requests[2];
 			mpi_irecv_(recvbuf, recvcount, recvtype, source, recvtag, comm, &requests[0], err);
 			if (*err != MPI_SUCCESS) return;

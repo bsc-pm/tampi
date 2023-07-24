@@ -1,12 +1,12 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include <mpi.h>
 
-#include "include/TAMPI_Decl.h"
+#include "TAMPI_Decl.h"
 
 #include "Environment.hpp"
 #include "Interface.hpp"

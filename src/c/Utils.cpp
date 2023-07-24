@@ -1,12 +1,12 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include <mpi.h>
 
-#include "include/TAMPI_Decl.h"
+#include "TAMPI_Decl.h"
 
 #include "Environment.hpp"
 #include "Interface.hpp"
@@ -19,28 +19,61 @@ using namespace tampi;
 extern "C" {
 	int MPI_Query_thread(int *provided)
 	{
-		int err = MPI_SUCCESS;
-		if (Environment::isBlockingEnabled()) {
-			assert(provided != NULL);
+		assert(provided != nullptr);
+
+		int blocking = 0;
+		int err = Environment::getProperty(TAMPI_PROPERTY_BLOCKING_MODE, &blocking);
+		if (err)
+			return MPI_ERR_ARG;
+
+		if (blocking) {
 			*provided = MPI_TASK_MULTIPLE;
 		} else {
 			static MPI_Query_thread_t *symbol = (MPI_Query_thread_t *) Symbol::load(__func__);
-			err = (*symbol)(provided);
+			return (*symbol)(provided);
 		}
-		return err;
+		return MPI_SUCCESS;
 	}
 
 	int TAMPI_Blocking_enabled(int *flag)
 	{
-		assert(flag != NULL);
-		*flag = Environment::isBlockingEnabled() ? 1 : 0;
+		assert(flag != nullptr);
+
+		int err = Environment::getProperty(TAMPI_PROPERTY_BLOCKING_MODE, flag);
+		if (err)
+			return MPI_ERR_ARG;
+
 		return MPI_SUCCESS;
 	}
 
 	int TAMPI_Nonblocking_enabled(int *flag)
 	{
-		assert(flag != NULL);
-		*flag = Environment::isNonBlockingEnabled() ? 1 : 0;
+		assert(flag != nullptr);
+
+		int err = Environment::getProperty(TAMPI_PROPERTY_NONBLOCKING_MODE, flag);
+		if (err)
+			return MPI_ERR_ARG;
+
+		return MPI_SUCCESS;
+	}
+
+	int TAMPI_Property_get(int property, int *value)
+	{
+		assert(value != nullptr);
+
+		int err = Environment::getProperty(property, value);
+		if (err)
+			return MPI_ERR_ARG;
+
+		return MPI_SUCCESS;
+	}
+
+	int TAMPI_Property_set(int property, int value)
+	{
+		int err = Environment::setProperty(property, value);
+		if (err)
+			return MPI_ERR_ARG;
+
 		return MPI_SUCCESS;
 	}
 } // extern C

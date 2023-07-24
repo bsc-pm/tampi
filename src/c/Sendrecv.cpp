@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include <dlfcn.h>
@@ -22,7 +22,7 @@ extern "C" {
 			MPI_Comm comm, MPI_Status *status)
 	{
 		int err = MPI_SUCCESS;
-		if (Environment::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabledForCurrentThread()) {
 			MPI_Request requests[2];
 			err = MPI_Irecv(recvbuf, recvcount, recvtype, source, recvtag, comm, &requests[0]);
 			if (err != MPI_SUCCESS) return err;

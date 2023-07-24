@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include <dlfcn.h>
@@ -21,7 +21,7 @@ extern "C" {
 			int sendtag, int source, int recvtag, MPI_Comm comm, MPI_Status *status)
 	{
 		int err = MPI_SUCCESS;
-		if (Environment::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabledForCurrentThread()) {
 			if (source == MPI_PROC_NULL || dest == MPI_PROC_NULL || count == 0) {
 				err = MPI_Sendrecv(
 						buf, count, datatype, dest, sendtag,

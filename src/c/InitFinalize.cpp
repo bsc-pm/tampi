@@ -11,7 +11,7 @@
 #include <mpi.h>
 #include <stdarg.h>
 
-#include "include/TAMPI_Decl.h"
+#include "TAMPI_Decl.h"
 
 #include "Environment.hpp"
 #include "Interface.hpp"
@@ -22,7 +22,7 @@ using namespace tampi;
 #pragma GCC visibility push(default)
 
 extern "C" {
-	int MPI_Init(int *argc, char*** argv)
+	int MPI_Init(int *argc, char ***argv)
 	{
 		static MPI_Init_t *symbol = (MPI_Init_t *) Symbol::load(__func__);
 
@@ -31,8 +31,14 @@ extern "C" {
 		if (err != MPI_SUCCESS)
 			return err;
 
-		// Disable both TAMPI modes
-		Environment::initialize(false, false);
+		int provided;
+		int required = MPI_THREAD_SINGLE;
+
+		// Prepare the MPI environment
+		Environment::preinitialize(required);
+
+		// Attempt to auto initialize the library; no mode is enabled
+		Environment::initialize(required, &provided, /* auto */ true);
 
 		return MPI_SUCCESS;
 	}
@@ -41,49 +47,61 @@ extern "C" {
 	{
 		static MPI_Init_thread_t *symbol = (MPI_Init_thread_t *) Symbol::load(__func__);
 
+		// When TAMPI is in explicit initialization mode, the MPI_Init_thread acts
+		// as the standard call and does not support MPI_TASK_MULTIPLE. In such
+		// case, MPI_Init_thread must be called with MPI_THREAD_MULTIPLE, and then,
+		// TAMPI_Init can be called with MPI_TASK_MULTIPLE
+		if (!Environment::isAutoInitializeEnabled() && required == MPI_TASK_MULTIPLE)
+			ErrorHandler::fail("The MPI_TASK_MULTIPLE must be passed to TAMPI_Init");
+
 		// Assuming that MPI does not provide MPI_TASK_MULTIPLE
 		int irequired = required;
-		if (required == MPI_TASK_MULTIPLE) {
+		if (required == MPI_TASK_MULTIPLE)
 			irequired = MPI_THREAD_MULTIPLE;
-		}
 
 		// Call MPI_Init_thread
 		int err = (*symbol)(argc, argv, irequired, provided);
-		if (err != MPI_SUCCESS) return err;
+		if (err != MPI_SUCCESS)
+			return err;
 
-		bool enableBlockingMode = false;
-		bool enableNonBlockingMode = false;
-		if (*provided == MPI_THREAD_MULTIPLE) {
-#ifndef DISABLE_BLOCKING_MODE
-			if (required == MPI_TASK_MULTIPLE) {
-				enableBlockingMode = true;
-			}
-#endif
-#ifndef DISABLE_NONBLOCKING_MODE
-			enableNonBlockingMode = true;
-#endif
-		}
+		// Prepare the MPI enviornment
+		Environment::preinitialize(*provided);
 
-		Environment::initialize(enableBlockingMode, enableNonBlockingMode);
-		if (enableBlockingMode) {
-			*provided = MPI_TASK_MULTIPLE;
-		}
+		// Attempt to auto initialize the library
+		Environment::initialize(required, provided, /* auto */ true);
 
 		return MPI_SUCCESS;
 	}
 
-	int MPI_Finalize()
+	int MPI_Finalize(void)
 	{
 		static MPI_Finalize_t *symbol = (MPI_Finalize_t *) Symbol::load(__func__);
 
 		// Call MPI_Finalize
 		int err = (*symbol)();
-		if (err != MPI_SUCCESS) return err;
+		if (err != MPI_SUCCESS)
+			return err;
 
-		// Finalize the environment
-		Environment::finalize();
+		// Attempt to finalize the library
+		Environment::finalize(/* auto */ true);
 
-		return err;
+		return MPI_SUCCESS;
+	}
+
+	int TAMPI_Init(int required, int *provided)
+	{
+		// Explicitly initialize the library
+		Environment::initialize(required, provided, /* auto */ false);
+
+		return MPI_SUCCESS;
+	}
+
+	int TAMPI_Finalize(void)
+	{
+		// Explicitly finalize the library
+		Environment::finalize(/* auto */ false);
+
+		return MPI_SUCCESS;
 	}
 } // extern C
 

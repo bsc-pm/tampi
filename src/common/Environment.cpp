@@ -15,8 +15,8 @@
 
 namespace tampi {
 
-std::atomic<bool> Environment::_blockingEnabled(false);
-std::atomic<bool> Environment::_nonBlockingEnabled(false);
+Environment::State Environment::_state;
+thread_local bool Environment::State::threadTaskAwareness = true;
 
 TaskingModel::polling_handle_t Polling::_pollingHandle;
 PollingPeriodCtrl Polling::_periodCtrl;

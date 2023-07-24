@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #include <dlfcn.h>
@@ -20,7 +20,7 @@ extern "C" {
 	int MPI_Waitall(int count, MPI_Request array_of_requests[], MPI_Status array_of_statuses[])
 	{
 		int err = MPI_SUCCESS;
-		if (Environment::isBlockingEnabled()) {
+		if (Environment::isBlockingEnabledForCurrentThread()) {
 			RequestManager<C>::processRequests({array_of_requests, count}, array_of_statuses);
 		} else {
 			static MPI_Waitall_t *symbol = (MPI_Waitall_t *) Symbol::load(__func__);
