@@ -636,3 +636,8 @@ the same type and through the same communicator** in all involved processes. Tha
 can achieve when executing multiple collective operations of the same time. If you want to run multiple collectives
 of the same type in parallel (e.g., different concurrent tasks), we recommend using separate MPI communicators.
 Notice that having many MPI communicators could damage the application's performance depending on the MPI implementation.
+
+**Q5: Does TAMPI support the MPI Session model introduced in MPI 4.0?**
+
+The TAMPI library does not support the MPI Session model for the moment. Right now, TAMPI only provides support
+for the MPI World model.
