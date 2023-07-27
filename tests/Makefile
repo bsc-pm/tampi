@@ -1,27 +1,3 @@
-PROGS=CollectiveBlk.oss.test              \
-      CollectiveNonBlk.omp.test           \
-      CollectiveNonBlk.oss.test           \
-      DoNotExecute.oss.test               \
-      HugeBlkTasks.oss.test               \
-      InitAuto.oss.test                   \
-      InitAutoTaskAware.oss.test          \
-      InitExplicit.oss.test               \
-      InitExplicitTaskAware.oss.test      \
-      MultiPrimitiveBlk.oss.test          \
-      MultiPrimitiveNonBlk.omp.test       \
-      MultiPrimitiveNonBlk.oss.test       \
-      PrimitiveBlk.oss.test               \
-      PrimitiveNonBlk.omp.test            \
-      PrimitiveNonBlk.oss.test            \
-      PrimitiveWrappers.oss.test          \
-      ThreadDisableTaskAwareness.oss.test \
-      ThreadTaskAwareness.oss.test
-
-ifdef USE_FORTRAN
-PROGS+=DoNotExecutef.oss.test \
-       HugeTasksf.oss.test
-endif
-
 # Compilers
 CXX=clang++
 F90=mfc
@@ -65,11 +41,9 @@ all: $(PROGS)
 	@echo "  MPICXX $@"
 	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(TAMPI_CPPFLAGS) $(CFLAGS) -fompss-2 $^ -o $@ $(TAMPI_LDCFLAGS)
 
-ifdef USE_FORTRAN
 %.oss.test: oss/%.F90
 	@echo "  MPIF90 $@"
 	$(F90_WRAPPERS) $(MPIF90) $(CPPFLAGS) $(FFLAGS) $(TAMPI_CPPFLAGS) --ompss-2 $^ -o $@ $(TAMPI_LDFFLAGS)
-endif
 
 %.omp.test: omp/%.cpp
 	@echo "  MPICXX $@"

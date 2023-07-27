@@ -161,22 +161,14 @@ else
 fi
 echo ""
 
-echo "Compiling tests..."
-compile_args="TAMPI_INCLUDE_PATH=$tampi_inc_path TAMPI_LIBRARY_PATH=$tampi_lib_path MPICXX=$mpicxx MPIF90=$mpif90"
-if [ $large_input -eq 1 ]; then
-	compile_args="$compile_args LARGE_INPUT=1"
-fi
-
-make -f $makefile -B -s $compile_args
-if [ $? -ne 0 ]; then
-	exit 1
-fi
-
 progs=(
 	CollectiveBlk.oss.test
 	CollectiveNonBlk.omp.test
 	CollectiveNonBlk.oss.test
+	DoNotExecute.oss.test
+	DoNotExecutef.oss.test
 	HugeBlkTasks.oss.test
+	HugeTasksf.oss.test
 	InitAuto.oss.test
 	InitAutoTaskAware.oss.test
 	InitExplicit.oss.test
@@ -188,15 +180,18 @@ progs=(
 	PrimitiveNonBlk.omp.test
 	PrimitiveNonBlk.oss.test
 	PrimitiveWrappers.oss.test
-	ThreadTaskAwareness.oss.test
 	ThreadDisableTaskAwareness.oss.test
+	ThreadTaskAwareness.oss.test
 )
 
 nprocsxprog=(
 	4 # CollectiveBlk.oss.test
 	4 # CollectiveNonBlk.omp.test
 	4 # CollectiveNonBlk.oss.test
+	0 # DoNotExecute.oss.test
+	0 # DoNotExecutef.oss.test
 	2 # HugeBlkTasks.oss.test
+	2 # HugeTasksf.oss.test
 	2 # InitAuto.oss.test
 	2 # InitAutoTaskAware.oss.test
 	2 # InitExplicit.oss.test
@@ -212,6 +207,17 @@ nprocsxprog=(
 	2 # ThreadDisableTaskAwareness.oss.test
 )
 
+echo "Compiling tests..."
+compile_args="TAMPI_INCLUDE_PATH=$tampi_inc_path TAMPI_LIBRARY_PATH=$tampi_lib_path MPICXX=$mpicxx MPIF90=$mpif90"
+if [ $large_input -eq 1 ]; then
+	compile_args="$compile_args LARGE_INPUT=1"
+fi
+
+make -f $makefile -B -s ${progs[*]} $compile_args
+if [ $? -ne 0 ]; then
+	exit 1
+fi
+
 nprogs=${#progs[@]}
 nfailed=0
 
@@ -224,6 +230,11 @@ for ((i=0;i<nprogs;i++)); do
 	nprocs=${nprocsxprog[$i]}
 
 	echo -n "${prog} "
+
+	if [ $nprocs -eq 0 ]; then
+		echo -e "${green}SKIPPED${clean}"
+		continue
+	fi
 
 	if [ $use_slurm -eq 1 ]; then
 		${launcher} -n ${nprocs} --cpu_bind=cores ./${prog} &> /dev/null
@@ -239,7 +250,7 @@ for ((i=0;i<nprogs;i++)); do
 	fi
 done
 
-make -f $makefile clean -B -s $compile_args
+make -f $makefile -B -s clean $compile_args
 if [ $? -ne 0 ]; then
 	exit 1
 fi
