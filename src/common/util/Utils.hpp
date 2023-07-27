@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef UTILS_HPP
@@ -10,6 +10,7 @@
 #include <config.h>
 
 #include <cstdint>
+#include <type_traits>
 
 #ifndef CACHELINE_SIZE
 #define CACHELINE_SIZE 64
