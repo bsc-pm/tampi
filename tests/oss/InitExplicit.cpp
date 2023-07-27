@@ -11,7 +11,7 @@
 
 int main(int argc, char **argv)
 {
-	int provided, value;
+	int original, provided, value;
 
 	// Disable automatic TAMPI initialization
 	CHECK(TAMPI_Property_set(TAMPI_PROPERTY_AUTO_INIT, 0));
@@ -20,12 +20,18 @@ int main(int argc, char **argv)
 	CHECK(TAMPI_Property_get(TAMPI_PROPERTY_AUTO_INIT, &value));
 	ASSERT(value == 0);
 
-	// Initialize MPI
+	// Initialize MPI; which will set the default thread level
 	CHECK(MPI_Init(&argc, &argv));
 
-	// Initialize TAMPI
+	// Get the default thread level of MPI
+	CHECK(MPI_Query_thread(&original));
+	ASSERT(original >= MPI_THREAD_SINGLE);
+	ASSERT(original <= MPI_THREAD_MULTIPLE);
+
+	// Initialize TAMPI with the lowest thread level. The default
+	// thread level should be provided instead
 	CHECK(TAMPI_Init(MPI_THREAD_SINGLE, &provided));
-	ASSERT(provided == MPI_THREAD_SINGLE);
+	ASSERT(provided == original);
 
 	CHECK(MPI_Barrier(MPI_COMM_WORLD));
 

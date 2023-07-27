@@ -133,6 +133,7 @@ extern "C" {
 //! MPI Fortran declarations
 void mpi_comm_rank_(MPI_Fint*, MPI_Fint*, MPI_Fint*);
 void mpi_comm_size_(MPI_Fint*, MPI_Fint*, MPI_Fint*);
+void mpi_query_thread_(MPI_Fint*, MPI_Fint*);
 void pmpi_test_(MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
 void pmpi_testall_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint*);
 void pmpi_testany_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);

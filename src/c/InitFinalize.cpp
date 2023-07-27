@@ -31,14 +31,17 @@ extern "C" {
 		if (err != MPI_SUCCESS)
 			return err;
 
+		// Retrieve the default thread level
 		int provided;
-		int required = MPI_THREAD_SINGLE;
+		err = MPI_Query_thread(&provided);
+		if (err != MPI_SUCCESS)
+			return err;
 
 		// Prepare the MPI environment
-		Environment::preinitialize(required);
+		Environment::preinitialize(provided);
 
 		// Attempt to auto initialize the library; no mode is enabled
-		Environment::initialize(required, &provided, /* auto */ true);
+		Environment::initialize(provided, &provided, /* auto */ true);
 
 		return MPI_SUCCESS;
 	}
