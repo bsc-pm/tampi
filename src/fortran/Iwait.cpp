@@ -21,9 +21,9 @@ using namespace tampi;
 extern "C" {
 	void tampi_iwait_(MPI_Fint *request, MPI_Fint *status, MPI_Fint *err)
 	{
-		if (Environment::isNonBlockingEnabled()) {
+		if (Environment::isNonBlockingEnabled())
 			RequestManager<Fortran>::processRequest(*request, status, /* Non-blocking */ false);
-		}
+
 		*err = MPI_SUCCESS;
 	}
 } // extern C

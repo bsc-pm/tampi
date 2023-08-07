@@ -34,10 +34,10 @@ template <typename Lang>
 class TicketManager {
 private:
 	//! Maximum number of in-flight requests
-	static constexpr int NENTRIES = 32*1024;
+	static constexpr int MaxEntries = 32*1024;
 
 	//! Maximum number of requests to be inserted at once
-	static constexpr int NRPG = 64;
+	static constexpr int BatchSize = 64;
 
 	typedef typename Types<Lang>::request_t request_t;
 	typedef typename Types<Lang>::status_t status_t;
@@ -94,7 +94,7 @@ private:
 	int _pending;
 
 	//! General arrays storing the tickets, requests and statuses
-	TicketManagerInternals<Lang, NENTRIES> _arrays;
+	TicketManagerInternals<Lang, MaxEntries> _arrays;
 
 	//! Lock-free pre-queues of blocking requests
 	util::LockFreeQueue<BlockingEntry> _blockingEntries;
@@ -118,7 +118,7 @@ public:
 		_indices(nullptr),
 		_mutex()
 	{
-		_indices = (int *) std::malloc(NENTRIES * sizeof(int));
+		_indices = (int *) std::malloc(MaxEntries * sizeof(int));
 		assert(_indices != nullptr);
 	}
 
@@ -166,7 +166,7 @@ public:
 	{
 		std::lock_guard<SpinLock> guard(_mutex);
 
-		if (_pending < NENTRIES) {
+		if (_pending < MaxEntries) {
 			internalCheckEntryQueues();
 		}
 
@@ -333,14 +333,14 @@ inline void TicketManager<Lang>::addTicketRequests(
 	util::ArrayView<request_t> &requests,
 	util::LockFreeQueue<EntryTy> &queue
 ) {
-	util::Uninitialized<EntryTy> entries[NRPG];
+	util::Uninitialized<EntryTy> entries[BatchSize];
 
 	const int active = ticket.getPendingRequests();
 	assert(active > 0);
 
 	int req = 0;
-	for (int added = 0; added < active; added += NRPG) {
-		const int size = std::min(NRPG, active - added);
+	for (int added = 0; added < active; added += BatchSize) {
+		const int size = std::min(BatchSize, active - added);
 		int entry = 0;
 		while (entry < size) {
 			if (requests[req] != Interface<Lang>::REQUEST_NULL) {
@@ -356,22 +356,22 @@ inline void TicketManager<Lang>::addTicketRequests(
 template <typename Lang>
 inline void TicketManager<Lang>::internalCheckEntryQueues()
 {
-	util::Uninitialized<BlockingEntry> blockings[NRPG];
-	util::Uninitialized<NonBlockingEntry> nonBlockings[NRPG];
+	util::Uninitialized<BlockingEntry> blockings[BatchSize];
+	util::Uninitialized<NonBlockingEntry> nonBlockings[BatchSize];
 
-	const int numAvailable = (NENTRIES - _pending);
+	const int numAvailable = (MaxEntries - _pending);
 	int numBlk, numNonBlk;
 	int total = 0;
 
 	do {
-		numBlk = std::min(numAvailable - total, NRPG);
+		numBlk = std::min(numAvailable - total, BatchSize);
 		numBlk = _blockingEntries.pop((BlockingEntry *)blockings, numBlk);
 		if (numBlk > 0) {
 			transferEntries((BlockingEntry *)blockings, numBlk);
 			total += numBlk;
 		}
 
-		numNonBlk = std::min(numAvailable - total, NRPG);
+		numNonBlk = std::min(numAvailable - total, BatchSize);
 		numNonBlk = _nonBlockingEntries.pop((NonBlockingEntry *)nonBlockings, numNonBlk);
 		if (numNonBlk > 0) {
 			transferEntries((NonBlockingEntry *)nonBlockings, numNonBlk);
@@ -383,7 +383,7 @@ inline void TicketManager<Lang>::internalCheckEntryQueues()
 template <typename Lang>
 inline void TicketManager<Lang>::transferEntries(BlockingEntry entries[], int count)
 {
-	assert(_pending + count <= NENTRIES);
+	assert(_pending + count <= MaxEntries);
 
 	const int pending = _pending;
 	for (int r = 0; r < count; ++r) {
@@ -402,7 +402,7 @@ inline void TicketManager<Lang>::transferEntries(BlockingEntry entries[], int co
 template <typename Lang>
 inline void TicketManager<Lang>::transferEntries(NonBlockingEntry entries[], int count)
 {
-	assert(_pending + count <= NENTRIES);
+	assert(_pending + count <= MaxEntries);
 
 	const int pending = _pending;
 	for (int r = 0; r < count; ++r) {
@@ -419,12 +419,6 @@ inline void TicketManager<Lang>::transferEntries(NonBlockingEntry entries[], int
 	}
 	_pending += count;
 }
-
-template <typename Lang>
-const int TicketManager<Lang>::NENTRIES;
-
-template <typename Lang>
-const int TicketManager<Lang>::NRPG;
 
 } // namespace tampi
 

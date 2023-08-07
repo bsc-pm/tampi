@@ -40,11 +40,8 @@ extern "C" {
 	{
 		mpi_irecv_(buf, count, datatype, source, tag, comm, request, err);
 
-		if (Environment::isNonBlockingEnabled()) {
-			if (*err == MPI_SUCCESS) {
-				tampi_iwait_(request, status, err);
-			}
-		}
+		if (*err == MPI_SUCCESS)
+			tampi_iwait_(request, status, err);
 	}
 } // extern C
 

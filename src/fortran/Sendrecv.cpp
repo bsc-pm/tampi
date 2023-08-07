@@ -34,9 +34,12 @@ extern "C" {
 		if (Environment::isBlockingEnabledForCurrentThread()) {
 			MPI_Fint requests[2];
 			mpi_irecv_(recvbuf, recvcount, recvtype, source, recvtag, comm, &requests[0], err);
-			if (*err != MPI_SUCCESS) return;
+			if (*err != MPI_SUCCESS)
+				return;
+
 			mpi_isend_(sendbuf, sendcount, sendtype, dest, sendtag, comm, &requests[1], err);
-			if (*err != MPI_SUCCESS) return;
+			if (*err != MPI_SUCCESS)
+				return;
 
 			if (status != MPI_F_STATUS_IGNORE) {
 				MPI_Fint statuses[2];

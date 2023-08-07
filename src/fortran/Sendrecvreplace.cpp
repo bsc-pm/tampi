@@ -49,9 +49,12 @@ extern "C" {
 
 				/* setup a buffer for recv */
 				mpi_pack_size_(count, datatype, comm, &packed_size, &ierr);
-				if (ierr != MPI_SUCCESS) return;
+				if (ierr != MPI_SUCCESS)
+					return;
+
 				mpi_alloc_mem_(&packed_size, &info_null, &helperbuf, &ierr);
-				if (ierr != MPI_SUCCESS) return;
+				if (ierr != MPI_SUCCESS)
+					return;
 
 				/* recv into temporary buffer */
 				mpi_sendrecv_(buf, count, datatype, dest, sendtag,

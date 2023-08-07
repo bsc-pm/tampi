@@ -31,9 +31,6 @@ public:
 	//! Handle of polling instances
 	typedef size_t polling_handle_t;
 
-	//! Invalid value for wait time
-	static constexpr int64_t INVALID_WAIT_TIME = -1;
-
 private:
 	//! Pointers to the tasking model functions
 	static register_polling_service_t *_registerPollingService;

@@ -33,10 +33,12 @@ extern "C" {
 
 				// Setup a buffer for receiving
 				err = MPI_Pack_size(count, datatype, comm, &packedSize);
-				if (err != MPI_SUCCESS) return err;
+				if (err != MPI_SUCCESS)
+					return err;
 
 				err = MPI_Alloc_mem(packedSize, MPI_INFO_NULL, &helperbuf);
-				if (err != MPI_SUCCESS) return err;
+				if (err != MPI_SUCCESS)
+					return err;
 
 				// Receive into temporary buffer
 				err = MPI_Sendrecv(buf, count, datatype, dest, sendtag,
