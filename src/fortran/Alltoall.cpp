@@ -48,11 +48,8 @@ extern "C" {
 	{
 		mpi_ialltoall_(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request, err);
 
-		if (Environment::isNonBlockingEnabled()) {
-			if (*err == MPI_SUCCESS) {
-				tampi_iwait_(request, MPI_F_STATUS_IGNORE, err);
-			}
-		}
+		if (*err == MPI_SUCCESS)
+			tampi_iwait_(request, MPI_F_STATUS_IGNORE, err);
 	}
 } // extern C
 
