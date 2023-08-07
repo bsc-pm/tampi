@@ -56,9 +56,8 @@ extern "C" {
 
 		// Assuming that MPI does not provide MPI_TASK_MULTIPLE
 		MPI_Fint irequired = *required;
-		if (irequired == MPI_TASK_MULTIPLE) {
+		if (irequired == MPI_TASK_MULTIPLE)
 			irequired = MPI_THREAD_MULTIPLE;
-		}
 
 		// Call to MPI_Init_thread
 		(*symbol)(&irequired, provided, err);

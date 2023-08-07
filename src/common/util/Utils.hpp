@@ -35,7 +35,7 @@ class Padded : public T {
 	//! \param y The value which the result should be multiple of
 	//!
 	//! \returns The nearest multiple integer
-	constexpr static size_t roundup(size_t const x, size_t const y)
+	static constexpr size_t roundup(size_t const x, size_t const y)
 	{
 		return (((x + (y - 1)) / y) * y);
 	}

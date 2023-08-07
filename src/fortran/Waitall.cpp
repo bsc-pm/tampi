@@ -32,9 +32,9 @@ extern "C" {
 	void tampi_waitall_internal_(MPI_Fint *count, MPI_Fint array_of_requests[], MPI_Fint *array_of_statuses, MPI_Fint *err)
 	{
 		*err = MPI_SUCCESS;
-		if (!Environment::isNonBlockingEnabled()) {
+
+		if (!Environment::isNonBlockingEnabled())
 			mpi_waitall_(count, array_of_requests, array_of_statuses, err);
-		}
 	}
 } // extern C
 

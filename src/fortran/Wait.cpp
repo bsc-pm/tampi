@@ -31,9 +31,9 @@ extern "C" {
 	void tampi_wait_internal_(MPI_Fint *request, MPI_Fint *status, MPI_Fint *err)
 	{
 		*err = MPI_SUCCESS;
-		if (!Environment::isNonBlockingEnabled()) {
+
+		if (!Environment::isNonBlockingEnabled())
 			mpi_wait_(request, status, err);
-		}
 	}
 } // extern C
 
