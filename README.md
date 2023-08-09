@@ -492,6 +492,8 @@ Other optional configuration flags are:
 * `--enable-debug`: Adds compiler debug flags and enables additional internal debugging mechanisms.
    Note that this flag can downgrade the overall performance. This option replaces the original option
    `--enable-debug-mode`, which is now deprecated. Debug flags are **disabled** by default.
+* `--enable-asan`: Adds compiler and linker flags to enable address sanitizer support. Enabling debug
+   is also recommended in this case. Address sanitizer support is **disabled** by default.
 * `--disable-blocking-mode`: Disables the blocking mode of TAMPI. `MPI_TASK_MULTIPLE` threading level is
    never provided, so that calls to blocking MPI procedures are directly converted to calls to the same
    blocking procedures of the underlying MPI library. Also, by disabling this mode, TAMPI does not

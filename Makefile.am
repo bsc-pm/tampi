@@ -11,11 +11,12 @@ AM_CPPFLAGS=\
  -I$(top_srcdir)/src/include \
  -include "config.h" \
  $(ovni_CPPFLAGS) \
- $(tampi_CPPFLAGS)
+ $(tampi_CPPFLAGS) \
+ $(asan_CPPFLAGS)
 
-AM_CXXFLAGS=$(MPI_CXXFLAGS) $(tampi_CXXFLAGS)
+AM_CXXFLAGS=$(MPI_CXXFLAGS) $(tampi_CXXFLAGS) $(asan_CXXFLAGS)
 
-AM_LDFLAGS=$(ovni_LIBS) -ldl $(MPI_CXXLDFLAGS)
+AM_LDFLAGS=$(ovni_LIBS) $(asan_LDFLAGS) -ldl $(MPI_CXXLDFLAGS)
 LIBS=
 
 include_HEADERS= \
