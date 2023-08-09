@@ -487,6 +487,8 @@ when configuring by either adding the binary's path to the `PATH` environment va
 executing `export PATH=/path/to/mpi/bin:$PATH`) or by setting the `MPICXX` environment variable.
 
 Other optional configuration flags are:
+* `--with-ovni`: Build the instrumentation with [ovni](https://github.com/bsc-pm/ovni) and allow enabling
+   ovni tracing at run-time through the `TAMPI_INSTRUMENT` enviornment variable.
 * `--disable-blocking-mode`: Disables the blocking mode of TAMPI. `MPI_TASK_MULTIPLE` threading level is
    never provided, so that calls to blocking MPI procedures are directly converted to calls to the same
    blocking procedures of the underlying MPI library. Also, by disabling this mode, TAMPI does not
@@ -496,8 +498,6 @@ Other optional configuration flags are:
    TAMPI_Iwaitall procedures will be ignored. The non-blocking mode is **enabled** by default.
 * `--enable-debug-mode`: Adds compiler debug flags and enables additional internal debugging mechanisms.
    Note that this flag can downgrade the overall performance. Debug mode is **disabled** by default.
-* `--with-ovni`: Build the instrumentation with [ovni](https://github.com/bsc-pm/ovni) and allow enabling
-   ovni tracing at run-time through the `TAMPI_INSTRUMENT` enviornment variable.
 
 Once TAMPI is built and installed, e.g, in `$TAMPI_HOME`, the installation folder will contain the libraries
 in `$TAMPI_HOME/lib` (or `$TAMPI_HOME/lib64`) and the headers in `$TAMPI_HOME/include`. There are three
