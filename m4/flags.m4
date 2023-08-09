@@ -36,4 +36,5 @@ AC_DEFUN([AX_COMPILE_FLAGS], [
 	: ${CPPFLAGS=""}
 	: ${CXXFLAGS=""}
 	: ${CFLAGS=""}
+	: ${LDFLAGS=""}
 ])
