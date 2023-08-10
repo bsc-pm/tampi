@@ -66,7 +66,7 @@ AC_DEFUN([AC_CHECK_OVNI],
 			fi
 
 			ovni_LIBS="-lovni -L${ac_use_ovni_prefix}/${ac_use_ovni_libsubdir}"
-			onvi_LIBS="${ovni_LIBS} -Wl,--enable-new-dtags -Wl,-rpath=${ac_use_ovni_prefix}/${ac_use_ovni_libsubdir}"
+			ovni_LIBS="${ovni_LIBS} -Wl,--enable-new-dtags -Wl,-rpath=${ac_use_ovni_prefix}/${ac_use_ovni_libsubdir}"
 
 			CPPFLAGS="${ac_save_CPPFLAGS}"
 			LIBS="${ac_save_LIBS}"
