@@ -17,6 +17,7 @@
 #include "Interface.hpp"
 #include "Ticket.hpp"
 #include "TicketManagerInternals.hpp"
+#include "instrument/Instrument.hpp"
 #include "util/ArrayView.hpp"
 #include "util/LockFreeQueue.hpp"
 #include "util/SpinLock.hpp"
@@ -263,10 +264,15 @@ inline bool TicketManager<Lang>::internalCheckRequests()
 {
 	assert(_pending > 0);
 
+	Instrument::Guard<CheckGlobalRequestArray> instrGuard;
+	Instrument::enter<TestSomeRequests>();
+
 	int completed = 0;
 	int err = Interface<Lang>::testsome(_pending, _arrays.getRequests(), completed, _indices, _arrays.getStatuses());
 	if (err != MPI_SUCCESS)
 		ErrorHandler::fail("Unexpected return code from MPI testsome");
+
+	Instrument::exit<TestSomeRequests>();
 
 	if (completed == MPI_UNDEFINED) {
 		// Abort the program since this case should never occur.
@@ -279,7 +285,10 @@ inline bool TicketManager<Lang>::internalCheckRequests()
 
 		for (int c = 0; c < completed; ++c) {
 			const int current = _indices[c];
+
+			Instrument::enter<CompletedRequest>();
 			completeRequest(current, _arrays.getStatus(c));
+			Instrument::exit<CompletedRequest>();
 
 			bool replace = false;
 			while (replacement > current) {
@@ -307,6 +316,8 @@ inline void TicketManager<Lang>::addTicket(Ticket &ticket, request_t &request)
 	assert(request != Interface<Lang>::REQUEST_NULL);
 	assert(ticket.getPendingRequests() == 1);
 
+	Instrument::Guard<AddQueues> instrGuard;
+
 	if (ticket.isBlocking()) {
 		BlockingEntry entry(request, ticket);
 		_blockingEntries.push(entry, [this]() { checkEntryQueues(); });
@@ -319,6 +330,8 @@ inline void TicketManager<Lang>::addTicket(Ticket &ticket, request_t &request)
 template <typename Lang>
 inline void TicketManager<Lang>::addTicket(Ticket &ticket, util::ArrayView<request_t> &requests)
 {
+	Instrument::Guard<AddQueues> instrGuard;
+
 	if (ticket.isBlocking()) {
 		addTicketRequests(ticket, requests, _blockingEntries);
 	} else {
@@ -356,6 +369,8 @@ inline void TicketManager<Lang>::addTicketRequests(
 template <typename Lang>
 inline void TicketManager<Lang>::internalCheckEntryQueues()
 {
+	Instrument::Guard<TransferQueues> instrGuard;
+
 	util::Uninitialized<BlockingEntry> blockings[BatchSize];
 	util::Uninitialized<NonBlockingEntry> nonBlockings[BatchSize];
 

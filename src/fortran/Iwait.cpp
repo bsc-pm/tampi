@@ -12,7 +12,7 @@
 #include "Interface.hpp"
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
-#include "util/ErrorHandler.hpp"
+#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -21,9 +21,10 @@ using namespace tampi;
 extern "C" {
 	void tampi_iwait_(MPI_Fint *request, MPI_Fint *status, MPI_Fint *err)
 	{
-		if (Environment::isNonBlockingEnabled())
+		if (Environment::isNonBlockingEnabled()) {
+			Instrument::Guard<LibraryInterface> instrGuard;
 			RequestManager<Fortran>::processRequest(*request, status, /* Non-blocking */ false);
-
+		}
 		*err = MPI_SUCCESS;
 	}
 } // extern C

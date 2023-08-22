@@ -16,7 +16,7 @@
 namespace tampi {
 
 EnvironmentVariable<std::string> Instrument::_instrument("TAMPI_INSTRUMENT", "none");
-InstrumentBackend *Instrument::_backend = nullptr;
+InstrumentBackendInterface *Instrument::_backend = nullptr;
 
 void Instrument::initialize(int rank, int nranks)
 {

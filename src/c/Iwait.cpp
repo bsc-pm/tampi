@@ -9,12 +9,11 @@
 
 #include "TAMPI_Decl.h"
 
-#include "util/ErrorHandler.hpp"
-
 #include "Environment.hpp"
 #include "Interface.hpp"
 #include "RequestManager.hpp"
 #include "Symbol.hpp"
+#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -24,6 +23,7 @@ extern "C" {
 	int TAMPI_Iwait(MPI_Request *request, MPI_Status *status)
 	{
 		if (Environment::isNonBlockingEnabled()) {
+			Instrument::Guard<LibraryInterface> instrGuard;
 			RequestManager<C>::processRequest(*request, status, /* Non-blocking */ false);
 		}
 		return MPI_SUCCESS;
