@@ -89,26 +89,26 @@ inline void Interface<Fortran>::initialize()
 template <>
 inline int Interface<C>::test(request_t &request, int &finished, status_ptr_t status)
 {
-	return PMPI_Test(&request, &finished, status);
+	return MPI_Test(&request, &finished, status);
 }
 
 template <>
 inline int Interface<C>::testall(int size, request_t *requests, int &finished, status_ptr_t statuses)
 {
-	return PMPI_Testall(size, requests, &finished, statuses);
+	return MPI_Testall(size, requests, &finished, statuses);
 }
 
 template <>
 inline int Interface<C>::testsome(int size, request_t *requests, int &completed, int *indices, status_ptr_t statuses)
 {
-	return PMPI_Testsome(size, requests, &completed, indices, statuses);
+	return MPI_Testsome(size, requests, &completed, indices, statuses);
 }
 
 template <>
 inline int Interface<Fortran>::test(request_t &request, int &finished, status_ptr_t status)
 {
 	int err;
-	pmpi_test_(&request, &finished, status, &err);
+	mpi_test_(&request, &finished, status, &err);
 	return err;
 }
 
@@ -116,7 +116,7 @@ template <>
 inline int Interface<Fortran>::testall(int size, request_t *requests, int &finished, status_ptr_t statuses)
 {
 	int err;
-	pmpi_testall_(&size, requests, &finished, statuses, &err);
+	mpi_testall_(&size, requests, &finished, statuses, &err);
 	return err;
 }
 
@@ -124,7 +124,7 @@ template <>
 inline int Interface<Fortran>::testsome(int size, request_t *requests, int &completed, int *indices, status_ptr_t statuses)
 {
 	int err;
-	pmpi_testsome_(&size, requests, &completed, indices, statuses, &err);
+	mpi_testsome_(&size, requests, &completed, indices, statuses, &err);
 	if (err != MPI_SUCCESS || completed == MPI_UNDEFINED)
 		return err;
 
