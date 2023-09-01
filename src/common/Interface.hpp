@@ -11,6 +11,7 @@
 #include <array>
 
 #include "Declarations.hpp"
+#include "Symbol.hpp"
 
 namespace tampi {
 
@@ -18,8 +19,17 @@ namespace tampi {
 //! is very different between the C/C++ and the Fortran launagues, so we
 //! try to define common code and we use specific classes with the
 //! differences, such as MPI functions and types.
-class C {};
-class Fortran {};
+struct C {
+	static constexpr const char *Test = "MPI_Test";
+	static constexpr const char *Testall = "MPI_Testall";
+	static constexpr const char *Testsome = "MPI_Testsome";
+};
+
+struct Fortran {
+	static constexpr const char *Test = "mpi_test_";
+	static constexpr const char *Testall = "mpi_testall_";
+	static constexpr const char *Testsome = "mpi_testsome_";
+};
 
 //! Class for defining typedefs
 template <typename Lang>
@@ -30,6 +40,10 @@ struct Types<C> {
 	typedef MPI_Request request_t;
 	typedef MPI_Status status_t;
 	typedef MPI_Status* status_ptr_t;
+
+	typedef MPI_Test_t test_t;
+	typedef MPI_Testall_t testall_t;
+	typedef MPI_Testsome_t testsome_t;
 };
 
 template <>
@@ -37,6 +51,10 @@ struct Types<Fortran> {
 	typedef MPI_Fint request_t;
 	typedef std::array<MPI_Fint, sizeof(MPI_Status)/sizeof(MPI_Fint)> status_t;
 	typedef MPI_Fint* status_ptr_t;
+
+	typedef mpi_test_t test_t;
+	typedef mpi_testall_t testall_t;
+	typedef mpi_testsome_t testsome_t;
 };
 
 //! Class providing MPI constants and functions. Each function must be specialized
@@ -46,6 +64,10 @@ class Interface {
 	typedef typename Types<Lang>::request_t request_t;
 	typedef typename Types<Lang>::status_t status_t;
 	typedef typename Types<Lang>::status_ptr_t status_ptr_t;
+
+	static Symbol<typename Types<Lang>::test_t> _test;
+	static Symbol<typename Types<Lang>::testall_t> _testall;
+	static Symbol<typename Types<Lang>::testsome_t> _testsome;
 
 public:
 	static request_t REQUEST_NULL;
@@ -70,6 +92,10 @@ inline void Interface<C>::initialize()
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &nranks);
+
+	_test.load(SymbolAttr::Next, true);
+	_testall.load(SymbolAttr::Next, true);
+	_testsome.load(SymbolAttr::Next, true);
 }
 
 template <>
@@ -84,31 +110,35 @@ inline void Interface<Fortran>::initialize()
 	int err;
 	mpi_comm_rank_(&comm, &rank, &err);
 	mpi_comm_size_(&comm, &nranks, &err);
+
+	_test.load(SymbolAttr::Next, true);
+	_testall.load(SymbolAttr::Next, true);
+	_testsome.load(SymbolAttr::Next, true);
 }
 
 template <>
 inline int Interface<C>::test(request_t &request, int &finished, status_ptr_t status)
 {
-	return MPI_Test(&request, &finished, status);
+	return _test(&request, &finished, status);
 }
 
 template <>
 inline int Interface<C>::testall(int size, request_t *requests, int &finished, status_ptr_t statuses)
 {
-	return MPI_Testall(size, requests, &finished, statuses);
+	return _testall(size, requests, &finished, statuses);
 }
 
 template <>
 inline int Interface<C>::testsome(int size, request_t *requests, int &completed, int *indices, status_ptr_t statuses)
 {
-	return MPI_Testsome(size, requests, &completed, indices, statuses);
+	return _testsome(size, requests, &completed, indices, statuses);
 }
 
 template <>
 inline int Interface<Fortran>::test(request_t &request, int &finished, status_ptr_t status)
 {
 	int err;
-	mpi_test_(&request, &finished, status, &err);
+	_test(&request, &finished, status, &err);
 	return err;
 }
 
@@ -116,7 +146,7 @@ template <>
 inline int Interface<Fortran>::testall(int size, request_t *requests, int &finished, status_ptr_t statuses)
 {
 	int err;
-	mpi_testall_(&size, requests, &finished, statuses, &err);
+	_testall(&size, requests, &finished, statuses, &err);
 	return err;
 }
 
@@ -124,7 +154,7 @@ template <>
 inline int Interface<Fortran>::testsome(int size, request_t *requests, int &completed, int *indices, status_ptr_t statuses)
 {
 	int err;
-	mpi_testsome_(&size, requests, &completed, indices, statuses, &err);
+	_testsome(&size, requests, &completed, indices, statuses, &err);
 	if (err != MPI_SUCCESS || completed == MPI_UNDEFINED)
 		return err;
 
@@ -149,6 +179,15 @@ int Interface<Lang>::rank;
 
 template <typename Lang>
 int Interface<Lang>::nranks;
+
+template <typename Lang>
+Symbol<typename Types<Lang>::test_t> Interface<Lang>::_test(Lang::Test, false);
+
+template <typename Lang>
+Symbol<typename Types<Lang>::testall_t> Interface<Lang>::_testall(Lang::Testall, false);
+
+template <typename Lang>
+Symbol<typename Types<Lang>::testsome_t> Interface<Lang>::_testsome(Lang::Testsome, false);
 
 #if !defined(DISABLE_C_LANG)
 using InterfaceAny = Interface<C>;

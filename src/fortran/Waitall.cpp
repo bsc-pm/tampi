@@ -28,8 +28,8 @@ void mpi_waitall_(MPI_Fint *count, MPI_Fint array_of_requests[], MPI_Fint *array
 		RequestManager<Fortran>::processRequests({array_of_requests, *count}, array_of_statuses);
 		*err = MPI_SUCCESS;
 	} else {
-		static mpi_waitall_t *symbol = (mpi_waitall_t *) Symbol::load(__func__);
-		(*symbol)(count, array_of_requests, array_of_statuses, err);
+		static Symbol<mpi_waitall_t> symbol(__func__);
+		symbol(count, array_of_requests, array_of_statuses, err);
 	}
 }
 

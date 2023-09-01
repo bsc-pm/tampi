@@ -26,16 +26,18 @@ int MPI_Barrier(MPI_Comm comm)
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<MPI_Ibarrier_t> symbol("MPI_Ibarrier");
+
 		MPI_Request request;
-		err = MPI_Ibarrier(comm, &request);
+		err = symbol(comm, &request);
 
 		Instrument::exit<IssueNonBlockingOp>();
 
 		if (err == MPI_SUCCESS)
 			RequestManager<C>::processRequest(request);
 	} else {
-		static MPI_Barrier_t *symbol = (MPI_Barrier_t *) Symbol::load(__func__);
-		err = (*symbol)(comm);
+		static Symbol<MPI_Barrier_t> symbol(__func__);
+		err = symbol(comm);
 	}
 	return err;
 }

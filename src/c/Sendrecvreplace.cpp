@@ -61,8 +61,8 @@ int MPI_Sendrecv_replace(void *buf, int count, MPI_Datatype datatype, int dest,
 			}
 		}
 	} else {
-		static MPI_Sendrecv_replace_t *symbol = (MPI_Sendrecv_replace_t *) Symbol::load(__func__);
-		err = (*symbol)(buf, count, datatype, dest, sendtag, source, recvtag, comm, status);
+		static Symbol<MPI_Sendrecv_replace_t> symbol(__func__);
+		err = symbol(buf, count, datatype, dest, sendtag, source, recvtag, comm, status);
 	}
 	return err;
 }

@@ -27,8 +27,8 @@ int MPI_Wait(MPI_Request *request, MPI_Status *status)
 		Instrument::Guard<LibraryInterface> instrGuard;
 		RequestManager<C>::processRequest(*request, status);
 	} else {
-		static MPI_Wait_t *symbol = (MPI_Wait_t *) Symbol::load(__func__);
-		err = (*symbol)(request, status);
+		static Symbol<MPI_Wait_t> symbol(__func__);
+		err = symbol(request, status);
 	}
 	return err;
 }

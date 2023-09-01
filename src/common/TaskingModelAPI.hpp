@@ -9,6 +9,8 @@
 
 #include <cstdint>
 
+#include <Symbol.hpp>
+
 extern "C" {
 
 /* Polling service API */
@@ -167,20 +169,26 @@ void nanos6_spawn_function(
 //! \returns the actual time spent during the pause
 uint64_t nanos6_wait_for(uint64_t time_us);
 
-//! Prototypes of the tasking model API functions
-typedef nanos6_polling_service_t polling_service_t;
-typedef void register_polling_service_t(char const *, polling_service_t, void *);
-typedef void unregister_polling_service_t(char const *, polling_service_t, void *);
-typedef void *get_current_blocking_context_t(void);
-typedef void block_current_task_t(void *);
-typedef void unblock_task_t(void *);
-typedef void *get_current_event_counter_t(void);
-typedef void increase_current_task_event_counter_t(void *, unsigned int);
-typedef void decrease_task_event_counter_t(void *, unsigned int);
-typedef void notify_task_event_counter_api_t(void);
-typedef void spawn_function_t(void (*)(void *), void *, void (*)(void *), void *, char const *);
-typedef uint64_t wait_for_t(uint64_t);
+} // extern C
+
+namespace tampi {
+
+using polling_service_t = nanos6_polling_service_t;
+
+//! Symbol prototypes of the tasking model interface functions
+using register_polling_service_t = SymbolDecl<void, char const *, polling_service_t, void *>;
+using unregister_polling_service_t = SymbolDecl<void, char const *, polling_service_t, void *>;
+using get_current_blocking_context_t = SymbolDecl<void *>;
+using block_current_task_t = SymbolDecl<void, void *>;
+using unblock_task_t = SymbolDecl<void, void *>;
+using get_current_event_counter_t = SymbolDecl<void *>;
+using increase_current_task_event_counter_t = SymbolDecl<void, void *, unsigned int>;
+using decrease_task_event_counter_t = SymbolDecl<void, void *, unsigned int>;
+using notify_task_event_counter_api_t = SymbolDecl<void>;
+using spawn_function_t = SymbolDecl<void, void (*)(void *), void *, void (*)(void *), void *, char const *>;
+using wait_for_t = SymbolDecl<uint64_t, uint64_t>;
 
 }
+
 
 #endif // TASKING_MODEL_API_HPP

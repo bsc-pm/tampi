@@ -21,10 +21,6 @@ using namespace tampi;
 
 extern "C" {
 
-void mpi_ireduce_(void *sendbuf, void *recvbuf, MPI_Fint *count,
-		MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
-		MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
-
 void mpi_reduce_(void *sendbuf, void *recvbuf, MPI_Fint *count,
 		MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
 		MPI_Fint *comm, MPI_Fint *err)
@@ -33,16 +29,18 @@ void mpi_reduce_(void *sendbuf, void *recvbuf, MPI_Fint *count,
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<mpi_ireduce_t> symbol("mpi_ireduce_");
+
 		MPI_Fint request;
-		mpi_ireduce_(sendbuf, recvbuf, count, datatype, op, root, comm, &request, err);
+		symbol(sendbuf, recvbuf, count, datatype, op, root, comm, &request, err);
 
 		Instrument::exit<IssueNonBlockingOp>();
 
 		if (*err == MPI_SUCCESS)
 			RequestManager<Fortran>::processRequest(request);
 	} else {
-		static mpi_reduce_t *symbol = (mpi_reduce_t *) Symbol::load(__func__);
-		(*symbol)(sendbuf, recvbuf, count, datatype, op, root, comm, err);
+		static Symbol<mpi_reduce_t> symbol(__func__);
+		symbol(sendbuf, recvbuf, count, datatype, op, root, comm, err);
 	}
 }
 
@@ -50,7 +48,9 @@ void tampi_ireduce_internal_(void *sendbuf, void *recvbuf, MPI_Fint *count,
 		MPI_Fint *datatype, MPI_Fint *op, MPI_Fint *root,
 		MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err)
 {
-	mpi_ireduce_(sendbuf, recvbuf, count, datatype, op, root, comm, request, err);
+	static Symbol<mpi_ireduce_t> symbol("mpi_ireduce_");
+
+	symbol(sendbuf, recvbuf, count, datatype, op, root, comm, request, err);
 
 	if (*err == MPI_SUCCESS)
 		tampi_iwait_(request, MPI_F_STATUS_IGNORE, err);

@@ -17,85 +17,56 @@ EnvironmentVariable<bool> TaskingModel::_usePollingServices("TAMPI_POLLING_SERVI
 void TaskingModel::initialize(bool requireTaskBlockingAPI, bool requireTaskEventsAPI)
 {
 	// Find the first occurrence of the desired symbol
-	const int firstAttr = Symbol::LoadAttr::FIRST;
-	const int optionalAttr = Symbol::LoadAttr::OPTIONAL;
+	const SymbolAttr attr = SymbolAttr::First;
 
 	if (requireTaskBlockingAPI || requireTaskEventsAPI) {
 		// Try to load the functions required by polling tasks
-		_waitFor = (wait_for_t *)
-			Symbol::load(_waitForName, firstAttr | optionalAttr);
-		_spawnFunction = (spawn_function_t *)
-			Symbol::load(_spawnFunctionName, firstAttr | optionalAttr);
+		_waitFor.load(attr, /* mandatory = */ false);
+		_spawnFunction.load(attr, /* mandatory = */ false);
 
 		// Switch to polling services if polling tasks are not available
-		if (!_usePollingServices && (!_waitFor || !_spawnFunction)) {
+		if (!_waitFor.hasSymbol() || !_spawnFunction.hasSymbol())
 			_usePollingServices.set(true);
-		}
 
 		// Load the polling service functions if needed
 		if (_usePollingServices) {
-			_registerPollingService = (register_polling_service_t *)
-				Symbol::load(_registerPollingServiceName, firstAttr);
-			_unregisterPollingService = (unregister_polling_service_t *)
-				Symbol::load(_unregisterPollingServiceName, firstAttr);
+			_registerPollingService.load(attr);
+			_unregisterPollingService.load(attr);
 		}
 	}
 
 	// Load the task blocking API functions if needed
 	if (requireTaskBlockingAPI) {
-		_getCurrentBlockingContext = (get_current_blocking_context_t *)
-			Symbol::load(_getCurrentBlockingContextName, firstAttr);
-		_blockCurrentTask = (block_current_task_t *)
-			Symbol::load(_blockCurrentTaskName, firstAttr);
-		_unblockTask = (unblock_task_t *)
-			Symbol::load(_unblockTaskName, firstAttr);
+		_getCurrentBlockingContext.load(attr);
+		_blockCurrentTask.load(attr);
+		_unblockTask.load(attr);
 	}
 
 	// Load the task events API functions if needed
 	if (requireTaskEventsAPI) {
-		_getCurrentEventCounter = (get_current_event_counter_t *)
-			Symbol::load(_getCurrentEventCounterName, firstAttr);
-		_increaseCurrentTaskEventCounter = (increase_current_task_event_counter_t *)
-			Symbol::load(_increaseCurrentTaskEventCounterName, firstAttr);
-		_decreaseTaskEventCounter = (decrease_task_event_counter_t *)
-			Symbol::load(_decreaseTaskEventCounterName, firstAttr);
+		_getCurrentEventCounter.load(attr);
+		_increaseCurrentTaskEventCounter.load(attr);
+		_decreaseTaskEventCounter.load(attr);
 
-		_notifyTaskEventCounterAPI = (notify_task_event_counter_api_t *)
-			Symbol::load(_notifyTaskEventCounterAPIName, firstAttr | optionalAttr);
+		_notifyTaskEventCounterAPI.load(attr, /* mandatory = */ false);
 
-		// Notify the tasking runtime that the event counters
-		// API may be used during the execution. This function
-		// is not required so call it only if defined
-		if (_notifyTaskEventCounterAPI) {
-			(*_notifyTaskEventCounterAPI)();
-		}
+		// Notify the tasking runtime that the event counters API may be used
+		// during the execution. This function is optional; call it if defined
+		if (_notifyTaskEventCounterAPI.hasSymbol())
+			_notifyTaskEventCounterAPI();
 	}
 }
 
-//! The pointers to the tasking model API functions
-register_polling_service_t *TaskingModel::_registerPollingService = nullptr;
-unregister_polling_service_t *TaskingModel::_unregisterPollingService = nullptr;
-get_current_blocking_context_t *TaskingModel::_getCurrentBlockingContext = nullptr;
-block_current_task_t *TaskingModel::_blockCurrentTask = nullptr;
-unblock_task_t *TaskingModel::_unblockTask = nullptr;
-get_current_event_counter_t *TaskingModel::_getCurrentEventCounter = nullptr;
-increase_current_task_event_counter_t *TaskingModel::_increaseCurrentTaskEventCounter = nullptr;
-decrease_task_event_counter_t *TaskingModel::_decreaseTaskEventCounter = nullptr;
-notify_task_event_counter_api_t *TaskingModel::_notifyTaskEventCounterAPI = nullptr;
-spawn_function_t *TaskingModel::_spawnFunction = nullptr;
-wait_for_t *TaskingModel::_waitFor = nullptr;
-
-//! Actual names of the tasking model API functions
-const std::string TaskingModel::_registerPollingServiceName("nanos6_register_polling_service");
-const std::string TaskingModel::_unregisterPollingServiceName("nanos6_unregister_polling_service");
-const std::string TaskingModel::_getCurrentBlockingContextName("nanos6_get_current_blocking_context");
-const std::string TaskingModel::_blockCurrentTaskName("nanos6_block_current_task");
-const std::string TaskingModel::_unblockTaskName("nanos6_unblock_task");
-const std::string TaskingModel::_getCurrentEventCounterName("nanos6_get_current_event_counter");
-const std::string TaskingModel::_increaseCurrentTaskEventCounterName("nanos6_increase_current_task_event_counter");
-const std::string TaskingModel::_decreaseTaskEventCounterName("nanos6_decrease_task_event_counter");
-const std::string TaskingModel::_notifyTaskEventCounterAPIName("nanos6_notify_task_event_counter_api");
-const std::string TaskingModel::_spawnFunctionName("nanos6_spawn_function");
-const std::string TaskingModel::_waitForName("nanos6_wait_for");
+Symbol<register_polling_service_t> TaskingModel::_registerPollingService("nanos6_register_polling_service", /* load = */ false);
+Symbol<unregister_polling_service_t> TaskingModel::_unregisterPollingService("nanos6_unregister_polling_service", /* load = */ false);
+Symbol<get_current_blocking_context_t> TaskingModel::_getCurrentBlockingContext("nanos6_get_current_blocking_context", /* load = */ false);
+Symbol<block_current_task_t> TaskingModel::_blockCurrentTask("nanos6_block_current_task", /* load = */ false);
+Symbol<unblock_task_t> TaskingModel::_unblockTask("nanos6_unblock_task", /* load = */ false);
+Symbol<get_current_event_counter_t> TaskingModel::_getCurrentEventCounter("nanos6_get_current_event_counter", /* load = */ false);
+Symbol<increase_current_task_event_counter_t> TaskingModel::_increaseCurrentTaskEventCounter("nanos6_increase_current_task_event_counter", /* load = */ false);
+Symbol<decrease_task_event_counter_t> TaskingModel::_decreaseTaskEventCounter("nanos6_decrease_task_event_counter", /* load = */ false);
+Symbol<notify_task_event_counter_api_t> TaskingModel::_notifyTaskEventCounterAPI("nanos6_notify_task_event_counter_api", /* load = */ false);
+Symbol<spawn_function_t> TaskingModel::_spawnFunction("nanos6_spawn_function", /* load = */ false);
+Symbol<wait_for_t> TaskingModel::_waitFor("nanos6_wait_for", /* load = */ false);
 
 } // namespace tampi

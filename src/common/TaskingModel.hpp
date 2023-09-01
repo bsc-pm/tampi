@@ -28,31 +28,18 @@ public:
 	typedef size_t polling_handle_t;
 
 private:
-	//! Pointers to the tasking model functions
-	static register_polling_service_t *_registerPollingService;
-	static unregister_polling_service_t *_unregisterPollingService;
-	static get_current_blocking_context_t *_getCurrentBlockingContext;
-	static block_current_task_t *_blockCurrentTask;
-	static unblock_task_t *_unblockTask;
-	static get_current_event_counter_t *_getCurrentEventCounter;
-	static increase_current_task_event_counter_t *_increaseCurrentTaskEventCounter;
-	static decrease_task_event_counter_t *_decreaseTaskEventCounter;
-	static notify_task_event_counter_api_t *_notifyTaskEventCounterAPI;
-	static spawn_function_t *_spawnFunction;
-	static wait_for_t *_waitFor;
-
-	//! Actual names of the tasking model functions
-	static const std::string _registerPollingServiceName;
-	static const std::string _unregisterPollingServiceName;
-	static const std::string _getCurrentBlockingContextName;
-	static const std::string _blockCurrentTaskName;
-	static const std::string _unblockTaskName;
-	static const std::string _getCurrentEventCounterName;
-	static const std::string _increaseCurrentTaskEventCounterName;
-	static const std::string _decreaseTaskEventCounterName;
-	static const std::string _notifyTaskEventCounterAPIName;
-	static const std::string _spawnFunctionName;
-	static const std::string _waitForName;
+	//! The symbols of the tasking model functions
+	static Symbol<register_polling_service_t> _registerPollingService;
+	static Symbol<unregister_polling_service_t> _unregisterPollingService;
+	static Symbol<get_current_blocking_context_t> _getCurrentBlockingContext;
+	static Symbol<block_current_task_t> _blockCurrentTask;
+	static Symbol<unblock_task_t> _unblockTask;
+	static Symbol<get_current_event_counter_t> _getCurrentEventCounter;
+	static Symbol<increase_current_task_event_counter_t> _increaseCurrentTaskEventCounter;
+	static Symbol<decrease_task_event_counter_t> _decreaseTaskEventCounter;
+	static Symbol<notify_task_event_counter_api_t> _notifyTaskEventCounterAPI;
+	static Symbol<spawn_function_t> _spawnFunction;
+	static Symbol<wait_for_t> _waitFor;
 
 	//! Determine whether the polling feature should be done through
 	//! polling services. By default it is disabled, which makes the
@@ -112,12 +99,10 @@ public:
 
 		if (_usePollingServices) {
 			// Register a polling service
-			assert(_registerPollingService);
-			(*_registerPollingService)(name.c_str(), pollingServiceFunction, info);
+			_registerPollingService(name.c_str(), pollingServiceFunction, info);
 		} else {
 			// Spawn a function that will do the periodic polling
-			assert(_spawnFunction);
-			(*_spawnFunction)(pollingTaskFunction, info, pollingTaskCompletes, info, name.data());
+			_spawnFunction(pollingTaskFunction, info, pollingTaskCompletes, info, name.data());
 		}
 		return (polling_handle_t) info;
 	}
@@ -141,15 +126,12 @@ public:
 
 		if (_usePollingServices) {
 			// Unregister the polling service
-			assert(_unregisterPollingService);
-			(*_unregisterPollingService)(info->_name.c_str(), pollingServiceFunction, info);
+			_unregisterPollingService(info->_name.c_str(), pollingServiceFunction, info);
 		} else {
-			assert(_waitFor);
-
 			// Wait until the spawned task completes
 			while (!info->_finished) {
 				// Yield in case there is a single available CPU
-				(*_waitFor)(1000);
+				_waitFor(1000);
 			}
 		}
 		delete info;
@@ -160,8 +142,7 @@ public:
 	//! \returns An opaque pointer of the blocking context
 	static inline void *getCurrentBlockingContext()
 	{
-		assert(_getCurrentBlockingContext);
-		return (*_getCurrentBlockingContext)();
+		return _getCurrentBlockingContext();
 	}
 
 	//! \brief Block the current task
@@ -169,8 +150,7 @@ public:
 	//! \param context The blocking context of the current task
 	static inline void blockCurrentTask(void *context)
 	{
-		assert(_blockCurrentTask);
-		(*_blockCurrentTask)(context);
+		_blockCurrentTask(context);
 	}
 
 	//! \brief Unblock a task
@@ -178,8 +158,7 @@ public:
 	//! \param context The blocking context of the task to unblock
 	static inline void unblockTask(void *context)
 	{
-		assert(_unblockTask);
-		(*_unblockTask)(context);
+		_unblockTask(context);
 	}
 
 	//! \brief Get the event counter of the current task
@@ -187,8 +166,7 @@ public:
 	//! \returns An opaque pointer of the event counter
 	static inline void *getCurrentEventCounter()
 	{
-		assert(_getCurrentEventCounter);
-		return (*_getCurrentEventCounter)();
+		return _getCurrentEventCounter();
 	}
 
 	//! \brief Increase the event counter of the current task
@@ -197,8 +175,7 @@ public:
 	//! \param increment The amount of events to increase
 	static inline void increaseCurrentTaskEventCounter(void *counter, unsigned int increment)
 	{
-		assert(_increaseCurrentTaskEventCounter);
-		(*_increaseCurrentTaskEventCounter)(counter, increment);
+		_increaseCurrentTaskEventCounter(counter, increment);
 	}
 
 	//! \brief Decrease the event counter of a task
@@ -207,8 +184,7 @@ public:
 	//! \param decrement The amount of events to decrease
 	static inline void decreaseTaskEventCounter(void *counter, unsigned int decrement)
 	{
-		assert(_decreaseTaskEventCounter);
-		(*_decreaseTaskEventCounter)(counter, decrement);
+		_decreaseTaskEventCounter(counter, decrement);
 	}
 
 private:
@@ -245,7 +221,6 @@ private:
 	{
 		PollingInfo *info = (PollingInfo *) args;
 		assert(info != nullptr);
-		assert(_waitFor);
 
 		uint64_t waitTimeUs = std::numeric_limits<uint64_t>::max();
 
@@ -255,7 +230,7 @@ private:
 			waitTimeUs = info->_function(info->_args, waitTimeUs);
 
 			// Pause the polling task for some microseconds
-			waitTimeUs = (*_waitFor)(waitTimeUs);
+			waitTimeUs = _waitFor(waitTimeUs);
 		}
 	}
 
@@ -278,4 +253,3 @@ private:
 } // namespace tampi
 
 #endif // TASKING_MODEL_HPP
-

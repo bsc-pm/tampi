@@ -26,16 +26,18 @@ int MPI_Send(MPI3CONST void *buf, int count, MPI_Datatype datatype, int dest, in
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<MPI_Isend_t> symbol("MPI_Isend");
+
 		MPI_Request request;
-		err = MPI_Isend(buf, count, datatype, dest, tag, comm, &request);
+		err = symbol(buf, count, datatype, dest, tag, comm, &request);
 
 		Instrument::exit<IssueNonBlockingOp>();
 
 		if (err == MPI_SUCCESS)
 			RequestManager<C>::processRequest(request);
 	} else {
-		static MPI_Send_t *symbol = (MPI_Send_t *) Symbol::load(__func__);
-		err = (*symbol)(buf, count, datatype, dest, tag, comm);
+		static Symbol<MPI_Send_t> symbol(__func__);
+		err = symbol(buf, count, datatype, dest, tag, comm);
 	}
 	return err;
 }

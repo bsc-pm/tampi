@@ -27,8 +27,10 @@ int MPI_Allgather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<MPI_Iallgather_t> symbol("MPI_Iallgather");
+
 		MPI_Request request;
-		err = MPI_Iallgather(sendbuf, sendcount, sendtype,
+		err = symbol(sendbuf, sendcount, sendtype,
 				recvbuf, recvcount, recvtype,
 				comm, &request);
 
@@ -37,8 +39,8 @@ int MPI_Allgather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		if (err == MPI_SUCCESS)
 			RequestManager<C>::processRequest(request);
 	} else {
-		static MPI_Allgather_t *symbol = (MPI_Allgather_t *) Symbol::load(__func__);
-		err = (*symbol)(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm);
+		static Symbol<MPI_Allgather_t> symbol(__func__);
+		err = symbol(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm);
 	}
 	return err;
 }

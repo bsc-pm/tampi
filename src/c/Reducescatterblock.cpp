@@ -26,8 +26,10 @@ int MPI_Reduce_scatter_block(MPI3CONST void *sendbuf, void *recvbuf, int recvcou
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<MPI_Ireduce_scatter_block_t> symbol("MPI_Ireduce_scatter_block");
+
 		MPI_Request request;
-		err = MPI_Ireduce_scatter_block(sendbuf, recvbuf,
+		err = symbol(sendbuf, recvbuf,
 				recvcount, datatype, op, comm, &request);
 
 		Instrument::exit<IssueNonBlockingOp>();
@@ -35,8 +37,8 @@ int MPI_Reduce_scatter_block(MPI3CONST void *sendbuf, void *recvbuf, int recvcou
 		if (err == MPI_SUCCESS)
 			RequestManager<C>::processRequest(request);
 	} else {
-		static MPI_Reduce_scatter_block_t *symbol = (MPI_Reduce_scatter_block_t *) Symbol::load(__func__);
-		err = (*symbol)(sendbuf, recvbuf, recvcount, datatype, op, comm);
+		static Symbol<MPI_Reduce_scatter_block_t> symbol(__func__);
+		err = symbol(sendbuf, recvbuf, recvcount, datatype, op, comm);
 	}
 	return err;
 }

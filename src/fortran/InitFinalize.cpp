@@ -21,10 +21,10 @@ extern "C" {
 
 void mpi_init_(MPI_Fint *err)
 {
-	static mpi_init_t *symbol = (mpi_init_t *) Symbol::load(__func__);
+	static Symbol<mpi_init_t> symbol(__func__);
 
 	// Call to MPI_Init
-	(*symbol)(err);
+	symbol(err);
 	if (*err != MPI_SUCCESS)
 		return;
 
@@ -43,7 +43,7 @@ void mpi_init_(MPI_Fint *err)
 
 void mpi_init_thread_(MPI_Fint *required, MPI_Fint *provided, MPI_Fint *err)
 {
-	static mpi_init_thread_t *symbol = (mpi_init_thread_t *) Symbol::load(__func__);
+	static Symbol<mpi_init_thread_t> symbol(__func__);
 
 	// When TAMPI is in explicit initialization mode, the MPI_Init_thread acts
 	// as the standard call and does not support MPI_TASK_MULTIPLE. In such
@@ -58,7 +58,7 @@ void mpi_init_thread_(MPI_Fint *required, MPI_Fint *provided, MPI_Fint *err)
 		irequired = MPI_THREAD_MULTIPLE;
 
 	// Call to MPI_Init_thread
-	(*symbol)(&irequired, provided, err);
+	symbol(&irequired, provided, err);
 	if (*err != MPI_SUCCESS)
 		return;
 
@@ -71,10 +71,10 @@ void mpi_init_thread_(MPI_Fint *required, MPI_Fint *provided, MPI_Fint *err)
 
 void mpi_finalize_(MPI_Fint *err)
 {
-	static mpi_finalize_t *symbol = (mpi_finalize_t *) Symbol::load(__func__);
+	static Symbol<mpi_finalize_t> symbol(__func__);
 
 	// Call MPI_Finalize
-	(*symbol)(err);
+	symbol(err);
 	if (*err != MPI_SUCCESS)
 		return;
 

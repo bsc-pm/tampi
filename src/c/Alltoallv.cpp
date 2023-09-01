@@ -27,8 +27,10 @@ int MPI_Alltoallv(MPI3CONST void *sendbuf, MPI3CONST int sendcounts[], MPI3CONST
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<MPI_Ialltoallv_t> symbol("MPI_Ialltoallv");
+
 		MPI_Request request;
-		err = MPI_Ialltoallv(sendbuf, sendcounts, sdispls, sendtype,
+		err = symbol(sendbuf, sendcounts, sdispls, sendtype,
 				recvbuf, recvcounts, rdispls, recvtype, comm, &request);
 
 		Instrument::exit<IssueNonBlockingOp>();
@@ -36,8 +38,8 @@ int MPI_Alltoallv(MPI3CONST void *sendbuf, MPI3CONST int sendcounts[], MPI3CONST
 		if (err == MPI_SUCCESS)
 			RequestManager<C>::processRequest(request);
 	} else {
-		static MPI_Alltoallv_t *symbol = (MPI_Alltoallv_t *) Symbol::load(__func__);
-		err = (*symbol)(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm);
+		static Symbol<MPI_Alltoallv_t> symbol(__func__);
+		err = symbol(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm);
 	}
 	return err;
 }

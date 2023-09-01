@@ -26,16 +26,18 @@ int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag, M
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<MPI_Irecv_t> symbol("MPI_Irecv");
+
 		MPI_Request request;
-		err = MPI_Irecv(buf, count, datatype, source, tag, comm, &request);
+		err = symbol(buf, count, datatype, source, tag, comm, &request);
 
 		Instrument::exit<IssueNonBlockingOp>();
 
 		if (err == MPI_SUCCESS)
 			RequestManager<C>::processRequest(request, status);
 	} else {
-		static MPI_Recv_t *symbol = (MPI_Recv_t *) Symbol::load(__func__);
-		err = (*symbol)(buf, count, datatype, source, tag, comm, status);
+		static Symbol<MPI_Recv_t> symbol(__func__);
+		err = symbol(buf, count, datatype, source, tag, comm, status);
 	}
 
 	return err;

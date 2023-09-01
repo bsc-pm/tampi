@@ -21,10 +21,6 @@ using namespace tampi;
 
 extern "C" {
 
-void mpi_isend_(void *buf, MPI_Fint *count, MPI_Fint *datatype,
-		MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm,
-		MPI_Fint *request, MPI_Fint *err);
-
 void mpi_send_(void *buf, MPI_Fint *count, MPI_Fint *datatype,
 		MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm, MPI_Fint *err)
 {
@@ -32,16 +28,18 @@ void mpi_send_(void *buf, MPI_Fint *count, MPI_Fint *datatype,
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<mpi_isend_t> symbol("mpi_isend_");
+
 		MPI_Fint request;
-		mpi_isend_(buf, count, datatype, dest, tag, comm, &request, err);
+		symbol(buf, count, datatype, dest, tag, comm, &request, err);
 
 		Instrument::exit<IssueNonBlockingOp>();
 
 		if (*err == MPI_SUCCESS)
 			RequestManager<Fortran>::processRequest(request);
 	} else {
-		static mpi_send_t *symbol = (mpi_send_t *) Symbol::load(__func__);
-		(*symbol)(buf, count, datatype, dest, tag, comm, err);
+		static Symbol<mpi_send_t> symbol(__func__);
+		symbol(buf, count, datatype, dest, tag, comm, err);
 	}
 }
 
@@ -49,7 +47,9 @@ void tampi_isend_internal_(void *buf, MPI_Fint *count, MPI_Fint *datatype,
 		MPI_Fint *dest, MPI_Fint *tag, MPI_Fint *comm,
 		MPI_Fint *request, MPI_Fint *err)
 {
-	mpi_isend_(buf, count, datatype, dest, tag, comm, request, err);
+	static Symbol<mpi_isend_t> symbol("mpi_isend_");
+
+	symbol(buf, count, datatype, dest, tag, comm, request, err);
 
 	if (*err == MPI_SUCCESS)
 		tampi_iwait_(request, MPI_F_STATUS_IGNORE, err);

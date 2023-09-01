@@ -26,16 +26,18 @@ int MPI_Exscan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype d
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<MPI_Iexscan_t> symbol("MPI_Iexscan");
+
 		MPI_Request request;
-		err = MPI_Iexscan(sendbuf, recvbuf, count, datatype, op, comm, &request);
+		err = symbol(sendbuf, recvbuf, count, datatype, op, comm, &request);
 
 		Instrument::exit<IssueNonBlockingOp>();
 
 		if (err == MPI_SUCCESS)
 			RequestManager<C>::processRequest(request);
 	} else {
-		static MPI_Exscan_t *symbol = (MPI_Exscan_t *) Symbol::load(__func__);
-		err = (*symbol)(sendbuf, recvbuf, count, datatype, op, comm);
+		static Symbol<MPI_Exscan_t> symbol(__func__);
+		err = symbol(sendbuf, recvbuf, count, datatype, op, comm);
 	}
 	return err;
 }
