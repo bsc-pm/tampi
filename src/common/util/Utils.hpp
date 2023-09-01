@@ -7,7 +7,9 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 
 #include <cstdint>
 #include <type_traits>
@@ -19,7 +21,6 @@
 #ifndef MAX_SYSTEM_CPUS
 #define MAX_SYSTEM_CPUS 50
 #endif
-
 
 namespace tampi {
 namespace util {

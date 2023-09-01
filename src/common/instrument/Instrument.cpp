@@ -4,6 +4,10 @@
 	Copyright (C) 2022-2023 Barcelona Supercomputing Center (BSC)
 */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "Instrument.hpp"
 #include "util/ErrorHandler.hpp"
 
