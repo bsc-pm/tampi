@@ -18,19 +18,21 @@ using namespace tampi;
 #pragma GCC visibility push(default)
 
 extern "C" {
-	int MPI_Wait(MPI_Request *request, MPI_Status *status)
-	{
-		int err = MPI_SUCCESS;
-		if (Environment::isBlockingEnabledForCurrentThread()) {
-			assert(request != NULL);
-			Instrument::Guard<LibraryInterface> instrGuard;
-			RequestManager<C>::processRequest(*request, status);
-		} else {
-			static MPI_Wait_t *symbol = (MPI_Wait_t *) Symbol::load(__func__);
-			err = (*symbol)(request, status);
-		}
-		return err;
+
+int MPI_Wait(MPI_Request *request, MPI_Status *status)
+{
+	int err = MPI_SUCCESS;
+	if (Environment::isBlockingEnabledForCurrentThread()) {
+		assert(request != NULL);
+		Instrument::Guard<LibraryInterface> instrGuard;
+		RequestManager<C>::processRequest(*request, status);
+	} else {
+		static MPI_Wait_t *symbol = (MPI_Wait_t *) Symbol::load(__func__);
+		err = (*symbol)(request, status);
 	}
+	return err;
+}
+
 } // extern C
 
 #pragma GCC visibility pop

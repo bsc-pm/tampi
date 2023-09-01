@@ -18,27 +18,29 @@ using namespace tampi;
 #pragma GCC visibility push(default)
 
 extern "C" {
-	int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Status *status)
-	{
-		int err = MPI_SUCCESS;
-		if (Environment::isBlockingEnabledForCurrentThread()) {
-			Instrument::Guard<LibraryInterface> instrGuard;
-			Instrument::enter<IssueNonBlockingOp>();
 
-			MPI_Request request;
-			err = MPI_Irecv(buf, count, datatype, source, tag, comm, &request);
+int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Status *status)
+{
+	int err = MPI_SUCCESS;
+	if (Environment::isBlockingEnabledForCurrentThread()) {
+		Instrument::Guard<LibraryInterface> instrGuard;
+		Instrument::enter<IssueNonBlockingOp>();
 
-			Instrument::exit<IssueNonBlockingOp>();
+		MPI_Request request;
+		err = MPI_Irecv(buf, count, datatype, source, tag, comm, &request);
 
-			if (err == MPI_SUCCESS)
-				RequestManager<C>::processRequest(request, status);
-		} else {
-			static MPI_Recv_t *symbol = (MPI_Recv_t *) Symbol::load(__func__);
-			err = (*symbol)(buf, count, datatype, source, tag, comm, status);
-		}
+		Instrument::exit<IssueNonBlockingOp>();
 
-		return err;
+		if (err == MPI_SUCCESS)
+			RequestManager<C>::processRequest(request, status);
+	} else {
+		static MPI_Recv_t *symbol = (MPI_Recv_t *) Symbol::load(__func__);
+		err = (*symbol)(buf, count, datatype, source, tag, comm, status);
 	}
+
+	return err;
+}
+
 } // extern C
 
 #pragma GCC visibility pop

@@ -18,29 +18,31 @@ using namespace tampi;
 #pragma GCC visibility push(default)
 
 extern "C" {
-	int MPI_Alltoallw(MPI3CONST void *sendbuf, MPI3CONST int sendcounts[], MPI3CONST int sdispls[], MPI3CONST MPI_Datatype sendtypes[],
-			void *recvbuf, MPI3CONST int recvcounts[], MPI3CONST int rdispls[], MPI3CONST MPI_Datatype recvtypes[], MPI_Comm comm)
-	{
-		int err = MPI_SUCCESS;
-		if (Environment::isBlockingEnabledForCurrentThread()) {
-			Instrument::Guard<LibraryInterface> instrGuard;
-			Instrument::enter<IssueNonBlockingOp>();
 
-			MPI_Request request;
-			err = MPI_Ialltoallw(sendbuf, sendcounts, sdispls, sendtypes,
-					recvbuf, recvcounts, rdispls, recvtypes,
-					comm, &request);
+int MPI_Alltoallw(MPI3CONST void *sendbuf, MPI3CONST int sendcounts[], MPI3CONST int sdispls[], MPI3CONST MPI_Datatype sendtypes[],
+		void *recvbuf, MPI3CONST int recvcounts[], MPI3CONST int rdispls[], MPI3CONST MPI_Datatype recvtypes[], MPI_Comm comm)
+{
+	int err = MPI_SUCCESS;
+	if (Environment::isBlockingEnabledForCurrentThread()) {
+		Instrument::Guard<LibraryInterface> instrGuard;
+		Instrument::enter<IssueNonBlockingOp>();
 
-			Instrument::exit<IssueNonBlockingOp>();
+		MPI_Request request;
+		err = MPI_Ialltoallw(sendbuf, sendcounts, sdispls, sendtypes,
+				recvbuf, recvcounts, rdispls, recvtypes,
+				comm, &request);
 
-			if (err == MPI_SUCCESS)
-				RequestManager<C>::processRequest(request);
-		} else {
-			static MPI_Alltoallw_t *symbol = (MPI_Alltoallw_t *) Symbol::load(__func__);
-			err = (*symbol)(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm);
-		}
-		return err;
+		Instrument::exit<IssueNonBlockingOp>();
+
+		if (err == MPI_SUCCESS)
+			RequestManager<C>::processRequest(request);
+	} else {
+		static MPI_Alltoallw_t *symbol = (MPI_Alltoallw_t *) Symbol::load(__func__);
+		err = (*symbol)(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm);
 	}
+	return err;
+}
+
 } // extern C
 
 #pragma GCC visibility pop

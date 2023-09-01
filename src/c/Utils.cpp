@@ -17,65 +17,67 @@ using namespace tampi;
 #pragma GCC visibility push(default)
 
 extern "C" {
-	int MPI_Query_thread(int *provided)
-	{
-		assert(provided != nullptr);
 
-		int blocking = 0;
-		int err = Environment::getProperty(TAMPI_PROPERTY_BLOCKING_MODE, &blocking);
-		if (err)
-			return MPI_ERR_ARG;
+int MPI_Query_thread(int *provided)
+{
+	assert(provided != nullptr);
 
-		if (blocking) {
-			*provided = MPI_TASK_MULTIPLE;
-		} else {
-			static MPI_Query_thread_t *symbol = (MPI_Query_thread_t *) Symbol::load(__func__);
-			return (*symbol)(provided);
-		}
-		return MPI_SUCCESS;
+	int blocking = 0;
+	int err = Environment::getProperty(TAMPI_PROPERTY_BLOCKING_MODE, &blocking);
+	if (err)
+		return MPI_ERR_ARG;
+
+	if (blocking) {
+		*provided = MPI_TASK_MULTIPLE;
+	} else {
+		static MPI_Query_thread_t *symbol = (MPI_Query_thread_t *) Symbol::load(__func__);
+		return (*symbol)(provided);
 	}
+	return MPI_SUCCESS;
+}
 
-	int TAMPI_Blocking_enabled(int *flag)
-	{
-		assert(flag != nullptr);
+int TAMPI_Blocking_enabled(int *flag)
+{
+	assert(flag != nullptr);
 
-		int err = Environment::getProperty(TAMPI_PROPERTY_BLOCKING_MODE, flag);
-		if (err)
-			return MPI_ERR_ARG;
+	int err = Environment::getProperty(TAMPI_PROPERTY_BLOCKING_MODE, flag);
+	if (err)
+		return MPI_ERR_ARG;
 
-		return MPI_SUCCESS;
-	}
+	return MPI_SUCCESS;
+}
 
-	int TAMPI_Nonblocking_enabled(int *flag)
-	{
-		assert(flag != nullptr);
+int TAMPI_Nonblocking_enabled(int *flag)
+{
+	assert(flag != nullptr);
 
-		int err = Environment::getProperty(TAMPI_PROPERTY_NONBLOCKING_MODE, flag);
-		if (err)
-			return MPI_ERR_ARG;
+	int err = Environment::getProperty(TAMPI_PROPERTY_NONBLOCKING_MODE, flag);
+	if (err)
+		return MPI_ERR_ARG;
 
-		return MPI_SUCCESS;
-	}
+	return MPI_SUCCESS;
+}
 
-	int TAMPI_Property_get(int property, int *value)
-	{
-		assert(value != nullptr);
+int TAMPI_Property_get(int property, int *value)
+{
+	assert(value != nullptr);
 
-		int err = Environment::getProperty(property, value);
-		if (err)
-			return MPI_ERR_ARG;
+	int err = Environment::getProperty(property, value);
+	if (err)
+		return MPI_ERR_ARG;
 
-		return MPI_SUCCESS;
-	}
+	return MPI_SUCCESS;
+}
 
-	int TAMPI_Property_set(int property, int value)
-	{
-		int err = Environment::setProperty(property, value);
-		if (err)
-			return MPI_ERR_ARG;
+int TAMPI_Property_set(int property, int value)
+{
+	int err = Environment::setProperty(property, value);
+	if (err)
+		return MPI_ERR_ARG;
 
-		return MPI_SUCCESS;
-	}
+	return MPI_SUCCESS;
+}
+
 } // extern C
 
 #pragma GCC visibility pop

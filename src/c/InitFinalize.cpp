@@ -22,90 +22,92 @@ using namespace tampi;
 #pragma GCC visibility push(default)
 
 extern "C" {
-	int MPI_Init(int *argc, char ***argv)
-	{
-		static MPI_Init_t *symbol = (MPI_Init_t *) Symbol::load(__func__);
 
-		// Call MPI_Init
-		int err = (*symbol)(argc, argv);
-		if (err != MPI_SUCCESS)
-			return err;
+int MPI_Init(int *argc, char ***argv)
+{
+	static MPI_Init_t *symbol = (MPI_Init_t *) Symbol::load(__func__);
 
-		// Retrieve the default thread level
-		int provided;
-		err = MPI_Query_thread(&provided);
-		if (err != MPI_SUCCESS)
-			return err;
+	// Call MPI_Init
+	int err = (*symbol)(argc, argv);
+	if (err != MPI_SUCCESS)
+		return err;
 
-		// Prepare the MPI environment
-		Environment::preinitialize(provided);
+	// Retrieve the default thread level
+	int provided;
+	err = MPI_Query_thread(&provided);
+	if (err != MPI_SUCCESS)
+		return err;
 
-		// Attempt to auto initialize the library; no mode is enabled
-		Environment::initialize(provided, &provided, /* auto */ true);
+	// Prepare the MPI environment
+	Environment::preinitialize(provided);
 
-		return MPI_SUCCESS;
-	}
+	// Attempt to auto initialize the library; no mode is enabled
+	Environment::initialize(provided, &provided, /* auto */ true);
 
-	int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
-	{
-		static MPI_Init_thread_t *symbol = (MPI_Init_thread_t *) Symbol::load(__func__);
+	return MPI_SUCCESS;
+}
 
-		// When TAMPI is in explicit initialization mode, the MPI_Init_thread acts
-		// as the standard call and does not support MPI_TASK_MULTIPLE. In such
-		// case, MPI_Init_thread must be called with MPI_THREAD_MULTIPLE, and then,
-		// TAMPI_Init can be called with MPI_TASK_MULTIPLE
-		if (!Environment::isAutoInitializeEnabled() && required == MPI_TASK_MULTIPLE)
-			ErrorHandler::fail("The MPI_TASK_MULTIPLE must be passed to TAMPI_Init");
+int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
+{
+	static MPI_Init_thread_t *symbol = (MPI_Init_thread_t *) Symbol::load(__func__);
 
-		// Assuming that MPI does not provide MPI_TASK_MULTIPLE
-		int irequired = required;
-		if (required == MPI_TASK_MULTIPLE)
-			irequired = MPI_THREAD_MULTIPLE;
+	// When TAMPI is in explicit initialization mode, the MPI_Init_thread acts
+	// as the standard call and does not support MPI_TASK_MULTIPLE. In such
+	// case, MPI_Init_thread must be called with MPI_THREAD_MULTIPLE, and then,
+	// TAMPI_Init can be called with MPI_TASK_MULTIPLE
+	if (!Environment::isAutoInitializeEnabled() && required == MPI_TASK_MULTIPLE)
+		ErrorHandler::fail("The MPI_TASK_MULTIPLE must be passed to TAMPI_Init");
 
-		// Call MPI_Init_thread
-		int err = (*symbol)(argc, argv, irequired, provided);
-		if (err != MPI_SUCCESS)
-			return err;
+	// Assuming that MPI does not provide MPI_TASK_MULTIPLE
+	int irequired = required;
+	if (required == MPI_TASK_MULTIPLE)
+		irequired = MPI_THREAD_MULTIPLE;
 
-		// Prepare the MPI enviornment
-		Environment::preinitialize(*provided);
+	// Call MPI_Init_thread
+	int err = (*symbol)(argc, argv, irequired, provided);
+	if (err != MPI_SUCCESS)
+		return err;
 
-		// Attempt to auto initialize the library
-		Environment::initialize(required, provided, /* auto */ true);
+	// Prepare the MPI enviornment
+	Environment::preinitialize(*provided);
 
-		return MPI_SUCCESS;
-	}
+	// Attempt to auto initialize the library
+	Environment::initialize(required, provided, /* auto */ true);
 
-	int MPI_Finalize(void)
-	{
-		static MPI_Finalize_t *symbol = (MPI_Finalize_t *) Symbol::load(__func__);
+	return MPI_SUCCESS;
+}
 
-		// Call MPI_Finalize
-		int err = (*symbol)();
-		if (err != MPI_SUCCESS)
-			return err;
+int MPI_Finalize(void)
+{
+	static MPI_Finalize_t *symbol = (MPI_Finalize_t *) Symbol::load(__func__);
 
-		// Attempt to finalize the library
-		Environment::finalize(/* auto */ true);
+	// Call MPI_Finalize
+	int err = (*symbol)();
+	if (err != MPI_SUCCESS)
+		return err;
 
-		return MPI_SUCCESS;
-	}
+	// Attempt to finalize the library
+	Environment::finalize(/* auto */ true);
 
-	int TAMPI_Init(int required, int *provided)
-	{
-		// Explicitly initialize the library
-		Environment::initialize(required, provided, /* auto */ false);
+	return MPI_SUCCESS;
+}
 
-		return MPI_SUCCESS;
-	}
+int TAMPI_Init(int required, int *provided)
+{
+	// Explicitly initialize the library
+	Environment::initialize(required, provided, /* auto */ false);
 
-	int TAMPI_Finalize(void)
-	{
-		// Explicitly finalize the library
-		Environment::finalize(/* auto */ false);
+	return MPI_SUCCESS;
+}
 
-		return MPI_SUCCESS;
-	}
+int TAMPI_Finalize(void)
+{
+	// Explicitly finalize the library
+	Environment::finalize(/* auto */ false);
+
+	return MPI_SUCCESS;
+}
+
 } // extern C
 
 #pragma GCC visibility pop

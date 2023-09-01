@@ -20,14 +20,16 @@ using namespace tampi;
 #pragma GCC visibility push(default)
 
 extern "C" {
-	int TAMPI_Iwait(MPI_Request *request, MPI_Status *status)
-	{
-		if (Environment::isNonBlockingEnabled()) {
-			Instrument::Guard<LibraryInterface> instrGuard;
-			RequestManager<C>::processRequest(*request, status, /* Non-blocking */ false);
-		}
-		return MPI_SUCCESS;
+
+int TAMPI_Iwait(MPI_Request *request, MPI_Status *status)
+{
+	if (Environment::isNonBlockingEnabled()) {
+		Instrument::Guard<LibraryInterface> instrGuard;
+		RequestManager<C>::processRequest(*request, status, /* Non-blocking */ false);
 	}
+	return MPI_SUCCESS;
+}
+
 } // extern C
 
 #pragma GCC visibility pop

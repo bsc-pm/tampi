@@ -17,77 +17,79 @@ using namespace tampi;
 #pragma GCC visibility push(default)
 
 extern "C" {
-	void mpi_query_thread_(MPI_Fint *provided, MPI_Fint *err)
-	{
-		assert(provided != nullptr);
-		assert(err != nullptr);
 
-		*err = MPI_SUCCESS;
+void mpi_query_thread_(MPI_Fint *provided, MPI_Fint *err)
+{
+	assert(provided != nullptr);
+	assert(err != nullptr);
 
-		int blocking = 0;
-		int ierr = Environment::getProperty(TAMPI_PROPERTY_BLOCKING_MODE, &blocking);
-		if (ierr) {
-			*err = MPI_ERR_ARG;
-			return;
-		}
+	*err = MPI_SUCCESS;
 
-		if (blocking) {
-			*provided = MPI_TASK_MULTIPLE;
-		} else {
-			static mpi_query_thread_t *symbol = (mpi_query_thread_t *) Symbol::load(__func__);
-			(*symbol)(provided, err);
-		}
+	int blocking = 0;
+	int ierr = Environment::getProperty(TAMPI_PROPERTY_BLOCKING_MODE, &blocking);
+	if (ierr) {
+		*err = MPI_ERR_ARG;
+		return;
 	}
 
-	void tampi_blocking_enabled_(MPI_Fint *flag, MPI_Fint *err)
-	{
-		assert(flag != nullptr);
-		assert(err != nullptr);
-
-		*err = MPI_SUCCESS;
-
-		int ierr = Environment::getProperty(TAMPI_PROPERTY_BLOCKING_MODE, flag);
-		if (ierr)
-			 *err = MPI_ERR_ARG;
+	if (blocking) {
+		*provided = MPI_TASK_MULTIPLE;
+	} else {
+		static mpi_query_thread_t *symbol = (mpi_query_thread_t *) Symbol::load(__func__);
+		(*symbol)(provided, err);
 	}
+}
 
-	void tampi_nonblocking_enabled_(MPI_Fint *flag, MPI_Fint *err)
-	{
-		assert(flag != nullptr);
-		assert(err != nullptr);
+void tampi_blocking_enabled_(MPI_Fint *flag, MPI_Fint *err)
+{
+	assert(flag != nullptr);
+	assert(err != nullptr);
 
-		*err = MPI_SUCCESS;
+	*err = MPI_SUCCESS;
 
-		int ierr = Environment::getProperty(TAMPI_PROPERTY_NONBLOCKING_MODE, flag);
-		if (ierr)
-			 *err = MPI_ERR_ARG;
-	}
+	int ierr = Environment::getProperty(TAMPI_PROPERTY_BLOCKING_MODE, flag);
+	if (ierr)
+		 *err = MPI_ERR_ARG;
+}
 
-	void tampi_property_get_(MPI_Fint *property, MPI_Fint *value, MPI_Fint *err)
-	{
-		assert(property != nullptr);
-		assert(value != nullptr);
-		assert(err != nullptr);
+void tampi_nonblocking_enabled_(MPI_Fint *flag, MPI_Fint *err)
+{
+	assert(flag != nullptr);
+	assert(err != nullptr);
 
-		*err = MPI_SUCCESS;
+	*err = MPI_SUCCESS;
 
-		int ierr = Environment::getProperty(*property, value);
-		if (ierr)
-			 *err = MPI_ERR_ARG;
-	}
+	int ierr = Environment::getProperty(TAMPI_PROPERTY_NONBLOCKING_MODE, flag);
+	if (ierr)
+		 *err = MPI_ERR_ARG;
+}
 
-	void tampi_property_set_(MPI_Fint *property, MPI_Fint *value, MPI_Fint *err)
-	{
-		assert(property != nullptr);
-		assert(value != nullptr);
-		assert(err != nullptr);
+void tampi_property_get_(MPI_Fint *property, MPI_Fint *value, MPI_Fint *err)
+{
+	assert(property != nullptr);
+	assert(value != nullptr);
+	assert(err != nullptr);
 
-		*err = MPI_SUCCESS;
+	*err = MPI_SUCCESS;
 
-		int ierr = Environment::setProperty(*property, *value);
-		if (ierr)
-			 *err = MPI_ERR_ARG;
-	}
+	int ierr = Environment::getProperty(*property, value);
+	if (ierr)
+		 *err = MPI_ERR_ARG;
+}
+
+void tampi_property_set_(MPI_Fint *property, MPI_Fint *value, MPI_Fint *err)
+{
+	assert(property != nullptr);
+	assert(value != nullptr);
+	assert(err != nullptr);
+
+	*err = MPI_SUCCESS;
+
+	int ierr = Environment::setProperty(*property, *value);
+	if (ierr)
+		 *err = MPI_ERR_ARG;
+}
+
 } // extern C
 
 #pragma GCC visibility pop

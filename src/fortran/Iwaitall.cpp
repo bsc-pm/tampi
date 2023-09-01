@@ -19,14 +19,16 @@ using namespace tampi;
 #pragma GCC visibility push(default)
 
 extern "C" {
-	void tampi_iwaitall_(MPI_Fint *count, MPI_Fint requests[], MPI_Fint *statuses, MPI_Fint *err)
-	{
-		if (Environment::isNonBlockingEnabled()) {
-			Instrument::Guard<LibraryInterface> instrGuard;
-			RequestManager<Fortran>::processRequests({requests, *count}, statuses, /* Non-blocking */ false);
-		}
-		*err = MPI_SUCCESS;
+
+void tampi_iwaitall_(MPI_Fint *count, MPI_Fint requests[], MPI_Fint *statuses, MPI_Fint *err)
+{
+	if (Environment::isNonBlockingEnabled()) {
+		Instrument::Guard<LibraryInterface> instrGuard;
+		RequestManager<Fortran>::processRequests({requests, *count}, statuses, /* Non-blocking */ false);
 	}
+	*err = MPI_SUCCESS;
+}
+
 } // extern C
 
 #pragma GCC visibility pop

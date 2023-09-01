@@ -18,26 +18,28 @@ using namespace tampi;
 #pragma GCC visibility push(default)
 
 extern "C" {
-	int	MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm)
-	{
-		int err = MPI_SUCCESS;
-		if (Environment::isBlockingEnabledForCurrentThread()) {
-			Instrument::Guard<LibraryInterface> instrGuard;
-			Instrument::enter<IssueNonBlockingOp>();
 
-			MPI_Request request;
-			err = MPI_Ibcast(buffer, count, datatype, root, comm, &request);
+int	MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm)
+{
+	int err = MPI_SUCCESS;
+	if (Environment::isBlockingEnabledForCurrentThread()) {
+		Instrument::Guard<LibraryInterface> instrGuard;
+		Instrument::enter<IssueNonBlockingOp>();
 
-			Instrument::exit<IssueNonBlockingOp>();
+		MPI_Request request;
+		err = MPI_Ibcast(buffer, count, datatype, root, comm, &request);
 
-			if (err == MPI_SUCCESS)
-				RequestManager<C>::processRequest(request);
-		} else {
-			static MPI_Bcast_t *symbol = (MPI_Bcast_t *) Symbol::load(__func__);
-			err = (*symbol)(buffer, count, datatype, root, comm);
-		}
-		return err;
+		Instrument::exit<IssueNonBlockingOp>();
+
+		if (err == MPI_SUCCESS)
+			RequestManager<C>::processRequest(request);
+	} else {
+		static MPI_Bcast_t *symbol = (MPI_Bcast_t *) Symbol::load(__func__);
+		err = (*symbol)(buffer, count, datatype, root, comm);
 	}
+	return err;
+}
+
 } // extern C
 
 #pragma GCC visibility pop
