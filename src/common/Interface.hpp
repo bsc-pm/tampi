@@ -10,7 +10,7 @@
 #include <mpi.h>
 #include <array>
 
-#include "Symbol.hpp"
+#include "Declarations.hpp"
 
 namespace tampi {
 
