@@ -7,9 +7,8 @@
 #ifndef REQUEST_MANAGER_HPP
 #define REQUEST_MANAGER_HPP
 
-#include <mpi.h>
-
 #include <cassert>
+#include <mpi.h>
 
 #include "Interface.hpp"
 #include "Ticket.hpp"
@@ -17,7 +16,6 @@
 #include "instrument/Instrument.hpp"
 #include "util/ArrayView.hpp"
 #include "util/ErrorHandler.hpp"
-
 
 namespace tampi {
 

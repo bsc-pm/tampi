@@ -13,9 +13,6 @@
 #include "TaskingModel.hpp"
 #include "TicketManager.hpp"
 #include "instrument/Instrument.hpp"
-#include "util/ErrorHandler.hpp"
-#include "util/EnvironmentVariable.hpp"
-
 
 namespace tampi {
 

@@ -4,8 +4,6 @@
 	Copyright (C) 2022-2023 Barcelona Supercomputing Center (BSC)
 */
 
-#include <cstdio>
-
 #include "Instrument.hpp"
 #include "util/ErrorHandler.hpp"
 

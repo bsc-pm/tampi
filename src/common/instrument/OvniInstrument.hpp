@@ -7,13 +7,6 @@
 #ifndef OVNI_INSTRUMENT_HPP
 #define OVNI_INSTRUMENT_HPP
 
-#include <cassert>
-#include <cctype>
-#include <cmath>
-#include <cstddef>
-#include <cstdint>
-
-#include <config.h>
 #include <ovni.h>
 
 #include "Instrument.hpp"

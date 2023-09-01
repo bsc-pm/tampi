@@ -10,9 +10,7 @@
 #include <mpi.h>
 
 #include <algorithm>
-#include <cstring>
 #include <mutex>
-#include <vector>
 
 #include "Interface.hpp"
 #include "Ticket.hpp"
@@ -22,7 +20,6 @@
 #include "util/LockFreeQueue.hpp"
 #include "util/SpinLock.hpp"
 #include "util/Utils.hpp"
-
 
 namespace tampi {
 

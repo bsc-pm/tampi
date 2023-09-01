@@ -8,7 +8,6 @@
 #include "TaskingModel.hpp"
 #include "util/ErrorHandler.hpp"
 
-
 namespace tampi {
 
 //! Enable/disable polling services

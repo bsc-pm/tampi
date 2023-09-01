@@ -4,12 +4,7 @@
 	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
-#include <config.h>
-
-#include <cassert>
-#include <dlfcn.h>
 #include <mpi.h>
-#include <stdarg.h>
 
 #include "TAMPI_Decl.h"
 

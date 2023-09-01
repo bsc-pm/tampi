@@ -7,10 +7,6 @@
 #ifndef INSTRUMENT_HPP
 #define INSTRUMENT_HPP
 
-#include <cmath>
-#include <cstddef>
-#include <cstdint>
-
 #include <config.h>
 
 #include "util/EnvironmentVariable.hpp"

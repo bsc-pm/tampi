@@ -7,13 +7,10 @@
 #ifndef TICKET_HPP
 #define TICKET_HPP
 
-#include <mpi.h>
-
 #include <cassert>
 
 #include "Interface.hpp"
 #include "TaskContext.hpp"
-
 
 namespace tampi {
 

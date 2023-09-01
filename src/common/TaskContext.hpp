@@ -1,18 +1,15 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TASK_CONTEXT_HPP
 #define TASK_CONTEXT_HPP
 
-#include <array>
 #include <cassert>
 
 #include "TaskingModel.hpp"
-#include "util/ErrorHandler.hpp"
-
 
 namespace tampi {
 

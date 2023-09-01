@@ -11,14 +11,10 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <cstdint>
 #include <string>
 
-#include "Symbol.hpp"
 #include "TaskingModelAPI.hpp"
 #include "util/EnvironmentVariable.hpp"
-#include "util/ErrorHandler.hpp"
-
 
 namespace tampi {
 

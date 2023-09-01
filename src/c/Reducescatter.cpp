@@ -4,7 +4,6 @@
 	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
-#include <dlfcn.h>
 #include <mpi.h>
 
 #include "Environment.hpp"

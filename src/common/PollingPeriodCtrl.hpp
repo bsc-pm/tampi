@@ -12,7 +12,6 @@
 #include "util/ErrorHandler.hpp"
 #include "util/EnvironmentVariable.hpp"
 
-
 namespace tampi {
 
 class PollingPeriodCtrl {

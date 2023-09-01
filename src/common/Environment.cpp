@@ -8,8 +8,6 @@
 
 #include "Environment.hpp"
 #include "Polling.hpp"
-#include "Ticket.hpp"
-#include "TicketManager.hpp"
 #include "util/ErrorHandler.hpp"
 
 
