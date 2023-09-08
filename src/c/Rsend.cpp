@@ -6,6 +6,7 @@
 
 #include <mpi.h>
 
+#include "Declarations.hpp"
 #include "Environment.hpp"
 #include "Interface.hpp"
 #include "RequestManager.hpp"
@@ -25,16 +26,18 @@ int MPI_Rsend(MPI3CONST void *buf, int count, MPI_Datatype datatype, int dest, i
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<MPI_Irsend_t> symbol("MPI_Irsend");
+
 		MPI_Request request;
-		err = MPI_Irsend(buf, count, datatype, dest, tag, comm, &request);
+		err = symbol(buf, count, datatype, dest, tag, comm, &request);
 
 		Instrument::exit<IssueNonBlockingOp>();
 
 		if (err == MPI_SUCCESS)
 			RequestManager<C>::processRequest(request);
 	} else {
-		static MPI_Rsend_t *symbol = (MPI_Rsend_t *) Symbol::load(__func__);
-		err = (*symbol)(buf, count, datatype, dest, tag, comm);
+		static Symbol<MPI_Rsend_t> symbol(__func__);
+		err = symbol(buf, count, datatype, dest, tag, comm);
 	}
 	return err;
 }

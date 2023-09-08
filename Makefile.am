@@ -96,6 +96,7 @@ common_sources = \
  src/common/instrument/Instrument.cpp
 
 noinst_HEADERS = \
+ src/common/Declarations.hpp \
  src/common/Environment.hpp \
  src/common/Interface.hpp \
  src/common/Polling.hpp \

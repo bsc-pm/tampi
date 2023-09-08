@@ -6,6 +6,7 @@
 
 #include <mpi.h>
 
+#include "Declarations.hpp"
 #include "Environment.hpp"
 #include "Interface.hpp"
 #include "RequestManager.hpp"
@@ -25,16 +26,18 @@ int MPI_Allreduce(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatyp
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<MPI_Iallreduce_t> symbol("MPI_Iallreduce");
+
 		MPI_Request request;
-		err = MPI_Iallreduce(sendbuf, recvbuf, count, datatype, op, comm, &request);
+		err = symbol(sendbuf, recvbuf, count, datatype, op, comm, &request);
 
 		Instrument::exit<IssueNonBlockingOp>();
 
 		if (err == MPI_SUCCESS)
 			RequestManager<C>::processRequest(request);
 	} else {
-		static MPI_Allreduce_t *symbol = (MPI_Allreduce_t *) Symbol::load(__func__);
-		err = (*symbol)(sendbuf, recvbuf, count, datatype, op, comm);
+		static Symbol<MPI_Allreduce_t> symbol(__func__);
+		err = symbol(sendbuf, recvbuf, count, datatype, op, comm);
 	}
 	return err;
 }

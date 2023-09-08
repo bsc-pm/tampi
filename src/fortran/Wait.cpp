@@ -8,6 +8,7 @@
 
 #include "TAMPI_Decl.h"
 
+#include "Declarations.hpp"
 #include "Environment.hpp"
 #include "Interface.hpp"
 #include "RequestManager.hpp"
@@ -27,8 +28,8 @@ void mpi_wait_(MPI_Fint *request, MPI_Fint *status, MPI_Fint *err)
 		RequestManager<Fortran>::processRequest(*request, status);
 		*err = MPI_SUCCESS;
 	} else {
-		static mpi_wait_t *symbol = (mpi_wait_t *) Symbol::load(__func__);
-		(*symbol)(request, status, err);
+		static Symbol<mpi_wait_t> symbol(__func__);
+		symbol(request, status, err);
 	}
 }
 

@@ -8,6 +8,7 @@
 
 #include "TAMPI_Decl.h"
 
+#include "Declarations.hpp"
 #include "Environment.hpp"
 #include "Interface.hpp"
 #include "Symbol.hpp"
@@ -20,10 +21,10 @@ extern "C" {
 
 int MPI_Init(int *argc, char ***argv)
 {
-	static MPI_Init_t *symbol = (MPI_Init_t *) Symbol::load(__func__);
+	static Symbol<MPI_Init_t> symbol(__func__);
 
 	// Call MPI_Init
-	int err = (*symbol)(argc, argv);
+	int err = symbol(argc, argv);
 	if (err != MPI_SUCCESS)
 		return err;
 
@@ -44,7 +45,7 @@ int MPI_Init(int *argc, char ***argv)
 
 int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
 {
-	static MPI_Init_thread_t *symbol = (MPI_Init_thread_t *) Symbol::load(__func__);
+	static Symbol<MPI_Init_thread_t> symbol(__func__);
 
 	// When TAMPI is in explicit initialization mode, the MPI_Init_thread acts
 	// as the standard call and does not support MPI_TASK_MULTIPLE. In such
@@ -59,7 +60,7 @@ int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
 		irequired = MPI_THREAD_MULTIPLE;
 
 	// Call MPI_Init_thread
-	int err = (*symbol)(argc, argv, irequired, provided);
+	int err = symbol(argc, argv, irequired, provided);
 	if (err != MPI_SUCCESS)
 		return err;
 
@@ -74,10 +75,10 @@ int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
 
 int MPI_Finalize(void)
 {
-	static MPI_Finalize_t *symbol = (MPI_Finalize_t *) Symbol::load(__func__);
+	static Symbol<MPI_Finalize_t> symbol(__func__);
 
 	// Call MPI_Finalize
-	int err = (*symbol)();
+	int err = symbol();
 	if (err != MPI_SUCCESS)
 		return err;
 

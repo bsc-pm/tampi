@@ -8,6 +8,7 @@
 
 #include "TAMPI_Decl.h"
 
+#include "Declarations.hpp"
 #include "Environment.hpp"
 #include "Interface.hpp"
 #include "RequestManager.hpp"
@@ -20,10 +21,6 @@ using namespace tampi;
 
 extern "C" {
 
-void mpi_ireduce_scatter_(void *sendbuf, void *recvbuf,
-		MPI_Fint recvcounts[], MPI_Fint *datatype, MPI_Fint *op,
-		MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
-
 void mpi_reduce_scatter_(void *sendbuf, void *recvbuf,
 		MPI_Fint recvcounts[], MPI_Fint *datatype, MPI_Fint *op,
 		MPI_Fint *comm, MPI_Fint *err)
@@ -32,16 +29,18 @@ void mpi_reduce_scatter_(void *sendbuf, void *recvbuf,
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<mpi_ireduce_scatter_t> symbol("mpi_ireduce_scatter_");
+
 		MPI_Fint request;
-		mpi_ireduce_scatter_(sendbuf, recvbuf, recvcounts, datatype, op, comm, &request, err);
+		symbol(sendbuf, recvbuf, recvcounts, datatype, op, comm, &request, err);
 
 		Instrument::exit<IssueNonBlockingOp>();
 
 		if (*err == MPI_SUCCESS)
 			RequestManager<Fortran>::processRequest(request);
 	} else {
-		static mpi_reduce_scatter_t *symbol = (mpi_reduce_scatter_t *) Symbol::load(__func__);
-		(*symbol)(sendbuf, recvbuf, recvcounts, datatype, op, comm, err);
+		static Symbol<mpi_reduce_scatter_t> symbol(__func__);
+		symbol(sendbuf, recvbuf, recvcounts, datatype, op, comm, err);
 	}
 }
 
@@ -49,7 +48,9 @@ void tampi_ireduce_scatter_internal_(void *sendbuf, void *recvbuf,
 		MPI_Fint recvcounts[], MPI_Fint *datatype, MPI_Fint *op,
 		MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err)
 {
-	mpi_ireduce_scatter_(sendbuf, recvbuf, recvcounts, datatype, op, comm, request, err);
+	static Symbol<mpi_ireduce_scatter_t> symbol("mpi_ireduce_scatter_");
+
+	symbol(sendbuf, recvbuf, recvcounts, datatype, op, comm, request, err);
 
 	if (*err == MPI_SUCCESS)
 		tampi_iwait_(request, MPI_F_STATUS_IGNORE, err);

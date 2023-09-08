@@ -8,6 +8,7 @@
 
 #include "TAMPI_Decl.h"
 
+#include "Declarations.hpp"
 #include "Environment.hpp"
 #include "Interface.hpp"
 #include "Symbol.hpp"
@@ -35,8 +36,8 @@ void mpi_query_thread_(MPI_Fint *provided, MPI_Fint *err)
 	if (blocking) {
 		*provided = MPI_TASK_MULTIPLE;
 	} else {
-		static mpi_query_thread_t *symbol = (mpi_query_thread_t *) Symbol::load(__func__);
-		(*symbol)(provided, err);
+		static Symbol<mpi_query_thread_t> symbol(__func__);
+		symbol(provided, err);
 	}
 }
 

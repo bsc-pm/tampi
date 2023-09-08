@@ -6,6 +6,7 @@
 
 #include <mpi.h>
 
+#include "Declarations.hpp"
 #include "Environment.hpp"
 #include "Interface.hpp"
 #include "RequestManager.hpp"
@@ -27,8 +28,10 @@ int MPI_Gatherv(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<MPI_Igatherv_t> symbol("MPI_Igatherv");
+
 		MPI_Request request;
-		err = MPI_Igatherv(sendbuf, sendcount, sendtype,
+		err = symbol(sendbuf, sendcount, sendtype,
 				recvbuf, recvcounts, displs, recvtype,
 				root, comm, &request);
 
@@ -37,8 +40,8 @@ int MPI_Gatherv(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		if (err == MPI_SUCCESS)
 			RequestManager<C>::processRequest(request);
 	} else {
-		static MPI_Gatherv_t *symbol = (MPI_Gatherv_t *) Symbol::load(__func__);
-		err = (*symbol)(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm);
+		static Symbol<MPI_Gatherv_t> symbol(__func__);
+		err = symbol(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm);
 	}
 	return err;
 }

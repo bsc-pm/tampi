@@ -6,6 +6,7 @@
 
 #include <mpi.h>
 
+#include "Declarations.hpp"
 #include "Environment.hpp"
 #include "Interface.hpp"
 #include "RequestManager.hpp"
@@ -26,8 +27,10 @@ int MPI_Alltoallw(MPI3CONST void *sendbuf, MPI3CONST int sendcounts[], MPI3CONST
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<MPI_Ialltoallw_t> symbol("MPI_Ialltoallw");
+
 		MPI_Request request;
-		err = MPI_Ialltoallw(sendbuf, sendcounts, sdispls, sendtypes,
+		err = symbol(sendbuf, sendcounts, sdispls, sendtypes,
 				recvbuf, recvcounts, rdispls, recvtypes,
 				comm, &request);
 
@@ -36,8 +39,8 @@ int MPI_Alltoallw(MPI3CONST void *sendbuf, MPI3CONST int sendcounts[], MPI3CONST
 		if (err == MPI_SUCCESS)
 			RequestManager<C>::processRequest(request);
 	} else {
-		static MPI_Alltoallw_t *symbol = (MPI_Alltoallw_t *) Symbol::load(__func__);
-		err = (*symbol)(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm);
+		static Symbol<MPI_Alltoallw_t> symbol(__func__);
+		err = symbol(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm);
 	}
 	return err;
 }

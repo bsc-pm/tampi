@@ -8,6 +8,7 @@
 
 #include "TAMPI_Decl.h"
 
+#include "Declarations.hpp"
 #include "Environment.hpp"
 #include "Interface.hpp"
 #include "RequestManager.hpp"
@@ -20,11 +21,6 @@ using namespace tampi;
 
 extern "C" {
 
-void mpi_ialltoall_(void *sendbuf, MPI_Fint *sendcount,
-		MPI_Fint *sendtype, void *recvbuf,
-		MPI_Fint *recvcount, MPI_Fint *recvtype,
-		MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err);
-
 void mpi_alltoall_(void *sendbuf, MPI_Fint *sendcount,
 		MPI_Fint *sendtype, void *recvbuf,
 		MPI_Fint *recvcount, MPI_Fint *recvtype,
@@ -34,8 +30,10 @@ void mpi_alltoall_(void *sendbuf, MPI_Fint *sendcount,
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<mpi_ialltoall_t> symbol("mpi_ialltoall_");
+
 		MPI_Fint request;
-		mpi_ialltoall_(sendbuf, sendcount, sendtype,
+		symbol(sendbuf, sendcount, sendtype,
 				recvbuf, recvcount, recvtype,
 				comm, &request, err);
 
@@ -44,8 +42,8 @@ void mpi_alltoall_(void *sendbuf, MPI_Fint *sendcount,
 		if (*err == MPI_SUCCESS)
 			RequestManager<Fortran>::processRequest(request);
 	} else {
-		static mpi_alltoall_t *symbol = (mpi_alltoall_t *) Symbol::load(__func__);
-		(*symbol)(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, err);
+		static Symbol<mpi_alltoall_t> symbol(__func__);
+		symbol(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, err);
 	}
 }
 
@@ -54,7 +52,9 @@ void tampi_ialltoall_internal_(void *sendbuf, MPI_Fint *sendcount,
 		MPI_Fint *recvcount, MPI_Fint *recvtype,
 		MPI_Fint *comm, MPI_Fint *request, MPI_Fint *err)
 {
-	mpi_ialltoall_(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request, err);
+	static Symbol<mpi_ialltoall_t> symbol("mpi_ialltoall_");
+
+	symbol(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request, err);
 
 	if (*err == MPI_SUCCESS)
 		tampi_iwait_(request, MPI_F_STATUS_IGNORE, err);

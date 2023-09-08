@@ -6,6 +6,7 @@
 
 #include <mpi.h>
 
+#include "Declarations.hpp"
 #include "Environment.hpp"
 #include "Interface.hpp"
 #include "RequestManager.hpp"
@@ -27,12 +28,15 @@ int MPI_Sendrecv(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype, 
 		Instrument::Guard<LibraryInterface> instrGuard;
 		Instrument::enter<IssueNonBlockingOp>();
 
+		static Symbol<MPI_Isend_t> isendSymbol("MPI_Isend");
+		static Symbol<MPI_Irecv_t> irecvSymbol("MPI_Irecv");
+
 		MPI_Request requests[2];
-		err = MPI_Irecv(recvbuf, recvcount, recvtype, source, recvtag, comm, &requests[0]);
+		err = irecvSymbol(recvbuf, recvcount, recvtype, source, recvtag, comm, &requests[0]);
 		if (err != MPI_SUCCESS)
 			return err;
 
-		err = MPI_Isend(sendbuf, sendcount, sendtype, dest, sendtag, comm, &requests[1]);
+		err = isendSymbol(sendbuf, sendcount, sendtype, dest, sendtag, comm, &requests[1]);
 		if (err != MPI_SUCCESS)
 			return err;
 
@@ -46,8 +50,8 @@ int MPI_Sendrecv(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype, 
 			RequestManager<C>::processRequests({requests, 2});
 		}
 	} else {
-		static MPI_Sendrecv_t *symbol = (MPI_Sendrecv_t *) Symbol::load(__func__);
-		err = (*symbol)(sendbuf, sendcount, sendtype, dest, sendtag,
+		static Symbol<MPI_Sendrecv_t> symbol(__func__);
+		err = symbol(sendbuf, sendcount, sendtype, dest, sendtag,
 				recvbuf, recvcount, recvtype, source, recvtag,
 				comm, status);
 	}

@@ -8,6 +8,7 @@
 
 #include "TAMPI_Decl.h"
 
+#include "Declarations.hpp"
 #include "Environment.hpp"
 #include "Interface.hpp"
 #include "RequestManager.hpp"
@@ -76,8 +77,8 @@ void mpi_sendrecv_replace_(
 			}
 		}
 	} else {
-		static mpi_sendrecv_replace_t *symbol = (mpi_sendrecv_replace_t *) Symbol::load(__func__);
-		(*symbol)(buf, count, datatype, dest, sendtag, source, recvtag, comm, status, err);
+		static Symbol<mpi_sendrecv_replace_t> symbol(__func__);
+		symbol(buf, count, datatype, dest, sendtag, source, recvtag, comm, status, err);
 	}
 }
 
