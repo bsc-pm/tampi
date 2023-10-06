@@ -20,11 +20,11 @@ namespace tampi {
 //! acquire the lock at the same time
 class SpinLock {
 private:
-	static constexpr size_t Size = MAX_SYSTEM_CPUS;
+	static constexpr size_t Size = MaxSystemCPUs;
 
-	alignas(CACHELINE_SIZE) Padded<std::atomic<size_t> > _buffer[Size];
-	alignas(CACHELINE_SIZE) std::atomic<size_t> _head;
-	alignas(CACHELINE_SIZE) size_t _next;
+	alignas(CacheAlignment) PaddedArray<std::atomic<size_t>, Size> _buffer;
+	alignas(CacheAlignment) std::atomic<size_t> _head;
+	alignas(CacheAlignment) size_t _next;
 
 public:
 	inline SpinLock() :
@@ -32,7 +32,7 @@ public:
 		_next(0)
 	{
 		for (size_t i = 0; i < Size; ++i) {
-			std::atomic_init(_buffer[i].ptr_to_basetype(), (size_t) 0);
+			std::atomic_init(&_buffer[i], (size_t) 0);
 		}
 	}
 
