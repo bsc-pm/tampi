@@ -7,8 +7,6 @@
 #ifndef INSTRUMENT_HPP
 #define INSTRUMENT_HPP
 
-#include <config.h>
-
 #include "util/EnvironmentVariable.hpp"
 
 namespace tampi {
