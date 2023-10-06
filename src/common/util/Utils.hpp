@@ -20,7 +20,7 @@
 #endif
 
 #ifndef MAX_SYSTEM_CPUS
-#define MAX_SYSTEM_CPUS 50
+#define MAX_SYSTEM_CPUS 64
 #endif
 
 
