@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING file.
 
-	Copyright (C) 2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2022-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef SPIN_WAIT_HPP
@@ -36,31 +36,31 @@
 #endif
 
 namespace tampi {
-namespace util {
 
-static inline void spinWait()
-{
+struct SpinWait {
+	static void wait()
+	{
 #if defined(SSE2_ARCH_FEATURE)
-	_mm_pause();
+		_mm_pause();
 #elif defined(POWER9_ARCH)
-	HMT_low();
+		HMT_low();
 #elif defined(X86_ARCH)
-	asm volatile("pause" ::: "memory");
+		asm volatile("pause" ::: "memory");
 #elif defined(ARM_ARCH)
-	__asm__ __volatile__ ("yield");
+		__asm__ __volatile__ ("yield");
 #else
-	#pragma message ("No 'pause' instruction/intrisic found for this architecture ")
+		#pragma message ("No 'pause' instruction/intrisic found for this architecture ")
 #endif
-}
+	}
 
-static inline void spinWaitRelease()
-{
+	static void release()
+	{
 #if defined(POWER9_ARCH)
-	HMT_medium();
+		HMT_medium();
 #endif
-}
+	}
+};
 
-} // namespace util
 } // namespace tampi
 
 #endif // SPIN_WAIT_HPP

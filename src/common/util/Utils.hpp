@@ -23,7 +23,6 @@
 #endif
 
 namespace tampi {
-namespace util {
 
 //! Class that provides padding for a type
 template <class T, size_t Size = CACHELINE_SIZE>
@@ -58,7 +57,6 @@ public:
 template <class T>
 using Uninitialized = typename std::aligned_storage<sizeof(T), alignof(T)>::type;
 
-} // namespace util
 } // namespace tampi
 
 #endif // UTILS_HPP

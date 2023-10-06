@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef SPIN_LOCK_HPP
@@ -22,7 +22,7 @@ class SpinLock {
 private:
 	static constexpr size_t Size = MAX_SYSTEM_CPUS;
 
-	alignas(CACHELINE_SIZE) util::Padded<std::atomic<size_t> > _buffer[Size];
+	alignas(CACHELINE_SIZE) Padded<std::atomic<size_t> > _buffer[Size];
 	alignas(CACHELINE_SIZE) std::atomic<size_t> _head;
 	alignas(CACHELINE_SIZE) size_t _next;
 
@@ -42,9 +42,9 @@ public:
 		const size_t head = _head.fetch_add(1, std::memory_order_relaxed);
 		const size_t idx = head % Size;
 		while (_buffer[idx].load(std::memory_order_relaxed) != head) {
-			util::spinWait();
+			SpinWait::wait();
 		}
-		util::spinWaitRelease();
+		SpinWait::release();
 
 		std::atomic_thread_fence(std::memory_order_acquire);
 	}

@@ -95,10 +95,10 @@ private:
 	TicketManagerInternals<Lang, MaxEntries> _arrays;
 
 	//! Lock-free pre-queues of blocking requests
-	util::LockFreeQueue<BlockingEntry> _blockingEntries;
+	LockFreeQueue<BlockingEntry> _blockingEntries;
 
 	//! Lock-free pre-queues of non-blocking requests
-	util::LockFreeQueue<NonBlockingEntry> _nonBlockingEntries;
+	LockFreeQueue<NonBlockingEntry> _nonBlockingEntries;
 
 	//! Auxiliary array of indices used when checking requests
 	int *_indices;
@@ -207,7 +207,7 @@ public:
 	//!
 	//! \param request The requests to add
 	//! \param ticket The ticket which the requests belongs to
-	void addTicket(Ticket &ticket, util::ArrayView<request_t> &requests);
+	void addTicket(Ticket &ticket, ArrayView<request_t> &requests);
 
 private:
 	//! \brief Internal function to check the requests that are in-flight
@@ -234,8 +234,8 @@ private:
 	template <typename EntryTy>
 	void addTicketRequests(
 		Ticket &ticket,
-		util::ArrayView<request_t> &requests,
-		util::LockFreeQueue<EntryTy> &queue
+		ArrayView<request_t> &requests,
+		LockFreeQueue<EntryTy> &queue
 	);
 
 	//! \brief Internal function to check and transfer requests from pre-queues
@@ -325,7 +325,7 @@ inline void TicketManager<Lang>::addTicket(Ticket &ticket, request_t &request)
 }
 
 template <typename Lang>
-inline void TicketManager<Lang>::addTicket(Ticket &ticket, util::ArrayView<request_t> &requests)
+inline void TicketManager<Lang>::addTicket(Ticket &ticket, ArrayView<request_t> &requests)
 {
 	Instrument::Guard<AddQueues> instrGuard;
 
@@ -340,10 +340,10 @@ template <typename Lang>
 template <typename EntryTy>
 inline void TicketManager<Lang>::addTicketRequests(
 	Ticket &ticket,
-	util::ArrayView<request_t> &requests,
-	util::LockFreeQueue<EntryTy> &queue
+	ArrayView<request_t> &requests,
+	LockFreeQueue<EntryTy> &queue
 ) {
-	util::Uninitialized<EntryTy> entries[BatchSize];
+	Uninitialized<EntryTy> entries[BatchSize];
 
 	const int active = ticket.getPendingRequests();
 	assert(active > 0);
@@ -368,8 +368,8 @@ inline void TicketManager<Lang>::internalCheckEntryQueues()
 {
 	Instrument::Guard<TransferQueues> instrGuard;
 
-	util::Uninitialized<BlockingEntry> blockings[BatchSize];
-	util::Uninitialized<NonBlockingEntry> nonBlockings[BatchSize];
+	Uninitialized<BlockingEntry> blockings[BatchSize];
+	Uninitialized<NonBlockingEntry> nonBlockings[BatchSize];
 
 	const int numAvailable = (MaxEntries - _pending);
 	int numBlk, numNonBlk;

@@ -35,7 +35,7 @@ private:
 	//! \param requests The array of requests
 	//!
 	//! \returns The number of active requests
-	static inline int getActiveRequestCount(const util::ArrayView<request_t> &requests)
+	static inline int getActiveRequestCount(const ArrayView<request_t> &requests)
 	{
 		int active = 0;
 		for (const request_t &request : requests) {
@@ -83,7 +83,7 @@ public:
 	//! \param statuses A pointer to the location where to save the statuses or STATUSES_IGNORE
 	//! \param blocking Whether the task should block until the requests complete
 	static void processRequests(
-		util::ArrayView<request_t> requests,
+		ArrayView<request_t> requests,
 		status_ptr_t statuses = Interface<Lang>::STATUSES_IGNORE,
 		bool blocking = true
 	);
@@ -124,7 +124,7 @@ inline void RequestManager<Lang>::processRequest(request_t &request, status_ptr_
 
 template <typename Lang>
 inline void RequestManager<Lang>::processRequests(
-	util::ArrayView<request_t> requests,
+	ArrayView<request_t> requests,
 	status_ptr_t statuses,
 	bool blocking
 ) {

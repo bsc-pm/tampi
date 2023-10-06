@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2021 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef ARRAY_VIEW_HPP
@@ -12,7 +12,6 @@
 
 
 namespace tampi {
-namespace util {
 
 //! Class that encapsulates an array previously allocated
 //! and that his storage should be kept valid during the
@@ -199,12 +198,11 @@ struct reverse_adaptor {
 };
 
 template <typename T>
-util::reverse_adaptor<T> reverse(T&& iterable)
+reverse_adaptor<T> reverse(T&& iterable)
 {
 	return {iterable};
 }
 
-} // namespace util
 } // namespace tampi
 
 #endif // ARRAY_VIEW_HPP
