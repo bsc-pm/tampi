@@ -22,7 +22,6 @@
 
 
 namespace tampi {
-namespace util {
 
 //! Class that provides the functionality of a lock free queue
 template <typename T, size_t Size = 32*1024>
@@ -96,7 +95,6 @@ public:
 	}
 };
 
-} // namespace util
 } // namespace tampi
 
 #endif // LOCK_FREE_QUEUE_HPP

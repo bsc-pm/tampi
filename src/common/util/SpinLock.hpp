@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2022 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef SPIN_LOCK_HPP
@@ -20,11 +20,11 @@ namespace tampi {
 //! acquire the lock at the same time
 class SpinLock {
 private:
-	static constexpr size_t Size = MAX_SYSTEM_CPUS;
+	static constexpr size_t Size = MaxSystemCPUs;
 
-	alignas(CACHELINE_SIZE) util::Padded<std::atomic<size_t> > _buffer[Size];
-	alignas(CACHELINE_SIZE) std::atomic<size_t> _head;
-	alignas(CACHELINE_SIZE) size_t _next;
+	alignas(CacheAlignment) PaddedArray<std::atomic<size_t>, Size> _buffer;
+	alignas(CacheAlignment) std::atomic<size_t> _head;
+	alignas(CacheAlignment) size_t _next;
 
 public:
 	inline SpinLock() :
@@ -32,7 +32,7 @@ public:
 		_next(0)
 	{
 		for (size_t i = 0; i < Size; ++i) {
-			std::atomic_init(_buffer[i].ptr_to_basetype(), (size_t) 0);
+			std::atomic_init(&_buffer[i], (size_t) 0);
 		}
 	}
 
@@ -42,9 +42,9 @@ public:
 		const size_t head = _head.fetch_add(1, std::memory_order_relaxed);
 		const size_t idx = head % Size;
 		while (_buffer[idx].load(std::memory_order_relaxed) != head) {
-			util::spinWait();
+			SpinWait::wait();
 		}
-		util::spinWaitRelease();
+		SpinWait::release();
 
 		std::atomic_thread_fence(std::memory_order_acquire);
 	}

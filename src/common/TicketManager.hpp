@@ -95,10 +95,10 @@ private:
 	TicketManagerInternals<Lang, MaxEntries> _arrays;
 
 	//! Lock-free pre-queues of blocking requests
-	util::LockFreeQueue<BlockingEntry> _blockingEntries;
+	LockFreeQueue<BlockingEntry> _blockingEntries;
 
 	//! Lock-free pre-queues of non-blocking requests
-	util::LockFreeQueue<NonBlockingEntry> _nonBlockingEntries;
+	LockFreeQueue<NonBlockingEntry> _nonBlockingEntries;
 
 	//! Auxiliary array of indices used when checking requests
 	int *_indices;
@@ -207,7 +207,7 @@ public:
 	//!
 	//! \param request The requests to add
 	//! \param ticket The ticket which the requests belongs to
-	void addTicket(Ticket &ticket, util::ArrayView<request_t> &requests);
+	void addTicket(Ticket &ticket, ArrayView<request_t> &requests);
 
 private:
 	//! \brief Internal function to check the requests that are in-flight
@@ -234,8 +234,8 @@ private:
 	template <typename EntryTy>
 	void addTicketRequests(
 		Ticket &ticket,
-		util::ArrayView<request_t> &requests,
-		util::LockFreeQueue<EntryTy> &queue
+		ArrayView<request_t> &requests,
+		LockFreeQueue<EntryTy> &queue
 	);
 
 	//! \brief Internal function to check and transfer requests from pre-queues
@@ -247,13 +247,13 @@ private:
 	//!
 	//! \param entries The array of entries containing the requests to transfer
 	//! \param count The number of requests to add
-	void transferEntries(BlockingEntry entries[], int count);
+	void transferEntries(BlockingEntry *entries, int count);
 
 	//! \brief Transfers non-blocking requests to the general array
 	//!
 	//! \param entries The array of entries containing the requests to transfer
 	//! \param count The number of requests to add
-	void transferEntries(NonBlockingEntry entries[], int count);
+	void transferEntries(NonBlockingEntry *entries, int count);
 };
 
 template <typename Lang>
@@ -325,7 +325,7 @@ inline void TicketManager<Lang>::addTicket(Ticket &ticket, request_t &request)
 }
 
 template <typename Lang>
-inline void TicketManager<Lang>::addTicket(Ticket &ticket, util::ArrayView<request_t> &requests)
+inline void TicketManager<Lang>::addTicket(Ticket &ticket, ArrayView<request_t> &requests)
 {
 	Instrument::Guard<AddQueues> instrGuard;
 
@@ -340,10 +340,10 @@ template <typename Lang>
 template <typename EntryTy>
 inline void TicketManager<Lang>::addTicketRequests(
 	Ticket &ticket,
-	util::ArrayView<request_t> &requests,
-	util::LockFreeQueue<EntryTy> &queue
+	ArrayView<request_t> &requests,
+	LockFreeQueue<EntryTy> &queue
 ) {
-	util::Uninitialized<EntryTy> entries[BatchSize];
+	Uninitialized<EntryTy, BatchSize> entries;
 
 	const int active = ticket.getPendingRequests();
 	assert(active > 0);
@@ -359,7 +359,7 @@ inline void TicketManager<Lang>::addTicketRequests(
 			}
 			++req;
 		}
-		queue.push((EntryTy *)entries, size, [this]() { checkEntryQueues(); });
+		queue.push(entries.get(), size, [this]() { checkEntryQueues(); });
 	}
 }
 
@@ -368,8 +368,8 @@ inline void TicketManager<Lang>::internalCheckEntryQueues()
 {
 	Instrument::Guard<TransferQueues> instrGuard;
 
-	util::Uninitialized<BlockingEntry> blockings[BatchSize];
-	util::Uninitialized<NonBlockingEntry> nonBlockings[BatchSize];
+	Uninitialized<BlockingEntry, BatchSize> blockings;
+	Uninitialized<NonBlockingEntry, BatchSize> nonBlockings;
 
 	const int numAvailable = (MaxEntries - _pending);
 	int numBlk, numNonBlk;
@@ -377,23 +377,23 @@ inline void TicketManager<Lang>::internalCheckEntryQueues()
 
 	do {
 		numBlk = std::min(numAvailable - total, BatchSize);
-		numBlk = _blockingEntries.pop((BlockingEntry *)blockings, numBlk);
+		numBlk = _blockingEntries.pop(blockings.get(), numBlk);
 		if (numBlk > 0) {
-			transferEntries((BlockingEntry *)blockings, numBlk);
+			transferEntries(blockings.get(), numBlk);
 			total += numBlk;
 		}
 
 		numNonBlk = std::min(numAvailable - total, BatchSize);
-		numNonBlk = _nonBlockingEntries.pop((NonBlockingEntry *)nonBlockings, numNonBlk);
+		numNonBlk = _nonBlockingEntries.pop(nonBlockings.get(), numNonBlk);
 		if (numNonBlk > 0) {
-			transferEntries((NonBlockingEntry *)nonBlockings, numNonBlk);
+			transferEntries(nonBlockings.get(), numNonBlk);
 			total += numNonBlk;
 		}
 	} while (total < numAvailable && (numBlk > 0 || numNonBlk > 0));
 }
 
 template <typename Lang>
-inline void TicketManager<Lang>::transferEntries(BlockingEntry entries[], int count)
+inline void TicketManager<Lang>::transferEntries(BlockingEntry *entries, int count)
 {
 	assert(_pending + count <= MaxEntries);
 
@@ -412,7 +412,7 @@ inline void TicketManager<Lang>::transferEntries(BlockingEntry entries[], int co
 }
 
 template <typename Lang>
-inline void TicketManager<Lang>::transferEntries(NonBlockingEntry entries[], int count)
+inline void TicketManager<Lang>::transferEntries(NonBlockingEntry *entries, int count)
 {
 	assert(_pending + count <= MaxEntries);
 
