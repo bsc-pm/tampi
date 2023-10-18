@@ -55,7 +55,7 @@ private:
 		std::atomic<bool> _mustFinish;
 		std::atomic<bool> _finished;
 
-		inline PollingInfo(
+		PollingInfo(
 			const std::string &name,
 			polling_function_t function,
 			void *args
@@ -89,7 +89,7 @@ public:
 	//!
 	//! \returns A polling handle to unregister the instance once
 	//!          the polling should finish
-	static inline polling_handle_t registerPolling(
+	static polling_handle_t registerPolling(
 		const std::string &name,
 		polling_function_t function,
 		void *args
@@ -116,7 +116,7 @@ public:
 	//! polling instances may continue calling that function
 	//!
 	//! \param handle The handle of the polling instance to unregister
-	static inline void unregisterPolling(polling_handle_t handle)
+	static void unregisterPolling(polling_handle_t handle)
 	{
 		PollingInfo *info = (PollingInfo *) handle;
 		assert(info != nullptr);
@@ -140,7 +140,7 @@ public:
 	//! \brief Get the blocking context of the current task
 	//!
 	//! \returns An opaque pointer of the blocking context
-	static inline void *getCurrentBlockingContext()
+	static void *getCurrentBlockingContext()
 	{
 		return _getCurrentBlockingContext();
 	}
@@ -148,7 +148,7 @@ public:
 	//! \brief Block the current task
 	//!
 	//! \param context The blocking context of the current task
-	static inline void blockCurrentTask(void *context)
+	static void blockCurrentTask(void *context)
 	{
 		_blockCurrentTask(context);
 	}
@@ -156,7 +156,7 @@ public:
 	//! \brief Unblock a task
 	//!
 	//! \param context The blocking context of the task to unblock
-	static inline void unblockTask(void *context)
+	static void unblockTask(void *context)
 	{
 		_unblockTask(context);
 	}
@@ -164,7 +164,7 @@ public:
 	//! \brief Get the event counter of the current task
 	//!
 	//! \returns An opaque pointer of the event counter
-	static inline void *getCurrentEventCounter()
+	static void *getCurrentEventCounter()
 	{
 		return _getCurrentEventCounter();
 	}
@@ -173,7 +173,7 @@ public:
 	//!
 	//! \param counter The event counter of the current task
 	//! \param increment The amount of events to increase
-	static inline void increaseCurrentTaskEventCounter(void *counter, unsigned int increment)
+	static void increaseCurrentTaskEventCounter(void *counter, unsigned int increment)
 	{
 		_increaseCurrentTaskEventCounter(counter, increment);
 	}
@@ -182,7 +182,7 @@ public:
 	//!
 	//! \param counter The event counter of the target task
 	//! \param decrement The amount of events to decrease
-	static inline void decreaseTaskEventCounter(void *counter, unsigned int decrement)
+	static void decreaseTaskEventCounter(void *counter, unsigned int decrement)
 	{
 		_decreaseTaskEventCounter(counter, decrement);
 	}
@@ -197,7 +197,7 @@ private:
 	//! \param args An opaque pointer to the polling info
 	//!
 	//! \returns Whether the polling service should unregister
-	static inline int pollingServiceFunction(void *args)
+	static int pollingServiceFunction(void *args)
 	{
 		PollingInfo *info = (PollingInfo *) args;
 		assert(info != nullptr);
@@ -217,7 +217,7 @@ private:
 	//! polling tasks
 	//!
 	//! \param args An opaque pointer to the polling info
-	static inline void pollingTaskFunction(void *args)
+	static void pollingTaskFunction(void *args)
 	{
 		PollingInfo *info = (PollingInfo *) args;
 		assert(info != nullptr);
@@ -240,7 +240,7 @@ private:
 	//! completes (e.g., all child tasks have completed)
 	//!
 	//! \param args An opaque pointer to the polling info
-	static inline void pollingTaskCompletes(void *args)
+	static void pollingTaskCompletes(void *args)
 	{
 		PollingInfo *info = (PollingInfo *) args;
 		assert(info != nullptr);

@@ -35,7 +35,7 @@ private:
 	//! \param requests The array of requests
 	//!
 	//! \returns The number of active requests
-	static inline int getActiveRequestCount(const ArrayView<request_t> &requests)
+	static int getActiveRequestCount(const ArrayView<request_t> &requests)
 	{
 		int active = 0;
 		for (const request_t &request : requests) {
@@ -90,7 +90,7 @@ public:
 };
 
 template <typename Lang>
-inline void RequestManager<Lang>::processRequest(request_t &request, status_ptr_t status, bool blocking)
+void RequestManager<Lang>::processRequest(request_t &request, status_ptr_t status, bool blocking)
 {
 	Instrument::enter<TestRequest>();
 
@@ -123,7 +123,7 @@ inline void RequestManager<Lang>::processRequest(request_t &request, status_ptr_
 }
 
 template <typename Lang>
-inline void RequestManager<Lang>::processRequests(
+void RequestManager<Lang>::processRequests(
 	ArrayView<request_t> requests,
 	status_ptr_t statuses,
 	bool blocking

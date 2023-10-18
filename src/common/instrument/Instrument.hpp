@@ -54,7 +54,7 @@ public:
 	static void initialize(int rank, int nranks);
 
 	//! \brief Finalize the instrumentation
-	static inline void finalize()
+	static void finalize()
 	{
 		if (_backend)
 			_backend->finalize();
@@ -62,7 +62,7 @@ public:
 
 	//! \brief Enter into a state at an instrument point
 	template <InstrumentPoint Point>
-	static inline void enter()
+	static void enter()
 	{
 		if (_backend)
 			_backend->enter(Point);
@@ -70,7 +70,7 @@ public:
 
 	//! \brief Exit from a state at an instrument point
 	template <InstrumentPoint Point>
-	static inline void exit()
+	static void exit()
 	{
 		if (_backend)
 			_backend->exit(Point);
@@ -83,13 +83,13 @@ public:
 	template <InstrumentPoint Point>
 	struct Guard {
 		//! \brief Enter the instrumentation point at construction
-		inline Guard()
+		Guard()
 		{
 			Instrument::enter<Point>();
 		}
 
 		//! \brief Exit the instrumentation point at destruction
-		inline ~Guard()
+		~Guard()
 		{
 			Instrument::exit<Point>();
 		}

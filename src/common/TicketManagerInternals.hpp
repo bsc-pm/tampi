@@ -47,7 +47,7 @@ private:
 	Ticket    *_tickets;
 
 public:
-	inline TicketManagerInternals()
+	TicketManagerInternals()
 	{
 		// Allocate all arrays
 		_requests = (request_t *) std::malloc(Capacity * sizeof(request_t));
@@ -57,7 +57,7 @@ public:
 		assert(_requests && _statuses && _mappings && _tickets);
 	}
 
-	inline ~TicketManagerInternals()
+	~TicketManagerInternals()
 	{
 		// Deallocate all arrays
 		assert(_requests && _statuses && _mappings && _tickets);
@@ -70,7 +70,7 @@ public:
 	//! \brief Get the maximum capacity of the arrays
 	//!
 	//! \returns The capacity
-	inline size_t capacity() const
+	size_t capacity() const
 	{
 		return Capacity;
 	}
@@ -80,7 +80,7 @@ public:
 	//! \param position The position of the request in the array
 	//!
 	//! \return The request
-	inline const request_t &getRequest(int position) const
+	const request_t &getRequest(int position) const
 	{
 		return _requests[position];
 	}
@@ -90,7 +90,7 @@ public:
 	//! \param position The position of the request in the array
 	//!
 	//! \return The request
-	inline request_t &getRequest(int position)
+	request_t &getRequest(int position)
 	{
 		return _requests[position];
 	}
@@ -100,7 +100,7 @@ public:
 	//! \param position The position of the request in the array
 	//!
 	//! \return The status
-	inline const status_t &getStatus(int position) const
+	const status_t &getStatus(int position) const
 	{
 		return _statuses[position];
 	}
@@ -110,7 +110,7 @@ public:
 	//! \param position The position of the request in the array
 	//!
 	//! \return The status
-	inline status_t &getStatus(int position)
+	status_t &getStatus(int position)
 	{
 		return _statuses[position];
 	}
@@ -118,7 +118,7 @@ public:
 	//! \brief Get the array of requests
 	//!
 	//! \return The array of requests
-	inline request_t *getRequests() const
+	request_t *getRequests() const
 	{
 		return _requests;
 	}
@@ -126,7 +126,7 @@ public:
 	//! \brief Get the array of statuses
 	//!
 	//! \return The array of statuses
-	inline status_ptr_t getStatuses() const
+	status_ptr_t getStatuses() const
 	{
 		return (status_ptr_t) _statuses;
 	}
@@ -136,7 +136,7 @@ public:
 	//! \param The position of the request in the array
 	//!
 	//! \return The ticket associated to the request
-	inline const Ticket &getAssociatedTicket(int position) const
+	const Ticket &getAssociatedTicket(int position) const
 	{
 		assert(_mappings[position].ticket != nullptr);
 		return *_mappings[position].ticket;
@@ -147,7 +147,7 @@ public:
 	//! \param The position of the request in the array
 	//!
 	//! \return The ticket associated to the request
-	inline Ticket &getAssociatedTicket(int position)
+	Ticket &getAssociatedTicket(int position)
 	{
 		assert(_mappings[position].ticket != nullptr);
 		return *_mappings[position].ticket;
@@ -158,7 +158,7 @@ public:
 	//! \param position The position of the request in the array
 	//!
 	//! \return The local position of the request in the ticket
-	inline int getLocalPositionInTicket(int position) const
+	int getLocalPositionInTicket(int position) const
 	{
 		assert(_mappings[position].localPosition >= 0);
 		return _mappings[position].localPosition;
@@ -171,7 +171,7 @@ public:
 	//!
 	//! \returns The allocated ticket
 	template <typename... Args>
-	inline Ticket &allocateTicket(int position, Args &&... ticketArgs)
+	Ticket &allocateTicket(int position, Args &&... ticketArgs)
 	{
 		new (&_tickets[position]) Ticket(std::forward<Args>(ticketArgs)...);
 		return _tickets[position];
@@ -183,7 +183,7 @@ public:
 	//! \param request The request
 	//! \param ticket The ticket
 	//! \param localPosition The local position of the request in the ticket
-	inline void associateRequest(int position, request_t &request, Ticket &ticket, int localPosition = 0)
+	void associateRequest(int position, request_t &request, Ticket &ticket, int localPosition = 0)
 	{
 		_requests[position] = request;
 		_mappings[position].ticket = &ticket;
@@ -194,7 +194,7 @@ public:
 	//!
 	//! \param source The initial position of the request
 	//! \param destination The new position of the request
-	inline void moveRequest(int source, int destination)
+	void moveRequest(int source, int destination)
 	{
 		assert(source != destination);
 		_requests[destination] = _requests[source];

@@ -57,7 +57,7 @@ public:
 	//! \brief Indicate if the enviornment variable has actually been defined
 	//!
 	//! \returns Whether the enviornment variable is defined
-	inline bool isPresent() const
+	bool isPresent() const
 	{
 		return _isPresent;
 	}
@@ -65,7 +65,7 @@ public:
 	//! \brief Retrieve the current value
 	//!
 	//! \returns The current value
-	inline T get() const
+	T get() const
 	{
 		return _value;
 	}
@@ -85,7 +85,7 @@ public:
 	//!
 	//! \param value The new value
 	//! \param makePresent Mark it as if it had been originally defined
-	inline void set(T value, bool makePresent = false)
+	void set(T value, bool makePresent = false)
 	{
 		_value = value;
 		_isPresent |= makePresent;

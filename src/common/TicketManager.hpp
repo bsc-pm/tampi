@@ -48,14 +48,14 @@ private:
 		Ticket *_ticket;
 		int _position;
 
-		inline BlockingEntry(const request_t &request, Ticket &ticket, int position = 0) :
+		BlockingEntry(const request_t &request, Ticket &ticket, int position = 0) :
 			_request(request),
 			_ticket(&ticket),
 			_position(position)
 		{
 		}
 
-		inline BlockingEntry() :
+		BlockingEntry() :
 			_request(Interface<Lang>::REQUEST_NULL),
 			_ticket(nullptr),
 			_position(0)
@@ -69,7 +69,7 @@ private:
 		Ticket _ticket;
 		int _position;
 
-		inline NonBlockingEntry(
+		NonBlockingEntry(
 			const request_t &request,
 			Ticket &ticket,
 			int position = 0
@@ -80,7 +80,7 @@ private:
 		{
 		}
 
-		inline NonBlockingEntry() :
+		NonBlockingEntry() :
 			_request(Interface<Lang>::REQUEST_NULL),
 			_ticket(),
 			_position(0)
@@ -132,7 +132,7 @@ public:
 	//! \brief Get the ticket manager for a specific language
 	//!
 	//! \returns A reference to the ticket manager
-	static inline TicketManager &getTicketManager()
+	static TicketManager &getTicketManager()
 	{
 		static TicketManager _ticketManager;
 		return _ticketManager;
@@ -142,7 +142,7 @@ public:
 	//!
 	//! \param position The position of the request in the array
 	//! \param status The resulting MPI status of the operation
-	inline void completeRequest(unsigned int position, const status_t &status)
+	void completeRequest(unsigned int position, const status_t &status)
 	{
 		int localPosition = _arrays.getLocalPositionInTicket(position);
 		Ticket &ticket = _arrays.getAssociatedTicket(position);
@@ -160,7 +160,7 @@ public:
 	//! \param pending add the number of pending requests
 	//!
 	//! \return the number of completed requests
-	inline size_t checkRequests(size_t &pending)
+	size_t checkRequests(size_t &pending)
 	{
 		std::lock_guard<SpinLock> guard(_mutex);
 
@@ -219,7 +219,7 @@ private:
 	//!
 	//! This function tries to acquire the lock before trying to
 	//! transfer requests from pre-queues to the general array
-	inline void checkEntryQueues()
+	void checkEntryQueues()
 	{
 		std::unique_lock<SpinLock> guard(_mutex, std::try_to_lock);
 		if (guard.owns_lock()) {
@@ -257,7 +257,7 @@ private:
 };
 
 template <typename Lang>
-inline bool TicketManager<Lang>::internalCheckRequests()
+bool TicketManager<Lang>::internalCheckRequests()
 {
 	assert(_pending > 0);
 
@@ -308,7 +308,7 @@ inline bool TicketManager<Lang>::internalCheckRequests()
 }
 
 template <typename Lang>
-inline void TicketManager<Lang>::addTicket(Ticket &ticket, request_t &request)
+void TicketManager<Lang>::addTicket(Ticket &ticket, request_t &request)
 {
 	assert(request != Interface<Lang>::REQUEST_NULL);
 	assert(ticket.getPendingRequests() == 1);
@@ -325,7 +325,7 @@ inline void TicketManager<Lang>::addTicket(Ticket &ticket, request_t &request)
 }
 
 template <typename Lang>
-inline void TicketManager<Lang>::addTicket(Ticket &ticket, ArrayView<request_t> &requests)
+void TicketManager<Lang>::addTicket(Ticket &ticket, ArrayView<request_t> &requests)
 {
 	Instrument::Guard<AddQueues> instrGuard;
 
@@ -338,7 +338,7 @@ inline void TicketManager<Lang>::addTicket(Ticket &ticket, ArrayView<request_t> 
 
 template <typename Lang>
 template <typename EntryTy>
-inline void TicketManager<Lang>::addTicketRequests(
+void TicketManager<Lang>::addTicketRequests(
 	Ticket &ticket,
 	ArrayView<request_t> &requests,
 	LockFreeQueue<EntryTy> &queue
@@ -364,7 +364,7 @@ inline void TicketManager<Lang>::addTicketRequests(
 }
 
 template <typename Lang>
-inline void TicketManager<Lang>::internalCheckEntryQueues()
+void TicketManager<Lang>::internalCheckEntryQueues()
 {
 	Instrument::Guard<TransferQueues> instrGuard;
 
@@ -393,7 +393,7 @@ inline void TicketManager<Lang>::internalCheckEntryQueues()
 }
 
 template <typename Lang>
-inline void TicketManager<Lang>::transferEntries(BlockingEntry *entries, int count)
+void TicketManager<Lang>::transferEntries(BlockingEntry *entries, int count)
 {
 	assert(_pending + count <= MaxEntries);
 
@@ -412,7 +412,7 @@ inline void TicketManager<Lang>::transferEntries(BlockingEntry *entries, int cou
 }
 
 template <typename Lang>
-inline void TicketManager<Lang>::transferEntries(NonBlockingEntry *entries, int count)
+void TicketManager<Lang>::transferEntries(NonBlockingEntry *entries, int count)
 {
 	assert(_pending + count <= MaxEntries);
 

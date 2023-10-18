@@ -78,19 +78,19 @@ public:
 	const Environment& operator= (const Environment &) = delete;
 
 	//! \brief Check whether the blocking TAMPI mode is enabled
-	static inline bool isBlockingEnabled()
+	static bool isBlockingEnabled()
 	{
 		return _state.blockingMode.load(std::memory_order_acquire);
 	}
 
 	//! \brief Check whether the non-blocking TAMPI mode is enabled
-	static inline bool isNonBlockingEnabled()
+	static bool isNonBlockingEnabled()
 	{
 		return _state.nonBlockingMode.load(std::memory_order_acquire);
 	}
 
 	//! \brief Check whether the auto initialization is enabled
-	static inline bool isAutoInitializeEnabled()
+	static bool isAutoInitializeEnabled()
 	{
 		int enabled;
 		getProperty(TAMPI_PROPERTY_AUTO_INIT, &enabled);
@@ -101,7 +101,7 @@ public:
 	//!
 	//! This function checks whether the blocking mode is enabled globally
 	//! and whether the thread has the mode enabled
-	static inline bool isBlockingEnabledForCurrentThread()
+	static bool isBlockingEnabledForCurrentThread()
 	{
 		return (_state.threadTaskAwareness && isBlockingEnabled());
 	}
@@ -112,7 +112,7 @@ public:
 	//! \param value Pointer to where the value should be saved
 	//!
 	//! \return Zero on success, and error otherwise
-	static inline int getProperty(int property, int *value)
+	static int getProperty(int property, int *value)
 	{
 		std::lock_guard<std::mutex> lock(_state.mutex);
 
@@ -145,7 +145,7 @@ public:
 	//! \param value The new value
 	//!
 	//! \return Zero on success, and error otherwise
-	static inline int setProperty(int property, int value)
+	static int setProperty(int property, int value)
 	{
 		std::lock_guard<std::mutex> lock(_state.mutex);
 

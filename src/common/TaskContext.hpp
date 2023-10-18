@@ -27,14 +27,14 @@ private:
 
 public:
 	//! \brief Construct a task context
-	inline TaskContext()
+	TaskContext()
 	{
 	}
 
 	//! \brief Construct a task context
 	//!
 	//! \param blocking Whether the task is using the blocking mode
-	inline TaskContext(bool blocking) :
+	TaskContext(bool blocking) :
 		_blocking(blocking),
 		_taskData(nullptr)
 	{
@@ -46,7 +46,7 @@ public:
 	//!
 	//! \param blocking Whether the task is using the blocking mode
 	//! \param taskData The task blocking context or events counter
-	inline TaskContext(bool blocking, void *taskData) :
+	TaskContext(bool blocking, void *taskData) :
 		_blocking(blocking),
 		_taskData(taskData)
 	{
@@ -56,7 +56,7 @@ public:
 	//! \brief Get the task blocking context or events counter
 	//!
 	//! \returns An opaque pointer to the context or counter
-	inline void *getTaskData() const
+	void *getTaskData() const
 	{
 		return _taskData;
 	}
@@ -64,7 +64,7 @@ public:
 	//! \brief Bind some events to the task
 	//!
 	//! \param num The number of events to bind
-	inline void bindEvents(int num)
+	void bindEvents(int num)
 	{
 		assert(num > 0);
 		if (!_blocking) {
@@ -76,7 +76,7 @@ public:
 	//!
 	//! \param num The number of events to complete
 	//! \param allCompleted Whether these are the last events to complete
-	inline void completeEvents(int num, bool allCompleted)
+	void completeEvents(int num, bool allCompleted)
 	{
 		assert(num > 0);
 		if (!_blocking) {
@@ -92,14 +92,14 @@ public:
 	//! This function blocks the current task until its events
 	//! have been completed. Note this call is only allowed when
 	//! the task is using the blocking mode
-	inline void waitEventsCompletion()
+	void waitEventsCompletion()
 	{
 		assert(_blocking);
 		TaskingModel::blockCurrentTask(_taskData);
 	}
 
 	//! \brief Indicate whether the task is using the blocking mode
-	inline bool isBlocking() const
+	bool isBlocking() const
 	{
 		return _blocking;
 	}
@@ -110,7 +110,7 @@ private:
 	//! \param blocking Whether the task is using the blocking mode
 	//!
 	//! \returns An opaque pointer to the context or counter
-	inline static void *getCurrentTaskData(bool blocking)
+	static void *getCurrentTaskData(bool blocking)
 	{
 		if (blocking) {
 			return TaskingModel::getCurrentBlockingContext();
