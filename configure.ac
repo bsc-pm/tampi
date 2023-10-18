@@ -17,7 +17,7 @@ AC_LANG([C++])
 # Prepare compilation flags before AC_PROG_CXX
 AX_COMPILE_FLAGS
 
-# Look for a valid MPI compiler
+# Look for a valid C++ compiler
 AC_PROG_CXX
 
 # Retrieve compiler version
@@ -30,29 +30,30 @@ AM_PROG_AR
 AM_INIT_AUTOMAKE([foreign -Wall dist-bzip2 -Wno-portability subdir-objects silent-rules])
 AM_SILENT_RULES([yes])
 
-# Checks for header files.
+# Checks header files
 AC_CHECK_HEADERS([unistd.h])
 
 # Find and check the MPI library
 LX_FIND_MPI
 AX_CHECK_MPI
 
-# Boost is no longer required
+# Check the Boost library
 AX_BOOST_BASE([1.59], [], [ AC_MSG_ERROR([Boost library not found])])
 
-# Check ovni instrumenter
+# Check the ovni instrumentation library
 AC_CHECK_OVNI
 
-# Checks for typedefs, structures, and compiler characteristics.
+# Check that the compiler supports C++17
 AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
-AC_CHECK_HEADER_STDBOOL
-AC_TYPE_SIZE_T
 
 # Enable/disable blocking and non-blocking modes
 AX_CHECK_TAMPI_MODES
 
+# Check the CPU count of the system
 AX_CHECK_CPUS
 
+# Compile both static and dynamic libraries. All objects should be compiled
+# enabling the position independent code (PIC) mode
 LT_INIT([shared static pic-only])
 
 AC_CONFIG_FILES([Makefile])
