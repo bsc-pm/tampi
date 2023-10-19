@@ -32,7 +32,7 @@ private:
 
 public:
 	//! \brief Construct an empty ticket
-	inline Ticket() :
+	Ticket() :
 		_pending(0),
 		_taskContext(),
 		_firstStatus(nullptr)
@@ -44,7 +44,7 @@ public:
 	//! \param firstStatus A pointer to the location where to save
 	//!                    the statuses or STATUS_IGNORE
 	//! \param blocking Whether the TAMPI operation is blocking
-	inline Ticket(status_ptr_t firstStatus, bool blocking) :
+	Ticket(status_ptr_t firstStatus, bool blocking) :
 		_pending(0),
 		_taskContext(blocking),
 		_firstStatus(firstStatus)
@@ -52,13 +52,13 @@ public:
 	}
 
 	//! \brief Indicate whether the ticket is blocking
-	inline bool isBlocking() const
+	bool isBlocking() const
 	{
 		return _taskContext.isBlocking();
 	}
 
 	//! \brief Get the number of pending requests
-	inline int getPendingRequests() const
+	int getPendingRequests() const
 	{
 		return _pending;
 	}
@@ -66,7 +66,7 @@ public:
 	//! \brief Add pending requests to the ticket
 	//!
 	//! \param num The number of pending requests to add
-	inline void addPendingRequests(int num)
+	void addPendingRequests(int num)
 	{
 		_pending += num;
 		_taskContext.bindEvents(num);
@@ -75,7 +75,7 @@ public:
 	//! \brief Reset the pending requests of the ticket
 	//!
 	//! Notice this function does not alter the number of bound events
-	inline void resetPendingRequests(int num)
+	void resetPendingRequests(int num)
 	{
 		_pending = num;
 	}
@@ -84,7 +84,7 @@ public:
 	//!
 	//! \param status The status of the completed request
 	//! \param statusPosition The local position in the array of statuses
-	inline void requestCompleted(const status_t& status, int statusPosition)
+	void requestCompleted(const status_t& status, int statusPosition)
 	{
 		assert(_pending > 0);
 		--_pending;
@@ -101,7 +101,7 @@ public:
 	//! This function blocks the current task until all requests
 	//! complete. Note this is only valid for tickets of blocking
 	//! TAMPI operations
-	inline void wait()
+	void wait()
 	{
 		_taskContext.waitEventsCompletion();
 	}
@@ -110,7 +110,7 @@ private:
 	//! \brief Indicate whether the statuses should be ignored
 	//!
 	//! \returns Whether ignore the statuses
-	inline bool ignoreStatus() const
+	bool ignoreStatus() const
 	{
 		return (_firstStatus == Interface<Lang>::STATUS_IGNORE || _firstStatus == Interface<Lang>::STATUSES_IGNORE);
 	}
@@ -119,7 +119,7 @@ private:
 	//!
 	//! \param status The status to be stored
 	//! \param statusPosition The local position in the array of statuses
-	inline void storeStatus(const status_t& status, int statusPosition)
+	void storeStatus(const status_t& status, int statusPosition)
 	{
 		assert(_firstStatus != nullptr);
 		assert(statusPosition >= 0);

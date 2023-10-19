@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2019-2020 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2019-2023 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef ERROR_HANDLER_HPP
@@ -25,58 +25,58 @@ private:
 	static SpinLock _lock;
 
 	template <typename T, typename... TS>
-	static inline void emitReasonParts(std::ostringstream &oss, T const &firstReasonPart, TS... reasonParts)
+	static void emitReasonParts(std::ostringstream &oss, T const &firstReasonPart, TS... reasonParts)
 	{
 		oss << firstReasonPart;
 		emitReasonParts(oss, reasonParts...);
 	}
 
-	static inline void emitReasonParts(__attribute__((unused)) std::ostringstream &oss)
+	static void emitReasonParts(__attribute__((unused)) std::ostringstream &oss)
 	{
 	}
 
-	static inline void safeEmitPart(__attribute__((unused)) char *buffer, __attribute__((unused)) size_t size, char part)
+	static void safeEmitPart(__attribute__((unused)) char *buffer, __attribute__((unused)) size_t size, char part)
 	{
 		write(2, &part, 1);
 	}
 
-	static inline void safeEmitPart(char *buffer, size_t size, int part)
+	static void safeEmitPart(char *buffer, size_t size, int part)
 	{
 		int length = snprintf(buffer, size, "%i", part);
 		write(2, buffer, length);
 	}
 
-	static inline void safeEmitPart(char *buffer, size_t size, long part)
+	static void safeEmitPart(char *buffer, size_t size, long part)
 	{
 		int length = snprintf(buffer, size, "%li", part);
 		write(2, buffer, length);
 	}
 
-	static inline void safeEmitPart(__attribute__((unused)) char *buffer, __attribute__((unused)) size_t size, char const *part)
+	static void safeEmitPart(__attribute__((unused)) char *buffer, __attribute__((unused)) size_t size, char const *part)
 	{
 		write(2, part, strlen(part));
 	}
 
-	static inline void safeEmitPart(char *buffer, size_t size, float part)
+	static void safeEmitPart(char *buffer, size_t size, float part)
 	{
 		int length = snprintf(buffer, size, "%f", part);
 		write(2, buffer, length);
 	}
 
-	static inline void safeEmitPart(char *buffer, size_t size, double part)
+	static void safeEmitPart(char *buffer, size_t size, double part)
 	{
 		int length = snprintf(buffer, size, "%f", part);
 		write(2, buffer, length);
 	}
 
 	template <typename T, typename... TS>
-	static inline void safeEmitReasonParts(char *buffer, size_t size, T const &firstReasonPart, TS... reasonParts)
+	static void safeEmitReasonParts(char *buffer, size_t size, T const &firstReasonPart, TS... reasonParts)
 	{
 		safeEmitPart(buffer, size, firstReasonPart);
 		safeEmitReasonParts(buffer, size, reasonParts...);
 	}
 
-	static inline void safeEmitReasonParts(__attribute__((unused)) char *buffer, __attribute__((unused)) size_t size)
+	static void safeEmitReasonParts(__attribute__((unused)) char *buffer, __attribute__((unused)) size_t size)
 	{
 	}
 
@@ -85,7 +85,7 @@ public:
 	//!
 	//! \param reasonParts The reason of the failure
 	template <typename... TS>
-	static inline void fail(TS... reasonParts)
+	static void fail(TS... reasonParts)
 	{
 		std::ostringstream oss;
 		oss << "Error: ";
@@ -109,11 +109,10 @@ public:
 	//! \param failure Whether the condition failed
 	//! \param reasonParts The reason of the failure
 	template <typename... TS>
-	static inline void failIf(bool failure, TS... reasonParts)
+	static void failIf(bool failure, TS... reasonParts)
 	{
-		if (__builtin_expect(!failure, 1)) {
+		if (__builtin_expect(!failure, 1))
 			return;
-		}
 
 		fail(reasonParts...);
 	}
@@ -122,7 +121,7 @@ public:
 	//!
 	//! \param reasonParts The reason of the warning
 	template <typename... TS>
-	static inline void warn(TS... reasonParts)
+	static void warn(TS... reasonParts)
 	{
 		std::ostringstream oss;
 		oss << "Warning: ";
@@ -140,11 +139,10 @@ public:
 	//! \param failure Whether the condition failed
 	//! \param reasonParts The reason of the warning
 	template <typename... TS>
-	static inline void warnIf(bool failure, TS... reasonParts)
+	static void warnIf(bool failure, TS... reasonParts)
 	{
-		if (__builtin_expect(!failure, 1)) {
+		if (__builtin_expect(!failure, 1))
 			return;
-		}
 
 		warn(reasonParts...);
 	}

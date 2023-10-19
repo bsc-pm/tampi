@@ -24,7 +24,8 @@ public:
 	//! The controller reads the TAMPI_POLLING_PERIOD envar to determine the period in
 	//! which TAMPI will check its MPI requests. If the envar is not defined, the period
 	//! is 100us as a default value. Notice that TAMPI_POLLING_FREQUENCY is deprecated
-	inline PollingPeriodCtrl() : _period(100)
+	PollingPeriodCtrl() :
+		_period(100)
 	{
 		EnvironmentVariable<uint64_t> pollingPeriod("TAMPI_POLLING_PERIOD");
 		EnvironmentVariable<uint64_t> pollingFrequency("TAMPI_POLLING_FREQUENCY");
@@ -44,7 +45,7 @@ public:
 	//!
 	//! \params completed The number of completed requests
 	//! \params pending The number of pending requests
-	inline uint64_t getPeriod(size_t, size_t)
+	uint64_t getPeriod(size_t, size_t)
 	{
 		return _period;
 	}

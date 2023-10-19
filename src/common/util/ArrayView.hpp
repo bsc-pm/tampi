@@ -30,7 +30,7 @@ public:
 	//!
 	//! \param begin A pointer to the first element
 	//! \param length The length of the arrayview
-	inline ArrayView(T *begin, int length) :
+	ArrayView(T *begin, int length) :
 		_begin(begin),
 		_end(begin + static_cast<size_t>(length))
 	{
@@ -41,7 +41,7 @@ public:
 	//!
 	//! \param begin A pointer to the first element
 	//! \param length The length of the arrayview
-	inline ArrayView(T *begin, size_t length) :
+	ArrayView(T *begin, size_t length) :
 		_begin(begin),
 		_end(begin + length)
 	{
@@ -50,7 +50,7 @@ public:
 	//! \brief Get the number of elements in the arrayview
 	//!
 	//! \returns The number of elements
-	inline int size() const
+	int size() const
 	{
 		return std::distance(begin(), end());
 	}
@@ -58,7 +58,7 @@ public:
 	//! \brief Indicate whether the arrayview is empty
 	//!
 	//! \returns Whether it is empty
-	inline bool empty() const
+	bool empty() const
 	{
 		return begin() == end();
 	}
@@ -66,7 +66,7 @@ public:
 	//! \brief Get a pointer to the first element
 	//!
 	//! \returns A pointer to the first element
-	inline T* begin()
+	T* begin()
 	{
 		return _begin;
 	}
@@ -74,7 +74,7 @@ public:
 	//! \brief Get a pointer to the first element
 	//!
 	//! \returns A pointer to the first element
-	inline const T* begin() const
+	const T* begin() const
 	{
 		return _begin;
 	}
@@ -86,7 +86,7 @@ public:
 	//! results in undefined behavior
 	//!
 	//! \returns A pointer to the end
-	inline T* end()
+	T* end()
 	{
 		return _end;
 	}
@@ -98,7 +98,7 @@ public:
 	//! results in undefined behavior
 	//!
 	//! \returns A pointer to the end
-	inline const T* end() const
+	const T* end() const
 	{
 		return _end;
 	}
@@ -108,7 +108,7 @@ public:
 	//! \param position The position of the element
 	//!
 	//! \returns The element
-	inline T& operator[](size_t position)
+	T& operator[](size_t position)
 	{
 		return _begin[position];
 	}
@@ -118,7 +118,7 @@ public:
 	//! \param position The position of the element
 	//!
 	//! \returns The element
-	inline const T& operator[](size_t position) const
+	const T& operator[](size_t position) const
 	{
 		return _begin[position];
 	}
@@ -126,7 +126,7 @@ public:
 	//! \brief Get a pointer to the underlying array data
 	//!
 	//! \returns A pointer to the array data
-	inline T* data()
+	T* data()
 	{
 		return _begin;
 	}
@@ -134,7 +134,7 @@ public:
 	//! \brief Get a pointer to the underlying array data
 	//!
 	//! \returns A pointer to the array data
-	inline const T* data() const
+	const T* data() const
 	{
 		return _begin;
 	}
@@ -142,7 +142,7 @@ public:
 	//! \brief Get a reverse iterator to the begin
 	//!
 	//! \returns A reverse iterator to the begin
-	inline std::reverse_iterator<T*> rbegin()
+	std::reverse_iterator<T*> rbegin()
 	{
 		return std::reverse_iterator<T*>(end());
 	}
@@ -150,7 +150,7 @@ public:
 	//! \brief Get a reverse iterator to the begin
 	//!
 	//! \returns A reverse iterator to the begin
-	inline std::reverse_iterator<const T*> rbegin() const
+	std::reverse_iterator<const T*> rbegin() const
 	{
 		return std::reverse_iterator<T*>(end());
 	}
@@ -158,7 +158,7 @@ public:
 	//! \brief Get a reverse iterator to the end
 	//!
 	//! \returns A reverse iterator to the end
-	inline std::reverse_iterator<T*> rend()
+	std::reverse_iterator<T*> rend()
 	{
 		return std::reverse_iterator<T*>(begin());
 	}
@@ -166,7 +166,7 @@ public:
 	//! \brief Get a reverse iterator to the end
 	//!
 	//! \returns A reverse iterator to the end
-	inline std::reverse_iterator<const T*> rend() const
+	std::reverse_iterator<const T*> rend() const
 	{
 		return std::reverse_iterator<T*>(begin());
 	}

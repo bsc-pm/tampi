@@ -27,17 +27,16 @@ private:
 	alignas(CacheAlignment) size_t _next;
 
 public:
-	inline SpinLock() :
+	SpinLock() :
 		_head(0),
 		_next(0)
 	{
-		for (size_t i = 0; i < Size; ++i) {
+		for (size_t i = 0; i < Size; ++i)
 			std::atomic_init(&_buffer[i], (size_t) 0);
-		}
 	}
 
 	//! \brief Aquire the spinlock
-	inline void lock()
+	void lock()
 	{
 		const size_t head = _head.fetch_add(1, std::memory_order_relaxed);
 		const size_t idx = head % Size;
@@ -52,7 +51,7 @@ public:
 	//! \brief Try to acquire the spinlock
 	//!
 	//! \returns Whether the spinlock was acquired
-	inline bool try_lock()
+	bool try_lock()
 	{
 		size_t head = _head.load(std::memory_order_relaxed);
 		const size_t idx = head % Size;
@@ -66,7 +65,7 @@ public:
 	}
 
 	//! \brief Release the spinlock
-	inline void unlock()
+	void unlock()
 	{
 		const size_t idx = ++_next % Size;
 		_buffer[idx].store(_next, std::memory_order_release);

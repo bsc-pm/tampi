@@ -40,7 +40,7 @@ private:
 	};
 
 	//! Emit an ovni event given the event model-category-value
-	static inline void emitEvent(const char *mcv)
+	static void emitEvent(const char *mcv)
 	{
 		struct ovni_ev ev = {};
 		ovni_ev_set_clock(&ev, ovni_clock_now());
@@ -50,24 +50,24 @@ private:
 
 public:
 	//! \brief Initialize the ovni instrumentation
-	inline void initialize(int rank, int nranks) override
+	void initialize(int rank, int nranks) override
 	{
 		ovni_proc_set_rank(rank, nranks);
 	}
 
 	//! \brief Finalize the ovni instrumentation
-	inline void finalize() override
+	void finalize() override
 	{
 	}
 
 	//! \brief Enter into a subsystem state at an instrument point
-	inline void enter(InstrumentPoint point) override
+	void enter(InstrumentPoint point) override
 	{
 		emitEvent(Subsystems[point].enterMCV);
 	}
 
 	//! \brief Exit from a subsystem state at an instrument point
-	inline void exit(InstrumentPoint point) override
+	void exit(InstrumentPoint point) override
 	{
 		emitEvent(Subsystems[point].exitMCV);
 	}

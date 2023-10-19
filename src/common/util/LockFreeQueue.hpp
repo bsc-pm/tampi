@@ -36,7 +36,7 @@ private:
 	queue_t _queue;
 
 public:
-	inline LockFreeQueue() :
+	LockFreeQueue() :
 		_adderMutex(),
 		_queue()
 	{
@@ -48,7 +48,7 @@ public:
 	//! \param progressFunction The function that should be called to
 	//!                         consume elements of the queue when full
 	template <typename ProgressFunction>
-	inline void push(const T &element, ProgressFunction progressFunction)
+	void push(const T &element, ProgressFunction progressFunction)
 	{
 		std::lock_guard<SpinLock> guard(_adderMutex);
 
@@ -68,7 +68,7 @@ public:
 	//! \param progressFunction The function that should be called to
 	//!                         consume elements of the queue when full
 	template <typename ProgressFunction>
-	inline void push(const T elements[], int count, ProgressFunction progressFunction)
+	void push(const T elements[], int count, ProgressFunction progressFunction)
 	{
 		assert(elements != nullptr);
 		std::lock_guard<SpinLock> guard(_adderMutex);
@@ -88,7 +88,7 @@ public:
 	//! \param count The maximum number of elements to retrieve
 	//!
 	//! \returns The number of elements retrieved
-	inline int pop(T elements[], int count)
+	int pop(T elements[], int count)
 	{
 		assert(elements != nullptr);
 		return _queue.pop(elements, count);

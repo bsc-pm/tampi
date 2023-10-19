@@ -49,7 +49,7 @@ class Symbol {
 	SymbolTy *_symbol;
 
 public:
-	inline Symbol(const char *name, bool preload = true) :
+	Symbol(const char *name, bool preload = true) :
 		_name(name), _symbol(nullptr)
 	{
 		if (preload)
@@ -60,7 +60,7 @@ public:
 	//!
 	//! \param attr The attribute to load the symbol
 	//! \param mandatory Whether the symbol is mandatory
-	inline bool load(SymbolAttr attr = SymbolAttr::Next, bool mandatory = true)
+	bool load(SymbolAttr attr = SymbolAttr::Next, bool mandatory = true)
 	{
 		// Do nothing if it was already loaded
 		if (_symbol != nullptr)
@@ -76,14 +76,14 @@ public:
 	}
 
 	//! \brief Indicate whether the symbol is loaded
-	inline bool hasSymbol() const
+	bool hasSymbol() const
 	{
 		return (_symbol != nullptr);
 	}
 
 	//! \brief Execute the function
 	template <typename... Params>
-	inline ReturnTy operator()(Params... params) const
+	ReturnTy operator()(Params... params) const
 	{
 		assert(_symbol != nullptr);
 		return (*_symbol)(params...);
