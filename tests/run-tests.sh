@@ -1,4 +1,7 @@
 #!/bin/bash
+#	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
+#
+#	Copyright (C) 2023 Barcelona Supercomputing Center (BSC)
 
 function usage {
 	if [ "$#" -eq 1 ]; then
