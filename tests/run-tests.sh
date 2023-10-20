@@ -10,13 +10,16 @@ function usage {
 	echo "  -p, --path     PATH      path to the TAMPI installation (default: read \$TAMPI_HOME env. variable)"
 	echo "  -I, --includes INC_PATH  path to the directory containing the TAMPI headers (default: PATH/include)"
 	echo "  -L, --libs     LIB_PATH  path to the directory containing the TAMPI libraries (default: PATH/lib)"
-	echo "  --slurm                  use SLURM's srun for launching the tests. This is intended for running in"
-	echo "                           a SLURM session configured for at least four processes"
+	echo "  --slurm                  use SLURM srun for launching the tests. The scripts assumes it is running"
+	echo "                           inside a sbatch or salloc session where the number of nodes, tasks and cpus"
+	echo "                           per task has been defined"
 	echo "  -h, --help               display this help and exit"
 	echo ""
-	echo "Note: Make sure all MPI and OmpSs-2 binaries are available (i.e. through the \$PATH env. variable) when"
-	echo "      executing this script. Also, make sure the environment is ready for launching four processes. This"
-	echo "      includes the MPI environment and the SLURM session, if applicable"
+	echo "Note: Make sure all MPI and OmpSs-2 binaries are available (i.e. through the \$PATH env. variable)"
+	echo "      when executing this script."
+	echo ""
+	echo "Note: The tests launch up to four processes. Make sure the MPI and SLURM environment is ready for"
+	echo "      launching four processes."
 	echo ""
 	if [ "$#" -eq 1 ]; then
 		exit 1
@@ -54,7 +57,7 @@ function check_binaries {
 
 makefile=./Makefile
 if [ ! -f $makefile ]; then
-	usage "Makefiles not found! Execute this script from the './tampi/tests' folder."
+	usage "Makefiles not found! Execute this script from the './tampi/tests' folder"
 fi
 
 red="\033[0;31m"
@@ -129,8 +132,24 @@ fi
 mpicxx=$(find_binary mpiicpc mpicxx)
 mpif90=$(find_binary mpiifort mpif90)
 
-launcher=srun
-if [ $use_slurm -eq 0 ]; then
+nnodes=
+nprocs=4
+ncpusxproc=
+
+if [ $use_slurm -eq 1 ]; then
+	launcher=$(find_binary srun)
+	if [ -z "$SLURM_JOB_NUM_NODES" ]; then
+		usage "SLURM_JOB_NUM_NODES is not defined; ensure there is sbatch/salloc session"
+	elif [ -z "$SLURM_NTASKS" ]; then
+		usage "SLURM_NTASKS is not defined; ensure --ntasks option was specified"
+	elif [ $SLURM_NTASKS -lt $nprocs ]; then
+		usage "SLURM_NTASKS is less than $nprocs tasks"
+	elif [ -z "$SLURM_CPUS_PER_TASK" ]; then
+		usage "SLURM_CPUS_PER_TASK is not defined; ensure --cpus-per-task was specified"
+	fi
+	nnodes=$SLURM_JOB_NUM_NODES
+	ncpusxproc=$SLURM_CPUS_PER_TASK
+else
 	launcher=$(find_binary mpiexec.hydra mpiexec mpirun)
 fi
 
@@ -160,6 +179,13 @@ else
 	echo "  Normal"
 fi
 echo ""
+echo "Configuration:"
+echo "  Processes: $nprocs"
+if [ $use_slurm -eq 1 ]; then
+	echo "  CPUs per process: $ncpusxproc"
+	echo "  Nodes: $nnodes"
+fi
+echo ""
 
 progs=(
 	CollectiveBlk.oss.test
@@ -184,29 +210,6 @@ progs=(
 	ThreadTaskAwareness.oss.test
 )
 
-nprocsxprog=(
-	4 # CollectiveBlk.oss.test
-	4 # CollectiveNonBlk.omp.test
-	4 # CollectiveNonBlk.oss.test
-	0 # DoNotExecute.oss.test
-	0 # DoNotExecutef.oss.test
-	2 # HugeBlkTasks.oss.test
-	2 # HugeTasksf.oss.test
-	2 # InitAuto.oss.test
-	2 # InitAutoTaskAware.oss.test
-	2 # InitExplicit.oss.test
-	2 # InitExplicitTaskAware.oss.test
-	4 # MultiPrimitiveBlk.oss.test
-	4 # MultiPrimitiveNonBlk.omp.test
-	4 # MultiPrimitiveNonBlk.oss.test
-	2 # PrimitiveBlk.oss.test
-	2 # PrimitiveNonBlk.omp.test
-	2 # PrimitiveNonBlk.oss.test
-	2 # PrimitiveWrappers.oss.test
-	2 # ThreadTaskAwareness.oss.test
-	2 # ThreadDisableTaskAwareness.oss.test
-)
-
 echo "Compiling tests..."
 compile_args="TAMPI_INCLUDE_PATH=$tampi_inc_path TAMPI_LIBRARY_PATH=$tampi_lib_path MPICXX=$mpicxx MPIF90=$mpif90"
 if [ $large_input -eq 1 ]; then
@@ -227,17 +230,16 @@ echo "---------------------------------------"
 
 for ((i=0;i<nprogs;i++)); do
 	prog=${progs[$i]}
-	nprocs=${nprocsxprog[$i]}
 
 	echo -n "${prog} "
 
-	if [ $nprocs -eq 0 ]; then
+	if [[ "$prog" == *"DoNotExecute"* ]]; then
 		echo -e "${green}SKIPPED${clean}"
 		continue
 	fi
 
 	if [ $use_slurm -eq 1 ]; then
-		${launcher} -n ${nprocs} --cpu_bind=cores ./${prog} &> /dev/null
+		${launcher} -N ${nnodes} -n ${nprocs} -c ${ncpusxproc} --cpu_bind=cores ./${prog} &> /dev/null
 	else
 		${launcher} -np ${nprocs} ./${prog} &> /dev/null
 	fi
