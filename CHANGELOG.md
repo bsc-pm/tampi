@@ -8,7 +8,7 @@ The 2.0 release introduces several performance improvements, important bug fixes
 ### General
 - Introduce `TAMPI_POLLING_PERIOD` replacing `TAMPI_POLLING_FREQUENCY`
 - Deprecate `TAMPI_POLLING_FREQUENCY` and will be removed in next versions
-- Drop support for OmpSs-2 2020.06; now requiring OmpSs-2 2020.06 or later
+- Drop support for OmpSs-2 2020.06; now requiring OmpSs-2 2020.11 or later
 - Leverage C++17 standard, which may require newer GCC (such as GCC 7 or later)
 - Extend README with a Frequently Asked Questions (FAQ) section
 
