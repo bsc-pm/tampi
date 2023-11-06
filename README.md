@@ -551,7 +551,13 @@ $ mpicxx -cxx=clang++ -fopenmp -I${TAMPI_HOME}/include app.cpp -o app.bin -ltamp
 ```
 
 Similarly, a hybrid OmpSs-2 + MPI application in C++ named `app.cpp` could be compiled and linked using the
-following command:
+following command with the LLVM/Clang compiler with OmpSs-2 support:
+
+```bash
+$ mpicxx -cxx=clang++ -fompss-2 -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
+```
+
+Or using the Mercurium legacy compiler:
 
 ```bash
 $ mpicxx -cxx=mcxx --ompss-2 -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
@@ -564,7 +570,7 @@ MPICH and MVAPICH, `I_MPI_CC` or `I_MPI_CXX` for Intel MPI, and `OMPI_CC` or `OM
 instance, the OmpSs-2 application could be compiled and linked using MPICH with the following command:
 
 ```bash
-$ MPICH_CXX=mcxx mpicxx --ompss-2 -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
+$ MPICH_CXX=clang++ mpicxx -fompss-2 -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
 ```
 
 Finally, both OpenMP and OmpSs-2 applications can be launched as any traditional hybrid program.
