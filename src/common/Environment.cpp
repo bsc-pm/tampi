@@ -16,7 +16,7 @@ namespace tampi {
 Environment::State Environment::_state;
 thread_local bool Environment::State::threadTaskAwareness = true;
 
-TaskingModel::polling_handle_t Polling::_pollingHandle;
+TaskingModel::PollingInstance *Polling::_pollingInstance;
 PollingPeriodCtrl Polling::_periodCtrl;
 
 SpinLock ErrorHandler::_lock;

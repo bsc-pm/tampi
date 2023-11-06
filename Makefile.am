@@ -96,6 +96,7 @@ common_sources = \
  src/common/instrument/Instrument.cpp
 
 noinst_HEADERS = \
+ src/common/ALPI.hpp \
  src/common/Declarations.hpp \
  src/common/Environment.hpp \
  src/common/Interface.hpp \
@@ -104,7 +105,6 @@ noinst_HEADERS = \
  src/common/RequestManager.hpp \
  src/common/Symbol.hpp \
  src/common/TaskContext.hpp \
- src/common/TaskingModelAPI.hpp \
  src/common/TaskingModel.hpp \
  src/common/Ticket.hpp \
  src/common/TicketManager.hpp \

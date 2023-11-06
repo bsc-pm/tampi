@@ -21,7 +21,7 @@ class Polling {
 private:
 	//! The handle to the polling instance that periodically checks
 	//! the completion of the in-flight MPI requests in TAMPI
-	static TaskingModel::polling_handle_t _pollingHandle;
+	static TaskingModel::PollingInstance *_pollingInstance;
 
 	//! The controller of the polling period
 	static PollingPeriodCtrl _periodCtrl;
@@ -34,13 +34,13 @@ public:
 	//! \brief Initialize the polling features
 	static void initialize()
 	{
-		_pollingHandle = TaskingModel::registerPolling("TAMPI", Polling::polling, nullptr);
+		_pollingInstance = TaskingModel::registerPolling("TAMPI", Polling::polling, nullptr);
 	}
 
 	//! \brief Finalize the polling features
 	static void finalize()
 	{
-		TaskingModel::unregisterPolling(_pollingHandle);
+		TaskingModel::unregisterPolling(_pollingInstance);
 	}
 
 private:
