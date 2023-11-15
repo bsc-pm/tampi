@@ -10,63 +10,76 @@
 
 namespace tampi {
 
-//! Enable/disable polling services
-EnvironmentVariable<bool> TaskingModel::_usePollingServices("TAMPI_POLLING_SERVICES", false);
-
-
 void TaskingModel::initialize(bool requireTaskBlockingAPI, bool requireTaskEventsAPI)
 {
+	// Avoid loading symbols if no mode is required
+	if (!requireTaskBlockingAPI && !requireTaskEventsAPI)
+		return;
+
 	// Find the first occurrence of the desired symbol
 	const SymbolAttr attr = SymbolAttr::First;
 
-	if (requireTaskBlockingAPI || requireTaskEventsAPI) {
-		// Try to load the functions required by polling tasks
-		_waitFor.load(attr, /* mandatory = */ false);
-		_spawnFunction.load(attr, /* mandatory = */ false);
-
-		// Switch to polling services if polling tasks are not available
-		if (!_waitFor.hasSymbol() || !_spawnFunction.hasSymbol())
-			_usePollingServices.set(true);
-
-		// Load the polling service functions if needed
-		if (_usePollingServices) {
-			_registerPollingService.load(attr);
-			_unregisterPollingService.load(attr);
-		}
-	}
+	_alpi_version_check.load(attr);
+	_alpi_version_get.load(attr);
+	_alpi_task_self.load(attr);
+	_alpi_task_spawn.load(attr);
+	_alpi_task_waitfor_ns.load(attr);
 
 	// Load the task blocking API functions if needed
 	if (requireTaskBlockingAPI) {
-		_getCurrentBlockingContext.load(attr);
-		_blockCurrentTask.load(attr);
-		_unblockTask.load(attr);
+		_alpi_task_block.load(attr);
+		_alpi_task_unblock.load(attr);
 	}
 
 	// Load the task events API functions if needed
 	if (requireTaskEventsAPI) {
-		_getCurrentEventCounter.load(attr);
-		_increaseCurrentTaskEventCounter.load(attr);
-		_decreaseTaskEventCounter.load(attr);
-
-		_notifyTaskEventCounterAPI.load(attr, /* mandatory = */ false);
-
-		// Notify the tasking runtime that the event counters API may be used
-		// during the execution. This function is optional; call it if defined
-		if (_notifyTaskEventCounterAPI.hasSymbol())
-			_notifyTaskEventCounterAPI();
+		_alpi_task_events_increase.load(attr);
+		_alpi_task_events_decrease.load(attr);
 	}
+
+	int expected[2] = { ALPI_VERSION_MAJOR, ALPI_VERSION_MINOR };
+	int provided[2];
+
+	if (int err = _alpi_version_get(&provided[0], &provided[1]))
+		ErrorHandler::fail("Failed alpi_version_get: ", getError(err));
+
+	int err = _alpi_version_check(expected[0], expected[1]);
+	if (err == ALPI_ERR_VERSION)
+		ErrorHandler::fail("Incompatible ALPI tasking interface versions:\n",
+			"\tExpected: ", expected[0], ".", expected[1], "\n",
+			"\tProvided: ", provided[0], ".", provided[1]);
+	else if (err)
+		ErrorHandler::fail("Failed alpi_version_check: ", getError(err));
 }
 
-Symbol<register_polling_service_t> TaskingModel::_registerPollingService("nanos6_register_polling_service", /* load = */ false);
-Symbol<unregister_polling_service_t> TaskingModel::_unregisterPollingService("nanos6_unregister_polling_service", /* load = */ false);
-Symbol<get_current_blocking_context_t> TaskingModel::_getCurrentBlockingContext("nanos6_get_current_blocking_context", /* load = */ false);
-Symbol<block_current_task_t> TaskingModel::_blockCurrentTask("nanos6_block_current_task", /* load = */ false);
-Symbol<unblock_task_t> TaskingModel::_unblockTask("nanos6_unblock_task", /* load = */ false);
-Symbol<get_current_event_counter_t> TaskingModel::_getCurrentEventCounter("nanos6_get_current_event_counter", /* load = */ false);
-Symbol<increase_current_task_event_counter_t> TaskingModel::_increaseCurrentTaskEventCounter("nanos6_increase_current_task_event_counter", /* load = */ false);
-Symbol<decrease_task_event_counter_t> TaskingModel::_decreaseTaskEventCounter("nanos6_decrease_task_event_counter", /* load = */ false);
-Symbol<notify_task_event_counter_api_t> TaskingModel::_notifyTaskEventCounterAPI("nanos6_notify_task_event_counter_api", /* load = */ false);
-Symbol<spawn_function_t> TaskingModel::_spawnFunction("nanos6_spawn_function", /* load = */ false);
-Symbol<wait_for_t> TaskingModel::_waitFor("nanos6_wait_for", /* load = */ false);
+Symbol<TaskingModel::alpi_error_string_t>
+TaskingModel::_alpi_error_string("alpi_error_string", /* load */ false);
+
+Symbol<TaskingModel::alpi_version_check_t>
+TaskingModel::_alpi_version_check("alpi_version_check", /* load */ false);
+
+Symbol<TaskingModel::alpi_version_get_t>
+TaskingModel::_alpi_version_get("alpi_version_get", /* load */ false);
+
+Symbol<TaskingModel::alpi_task_self_t>
+TaskingModel::_alpi_task_self("alpi_task_self", /* load */ false);
+
+Symbol<TaskingModel::alpi_task_block_t>
+TaskingModel::_alpi_task_block("alpi_task_block", /* load */ false);
+
+Symbol<TaskingModel::alpi_task_unblock_t>
+TaskingModel::_alpi_task_unblock("alpi_task_unblock", /* load */ false);
+
+Symbol<TaskingModel::alpi_task_events_increase_t>
+TaskingModel::_alpi_task_events_increase("alpi_task_events_increase", /* load */ false);
+
+Symbol<TaskingModel::alpi_task_events_decrease_t>
+TaskingModel::_alpi_task_events_decrease("alpi_task_events_decrease", /* load */ false);
+
+Symbol<TaskingModel::alpi_task_waitfor_ns_t>
+TaskingModel::_alpi_task_waitfor_ns("alpi_task_waitfor_ns", /* load */ false);
+
+Symbol<TaskingModel::alpi_task_spawn_t>
+TaskingModel::_alpi_task_spawn("alpi_task_spawn", /* load */ false);
 
 } // namespace tampi

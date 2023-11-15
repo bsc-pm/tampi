@@ -21,9 +21,8 @@ private:
 	//! Indicate whether the task is using the blocking mode
 	bool _blocking;
 
-	//! An opaque pointer to the blocking context or events counter 
-	//! depending on the value of the previous field
-	void *_taskData;
+	//! The task handle
+	TaskingModel::task_handle_t _taskHandle;
 
 public:
 	//! \brief Construct a task context
@@ -36,29 +35,27 @@ public:
 	//! \param blocking Whether the task is using the blocking mode
 	TaskContext(bool blocking) :
 		_blocking(blocking),
-		_taskData(nullptr)
+		_taskHandle(nullptr)
 	{
-		_taskData = getCurrentTaskData(blocking);
-		assert(_taskData != nullptr);
+		_taskHandle = TaskingModel::getCurrentTask();
+		assert(_taskHandle != nullptr);
 	}
 
 	//! \brief Construct a task context
 	//!
 	//! \param blocking Whether the task is using the blocking mode
-	//! \param taskData The task blocking context or events counter
-	TaskContext(bool blocking, void *taskData) :
+	//! \param taskHandle The task handle
+	TaskContext(bool blocking, TaskingModel::task_handle_t taskHandle) :
 		_blocking(blocking),
-		_taskData(taskData)
+		_taskHandle(taskHandle)
 	{
-		assert(taskData != nullptr);
+		assert(taskHandle != nullptr);
 	}
 
-	//! \brief Get the task blocking context or events counter
-	//!
-	//! \returns An opaque pointer to the context or counter
-	void *getTaskData() const
+	//! \brief Get the task handle
+	TaskingModel::task_handle_t getTaskHandle() const
 	{
-		return _taskData;
+		return _taskHandle;
 	}
 
 	//! \brief Bind some events to the task
@@ -68,7 +65,7 @@ public:
 	{
 		assert(num > 0);
 		if (!_blocking) {
-			TaskingModel::increaseCurrentTaskEventCounter(_taskData, num);
+			TaskingModel::increaseCurrentTaskEvents(_taskHandle, num);
 		}
 	}
 
@@ -80,10 +77,10 @@ public:
 	{
 		assert(num > 0);
 		if (!_blocking) {
-			TaskingModel::decreaseTaskEventCounter(_taskData, num);
+			TaskingModel::decreaseTaskEvents(_taskHandle, num);
 		} else if (allCompleted) {
 			// Unblock the task when all its events completed
-			TaskingModel::unblockTask(_taskData);
+			TaskingModel::unblockTask(_taskHandle);
 		}
 	}
 
@@ -95,28 +92,13 @@ public:
 	void waitEventsCompletion()
 	{
 		assert(_blocking);
-		TaskingModel::blockCurrentTask(_taskData);
+		TaskingModel::blockCurrentTask(_taskHandle);
 	}
 
 	//! \brief Indicate whether the task is using the blocking mode
 	bool isBlocking() const
 	{
 		return _blocking;
-	}
-
-private:
-	//! \brief Get the blocking context or events counter
-	//!
-	//! \param blocking Whether the task is using the blocking mode
-	//!
-	//! \returns An opaque pointer to the context or counter
-	static void *getCurrentTaskData(bool blocking)
-	{
-		if (blocking) {
-			return TaskingModel::getCurrentBlockingContext();
-		} else {
-			return TaskingModel::getCurrentEventCounter();
-		}
 	}
 };
 
