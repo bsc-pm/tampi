@@ -16,6 +16,7 @@ function usage {
 	echo "  --slurm                  use SLURM srun for launching the tests. The scripts assumes it is running"
 	echo "                           inside a sbatch or salloc session where the number of nodes, tasks and cpus"
 	echo "                           per task has been defined"
+	echo "  --skip-omp               skip execution of OpenMP tests"
 	echo "  -h, --help               display this help and exit"
 	echo ""
 	echo "Note: Make sure all MPI and OmpSs-2 binaries are available (i.e. through the \$PATH env. variable)"
@@ -73,6 +74,7 @@ use_slurm=0
 tampi_path=
 tampi_inc_path=
 tampi_lib_path=
+skip_omp=0
 
 nargs=$#
 args=("$@")
@@ -88,6 +90,9 @@ while (("$i" < "$nargs")); do
 		continue
 	elif [ "$opt" == "--slurm" ]; then
 		use_slurm=1
+		continue
+	elif [ "$opt" == "--skip-omp" ]; then
+		skip_omp=1
 		continue
 	elif [ "$opt" == "-h" ] || [ "$opt" == "--help" ]; then
 		usage
@@ -239,6 +244,12 @@ for ((i=0;i<nprogs;i++)); do
 	if [[ "$prog" == *"DoNotExecute"* ]]; then
 		echo -e "${green}SKIPPED${clean}"
 		continue
+	fi
+	if [ $skip_omp -eq 1 ]; then
+		if [[ "$prog" == *".omp."* ]]; then
+			echo -e "${green}SKIPPED${clean}"
+			continue
+		fi
 	fi
 
 	if [ $use_slurm -eq 1 ]; then
