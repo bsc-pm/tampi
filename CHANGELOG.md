@@ -2,6 +2,36 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 3.0, Fri Nov 17, 2023
+The 3.0 release introduces the use of the generic ALPI tasking interface, bug fixes, and improved usability and programmability. This version also extends the ovni instrumentation to show more information regarding the TAMPI behavior in Paraver traces.
+
+### General
+- Rely on the [ALPI](https://gitlab.bsc.es/alpi/alpi) tasking interface (OmpSs-2 2023.11 or later)
+- Drop support for the Nanos6-specific tasking interface
+- Drop support for older versions than OmpSs-2 2023.11
+- Remove deprecated `TAMPI_POLLING_FREQUENCY` environment variable
+- Stop using PMPI interfaces for testing internal requests (e.g., `PMPI_Test`)
+- Do not assume the default MPI threading level is `MPI_THREAD_SINGLE`
+- Load first occurrence of the ALPI tasking interface symbols (`RTLD_DEFAULT`)
+- Add opt-in mechanism to explicitly initialize TAMPI independently from MPI
+- Add opt-in mechanism to disable task-awareness for specific threads
+- Refactor and simplify symbol loading
+
+### Instrumentation
+- Instrument library subsystems with ovni; see the [ovni documentation](https://ovni.readthedocs.io) for more information
+- Improve ovni library discovery
+
+### Building
+- Add `--enable-debug` configure option replacing `--enable-debug-mode`
+- Add `--enable-asan` option to enable address sanitizer flags
+- Deprecate `--enable-debug-mode` option, which will be removed in next versions
+
+### Testing
+- Improve testing scripts and Makefiles
+- Fix CPU binding on SLURM-based tests
+- Add testing option `--skip-omp` to skip the execution of OpenMP tests
+
+
 ## Version 2.0, Fri May 26, 2023
 The 2.0 release introduces several performance improvements, important bug fixes, and improved usability and programmability. Several environment variables that users can set to change default behavior have been updated. This version also introduces support for the ovni instrumentation to obtain Paraver execution traces.
 

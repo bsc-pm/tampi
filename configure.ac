@@ -6,7 +6,7 @@
 #	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
 
 AC_PREREQ([2.69])
-AC_INIT([tampi], [2.0], [pm-tools@bsc.es])
+AC_INIT([tampi], [3.0], [pm-tools@bsc.es])
 
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src])
