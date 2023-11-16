@@ -450,7 +450,7 @@ library can be used from user applications.
 
 The Task-Aware MPI library requires the installation of the following tools and libraries:
 
-* Automake, autoconf, libtool, make and a C and C++ compiler.
+* Automake, autoconf, libtool, make and a C++ compiler supporting C++17.
 * An MPI library supporting the `MPI_THREAD_MULTIPLE` threading level.
 * [Boost](http://boost.org) library version 1.59 or greater.
 * [ovni](https://github.com/bsc-pm/ovni) instrumentation library (optional).
