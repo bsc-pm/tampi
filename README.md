@@ -455,10 +455,11 @@ The Task-Aware MPI library requires the installation of the following tools and 
 * [Boost](http://boost.org) library version 1.59 or greater.
 * [ovni](https://github.com/bsc-pm/ovni) instrumentation library (optional).
 * One of the following parallel task-based programming models (required when compiling a user application):
-	- [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases) (version 2023.11 or greater): Supports both
-	  blocking and non-blocking TAMPI modes.
-	- The derivative implementation of [LLVM/OpenMP](https://github.com/bsc-pm/llvm): Supports the
-	  non-blocking mode.
+	- [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases) (version 2023.11 or greater). That supports both
+	  **blocking** and **non-blocking** TAMPI modes.
+	- The [OpenMP-V](https://github.com/bsc-pm/llvm) runtime (`libompv`) implemented by the derivative
+	  [LLVM](https://github.com/bsc-pm/llvm) which works over the [nOS-V](https://github.com/bsc-pm/nosv)
+	  tasking library. That supports the **non-blocking** mode.
 
 
 ## Building and Installing
@@ -545,7 +546,7 @@ parallel task-based runtime system and the TAMPI library. A hybrid OpenMP + MPI 
 `app.cpp` could be compiled and linked using the following command:
 
 ```bash
-$ mpicxx -cxx=clang++ -fopenmp -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
+$ mpicxx -cxx=clang++ -fopenmp=libompv -I${TAMPI_HOME}/include app.cpp -o app.bin -ltampi -L${TAMPI_HOME}/lib
 ```
 
 Similarly, a hybrid OmpSs-2 + MPI application in C++ named `app.cpp` could be compiled and linked using the
