@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 3.0.1, Thu Dec 7, 2023
+The 3.0.1 release introduces bug fixes.
+
+### General
+- Fix memory order in an atomic store
+- Update README with information regarding the [OpenMP-V]((https://github.com/bsc-pm/llvm) runtime
+
+
 ## Version 3.0, Fri Nov 17, 2023
 The 3.0 release introduces the use of the generic ALPI tasking interface, bug fixes, and improved usability and programmability. This version also extends the ovni instrumentation to show more information regarding the TAMPI behavior in Paraver traces.
 
