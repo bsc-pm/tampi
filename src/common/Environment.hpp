@@ -267,8 +267,8 @@ public:
 			Polling::finalize();
 
 		// Disable both modes
-		_state.blockingMode.store(false, std::memory_order_acq_rel);
-		_state.nonBlockingMode.store(false, std::memory_order_acq_rel);
+		_state.blockingMode.store(false);
+		_state.nonBlockingMode.store(false);
 
 		// Mark the library as finalized
 		_state.initialized = false;
