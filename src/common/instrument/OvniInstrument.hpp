@@ -15,6 +15,9 @@ namespace tampi {
 
 class OvniInstrumentBackend : public InstrumentBackendInterface {
 private:
+	//! If the thread has performed the initialization or not
+	static inline thread_local bool _threadInit = false;
+
 	//! The state is composed by the enter and exit ovni MCV, which are three
 	//! characters that specify the event model, category and value
 	struct StateInfo {
@@ -42,6 +45,11 @@ private:
 	//! Emit an ovni event given the event model-category-value
 	static void emitEvent(const char *mcv)
 	{
+		if (!_threadInit) {
+			ovni_thread_require("tampi", "1.0.0");
+			_threadInit = true;
+		}
+
 		struct ovni_ev ev = {};
 		ovni_ev_set_clock(&ev, ovni_clock_now());
 		ovni_ev_set_mcv(&ev, mcv);
