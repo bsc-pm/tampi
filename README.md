@@ -457,7 +457,7 @@ The Task-Aware MPI library requires the installation of the following tools and 
 * Automake, autoconf, libtool, make and a C++ compiler supporting C++17.
 * An MPI library supporting the `MPI_THREAD_MULTIPLE` threading level.
 * [Boost](http://boost.org) library version 1.59 or greater.
-* [ovni](https://github.com/bsc-pm/ovni) instrumentation library (optional).
+* [ovni](https://github.com/bsc-pm/ovni) instrumentation library version 1.5.0 or greater (optional).
 * One of the following parallel task-based programming models (required when compiling a user application):
 	- [OmpSs-2](https://github.com/bsc-pm/ompss-2-releases) (version 2023.11 or greater): Supports both
 	  **blocking** and **non-blocking** TAMPI modes.
