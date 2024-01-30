@@ -6,6 +6,10 @@ programming models, such as OpenMP and OmpSs-2, and MPI communications. This lib
 the safe and efficient execution of MPI operations from concurrent tasks and guarantees the
 transparent management and progress of these communications.
 
+The TAMPI library is not an MPI implementation. Instead, TAMPI is an independent library
+that works over any standard MPI library that supports the MPI\_THREAD\_MULTIPLE level.
+At building time, TAMPI is linked to the specified MPI library.
+
 By following the MPI Standard, programmers must pay close attention to avoid deadlocks
 that may occur in hybrid applications (e.g., MPI+OpenMP) where MPI calls take place inside
 tasks. This is given by the out-of-order execution of tasks that consequently alter the
@@ -668,3 +672,9 @@ tasking runtime system in the background. Previous versions of Task-Aware MPI us
 runtime system, but that API is not supported anymore. Make sure your OmpSs-2 or LLVM/OpenMP meets the
 minimum requirements from the [Software Requirements](#software-requirements) section. More information about
 the ALPI interface is shown in the [ALPI Tasking Interface](#alpi-tasking-interface) section.
+
+**Q7: Is TAMPI an MPI implementation?**
+
+No, the TAMPI library is not an MPI implementation. Instead, TAMPI is an independent library that works over any
+standard MPI library. The only requirement is that the underlying MPI implementation has to support the standard
+MPI\_THREAD\_MULTIPLE level.
