@@ -1,16 +1,17 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2020-2023 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2020-2024 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef ENVIRONMENT_VARIABLE_HPP
 #define ENVIRONMENT_VARIABLE_HPP
 
 #include <cstdlib>
-#include <iostream>
-#include <sstream>
 #include <string>
+
+#include "ErrorHandler.hpp"
+#include "StringSupport.hpp"
 
 
 namespace tampi {
@@ -35,22 +36,14 @@ public:
 	//! \param defaultValue An optional value to assign if the environment variable has not been defined
 	EnvironmentVariable(std::string const &name, T defaultValue = T()) :
 		_value(defaultValue),
+		_isPresent(false),
 		_name(name)
 	{
 		char const *valueString = getenv(name.c_str());
 		if (valueString != nullptr) {
-			std::istringstream iss(valueString);
-			T assignedValue = defaultValue;
-			iss >> assignedValue;
-			if (!iss.fail()) {
-				_value = assignedValue;
-				_isPresent = true;
-			} else {
-				std::cerr << "Warning: invalid value for environment variable " << name << ". Defaulting to " << defaultValue << "." << std::endl;
-				_isPresent = false;
-			}
-		} else {
-			_isPresent = false;
+			_isPresent = StringSupport::parse(valueString, _value);
+			if (!_isPresent)
+				ErrorHandler::warn("Invalid value for ", name, "; defaulting to ", defaultValue);
 		}
 	}
 

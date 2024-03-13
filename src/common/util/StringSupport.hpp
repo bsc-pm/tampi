@@ -24,7 +24,7 @@ public:
 	//! \param delim The character delimiter between elements
 	//!
 	//! \returns The vector of strings
-	static std::vector<std::string> split(const std::string &str, char delim = ':')
+	static std::vector<std::string> split(const std::string &str, char delim)
 	{
 		std::stringstream stream(str);
 		std::vector<std::string> components;
@@ -51,10 +51,11 @@ public:
 	//! \param str The string to parse
 	//! \param value1 The value of the first parsed element
 	//! \param value2 The value of the second parsed element
+	//! \param delim The character delimiter between elements
 	//!
 	//! \returns Whether the parsing succeeded
 	template <typename T1, typename T2>
-	static bool parse(const std::string &str, bool present[2], T1 &value1, T2 &value2, char delim = ":")
+	static bool parse(const std::string &str, bool present[2], T1 &value1, T2 &value2, char delim)
 	{
 		size_t expected = std::count(str.begin(), str.end(), delim) + 1;
 		auto components = split(str, delim);
@@ -83,10 +84,11 @@ public:
 	//! \param value1 The value of the first parsed element
 	//! \param value2 The value of the second parsed element
 	//! \param value3 The value of the third parsed element
+	//! \param delim The character delimiter between elements
 	//!
 	//! \returns Whether the parsing succeeded
 	template <typename T1, typename T2, typename T3>
-	static bool parse(const std::string &str, bool present[3], T1 &value1, T2 &value2, T3 &value3, char delim = ":")
+	static bool parse(const std::string &str, bool present[3], T1 &value1, T2 &value2, T3 &value3, char delim)
 	{
 		size_t expected = std::count(str.begin(), str.end(), delim) + 1;
 		auto components = split(str, delim);
@@ -156,7 +158,7 @@ public:
 };
 
 template <typename T>
-static bool StringSupport::parse<T>(const std::string &str, T &value)
+inline bool StringSupport::parse(const std::string &str, T &value)
 {
 	std::istringstream stream(str);
 	T tmp;

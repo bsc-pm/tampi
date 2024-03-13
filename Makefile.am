@@ -1,6 +1,6 @@
 #	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 #
-#	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
+#	Copyright (C) 2015-2024 Barcelona Supercomputing Center (BSC)
 
 ACLOCAL_AMFLAGS=-I m4
 
@@ -93,15 +93,14 @@ fortran_api_sources= \
 common_sources = \
  src/common/Environment.cpp \
  src/common/TaskingModel.cpp \
- src/common/instrument/Instrument.cpp
+ src/common/instrument/Instrument.cpp \
+ src/common/polling/PollingPeriodCtrl.cpp
 
 noinst_HEADERS = \
  src/common/ALPI.hpp \
  src/common/Declarations.hpp \
  src/common/Environment.hpp \
  src/common/Interface.hpp \
- src/common/Polling.hpp \
- src/common/PollingPeriodCtrl.hpp \
  src/common/RequestManager.hpp \
  src/common/Symbol.hpp \
  src/common/TaskContext.hpp \
@@ -111,6 +110,9 @@ noinst_HEADERS = \
  src/common/TicketManagerInternals.hpp \
  src/common/instrument/Instrument.hpp \
  src/common/instrument/OvniInstrument.hpp \
+ src/common/polling/Polling.hpp \
+ src/common/polling/PollingPeriodCtrl.hpp \
+ src/common/polling/SlowStartPollingPeriodCtrl.hpp \
  src/common/util/ArrayView.hpp \
  src/common/util/EnvironmentVariable.hpp \
  src/common/util/ErrorHandler.hpp \

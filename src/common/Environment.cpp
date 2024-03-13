@@ -1,13 +1,13 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2024 Barcelona Supercomputing Center (BSC)
 */
 
 #include <cstdio>
 
 #include "Environment.hpp"
-#include "Polling.hpp"
+#include "polling/Polling.hpp"
 #include "util/ErrorHandler.hpp"
 
 
