@@ -46,7 +46,7 @@ private:
 public:
 	BoostLockFreeQueue(bool multipleProducers = true) :
 		_multipleProducers(multipleProducers),
-		_fullFailure("TAMPI_QUEUES_FULL_FAILURE", true),
+		_fullFailure("TAMPI_QUEUES_FULL_FAILURE", false),
 		_adderMutex(),
 		_queue()
 	{
