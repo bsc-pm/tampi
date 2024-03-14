@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2024 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TICKET_MANAGER_HPP
@@ -17,7 +17,7 @@
 #include "TicketManagerInternals.hpp"
 #include "instrument/Instrument.hpp"
 #include "util/ArrayView.hpp"
-#include "util/LockFreeQueue.hpp"
+#include "util/BoostLockFreeQueue.hpp"
 #include "util/SpinLock.hpp"
 #include "util/Utils.hpp"
 
@@ -95,10 +95,10 @@ private:
 	TicketManagerInternals<Lang, MaxEntries> _arrays;
 
 	//! Lock-free pre-queues of blocking requests
-	LockFreeQueue<BlockingEntry> _blockingEntries;
+	BoostLockFreeQueue<BlockingEntry> _blockingEntries;
 
 	//! Lock-free pre-queues of non-blocking requests
-	LockFreeQueue<NonBlockingEntry> _nonBlockingEntries;
+	BoostLockFreeQueue<NonBlockingEntry> _nonBlockingEntries;
 
 	//! Auxiliary array of indices used when checking requests
 	int *_indices;
@@ -215,18 +215,6 @@ private:
 	//! \returns Whether any request completed
 	bool internalCheckRequests();
 
-	//! \brief Check and transfer requests from pre-queues
-	//!
-	//! This function tries to acquire the lock before trying to
-	//! transfer requests from pre-queues to the general array
-	void checkEntryQueues()
-	{
-		std::unique_lock<SpinLock> guard(_mutex, std::try_to_lock);
-		if (guard.owns_lock()) {
-			internalCheckEntryQueues();
-		}
-	}
-
 	//! \brief Add multiple requests and their ticket to a specific pre-queue
 	//!
 	//! \param request The requests to add
@@ -235,7 +223,7 @@ private:
 	void addTicketRequests(
 		Ticket &ticket,
 		ArrayView<request_t> &requests,
-		LockFreeQueue<EntryTy> &queue
+		BoostLockFreeQueue<EntryTy> &queue
 	);
 
 	//! \brief Internal function to check and transfer requests from pre-queues
@@ -317,10 +305,10 @@ void TicketManager<Lang>::addTicket(Ticket &ticket, request_t &request)
 
 	if (ticket.isBlocking()) {
 		BlockingEntry entry(request, ticket);
-		_blockingEntries.push(entry, [this]() { checkEntryQueues(); });
+		_blockingEntries.push(entry);
 	} else {
 		NonBlockingEntry entry(request, ticket);
-		_nonBlockingEntries.push(entry, [this]() { checkEntryQueues(); });
+		_nonBlockingEntries.push(entry);
 	}
 }
 
@@ -341,7 +329,7 @@ template <typename EntryTy>
 void TicketManager<Lang>::addTicketRequests(
 	Ticket &ticket,
 	ArrayView<request_t> &requests,
-	LockFreeQueue<EntryTy> &queue
+	BoostLockFreeQueue<EntryTy> &queue
 ) {
 	Uninitialized<EntryTy, BatchSize> entries;
 
@@ -359,7 +347,7 @@ void TicketManager<Lang>::addTicketRequests(
 			}
 			++req;
 		}
-		queue.push(entries.get(), size, [this]() { checkEntryQueues(); });
+		queue.push(entries.get(), size);
 	}
 }
 

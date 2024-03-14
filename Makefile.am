@@ -114,9 +114,9 @@ noinst_HEADERS = \
  src/common/polling/PollingPeriodCtrl.hpp \
  src/common/polling/SlowStartPollingPeriodCtrl.hpp \
  src/common/util/ArrayView.hpp \
+ src/common/util/BoostLockFreeQueue.hpp \
  src/common/util/EnvironmentVariable.hpp \
  src/common/util/ErrorHandler.hpp \
- src/common/util/LockFreeQueue.hpp \
  src/common/util/SpinLock.hpp \
  src/common/util/SpinWait.hpp \
  src/common/util/StringSupport.hpp \
