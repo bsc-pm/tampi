@@ -17,6 +17,7 @@ function usage {
 	echo "                           inside a sbatch or salloc session where the number of nodes, tasks and cpus"
 	echo "                           per task has been defined"
 	echo "  --skip-omp               skip execution of OpenMP tests"
+	echo "  --keep                   do not remove binaries after executing"
 	echo "  -h, --help               display this help and exit"
 	echo ""
 	echo "Note: Make sure all MPI and OmpSs-2 binaries are available (i.e. through the \$PATH env. variable)"
@@ -75,6 +76,7 @@ tampi_path=
 tampi_inc_path=
 tampi_lib_path=
 skip_omp=0
+keep_bins=0
 
 nargs=$#
 args=("$@")
@@ -93,6 +95,9 @@ while (("$i" < "$nargs")); do
 		continue
 	elif [ "$opt" == "--skip-omp" ]; then
 		skip_omp=1
+		continue
+	elif [ "$opt" == "--keep" ]; then
+		keep_bins=1
 		continue
 	elif [ "$opt" == "-h" ] || [ "$opt" == "--help" ]; then
 		usage
@@ -266,9 +271,11 @@ for ((i=0;i<nprogs;i++)); do
 	fi
 done
 
-make -f $makefile -B -s clean $compile_args
-if [ $? -ne 0 ]; then
-	exit 1
+if [ $keep_bins -eq 0 ]; then
+	make -f $makefile -B -s clean $compile_args
+	if [ $? -ne 0 ]; then
+		exit 1
+	fi
 fi
 
 echo "---------------------------------------"
