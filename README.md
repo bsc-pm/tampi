@@ -1,5 +1,18 @@
 # Task-Aware MPI Library
 
+:warning: **IMPORTANT:** :warning: The current library (TAMPI-OPT) implements significant
+optimizations. Some features have been dropped and some others are not supported yet. The
+following changes apply:
+
+* The library does not support request-based MPI operations. The following functions are no
+  longer implemented: `MPI_Wait`, `MPI_Waitall`, `TAMPI_Iwait`, `TAMPI_Iwaitall`. Instead, the
+  application should use blocking operations like `MPI_Recv` or `MPI_Send`, or the TAMPI
+  non-blocking variants like `TAMPI_Isend` or `TAMPI_Irecv`, which do not provide a request.
+  Check these TAMPI variants in `src/include/TAMPI_Wrappers.h`.
+* All point-to-point and collective operations are supported except for `MPI_Sendrecv` and
+  `MPI_Sendrecv_replace`.
+* Fortran applications are not supported for the moment.
+
 The Task-Aware MPI or TAMPI library extends the functionality of standard MPI libraries
 by providing new mechanisms for improving the interoperability between parallel task-based
 programming models, such as OpenMP and OmpSs-2, and MPI communications. This library allows
@@ -33,7 +46,6 @@ On the other hand, TAMPI is compatible with mainstream MPI implementations that 
 `MPI_THREAD_MULTIPLE` threading level, which is the minimum requirement to provide its task-aware
 features. The following sections describe in detail the blocking (OmpSs-2) and non-blocking
 (OpenMP & OmpSs-2) modes of TAMPI.
-
 
 ## Blocking Mode (OmpSs-2)
 
@@ -286,6 +298,8 @@ See the articles listed in the [References](#references) section for more inform
 
 
 ## Wrapper Functions for Code Compatibility
+
+**IMPORTANT:** These wrappers are no longer supported in TAMPI-OPT.
 
 Typically, application developers try to adapt their code to different parallel programming models and
 platforms, so that an application can be compiled enabling a specific programming model or even a
@@ -595,6 +609,8 @@ $ MPICH_CXX=clang++ mpicxx -fompss-2 -I${TAMPI_HOME}/include app.cpp -o app.bin 
 Finally, both OpenMP and OmpSs-2 applications can be launched as any traditional hybrid program.
 
 ### Fortran
+
+**IMPORTANT:** Fortran applications are not supported in TAMPI-OPT for the moment.
 
 The `TAMPIf.h` header for Fortran defines some preprocessor macros. Therefore, to correctly use TAMPI
 in Fortran programs, users must include the header with `#include "TAMPIf.h"` at the starting lines of the
