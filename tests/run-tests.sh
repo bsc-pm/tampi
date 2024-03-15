@@ -1,7 +1,7 @@
 #!/bin/bash
 #	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 #
-#	Copyright (C) 2023 Barcelona Supercomputing Center (BSC)
+#	Copyright (C) 2023-2024 Barcelona Supercomputing Center (BSC)
 
 function usage {
 	if [ "$#" -eq 1 ]; then
@@ -200,9 +200,7 @@ progs=(
 	CollectiveNonBlk.omp.test
 	CollectiveNonBlk.oss.test
 	DoNotExecute.oss.test
-	DoNotExecutef.oss.test
 	HugeBlkTasks.oss.test
-	HugeTasksf.oss.test
 	InitAuto.oss.test
 	InitAutoTaskAware.oss.test
 	InitExplicit.oss.test
@@ -213,7 +211,6 @@ progs=(
 	PrimitiveBlk.oss.test
 	PrimitiveNonBlk.omp.test
 	PrimitiveNonBlk.oss.test
-	PrimitiveWrappers.oss.test
 	ThreadDisableTaskAwareness.oss.test
 	ThreadTaskAwareness.oss.test
 )

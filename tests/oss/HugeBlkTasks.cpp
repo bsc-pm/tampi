@@ -23,7 +23,6 @@ const int MSG_SIZE = 100;
 
 const int TOTAL_SIZE = MSG_NUM * MSG_SIZE;
 
-MPI_Request requests[MSG_NUM];
 MPI_Status statuses[MSG_NUM];
 
 int main(int argc, char **argv)
@@ -51,22 +50,20 @@ int main(int argc, char **argv)
 				buffer[d] = d;
 			}
 
-			#pragma oss task in(buffer[0;TOTAL_SIZE]) shared(requests) label("send")
+			#pragma oss task in(buffer[0;TOTAL_SIZE]) label("send")
 			{
 				for (int m = 0; m < MSG_NUM; ++m) {
-					CHECK(MPI_Isend(&buffer[m*MSG_SIZE], MSG_SIZE, MPI_INT, 1, m, MPI_COMM_WORLD, &requests[m]));
+					CHECK(TAMPI_Isend(&buffer[m*MSG_SIZE], MSG_SIZE, MPI_INT, 1, m, MPI_COMM_WORLD));
 				}
-				CHECK(MPI_Waitall(MSG_NUM, requests, MPI_STATUSES_IGNORE));
 			}
 		} else if (rank == 1) {
 			int *message = buffer + (MSG_NUM - 1) * MSG_SIZE;
 
-			#pragma oss task out(buffer[0;TOTAL_SIZE]) shared(requests) shared(statuses) label("recv")
+			#pragma oss task out(buffer[0;TOTAL_SIZE]) shared(statuses) label("recv")
 			{
 				for (int m = MSG_NUM - 1; m >= 0; --m) {
-					CHECK(MPI_Irecv(&buffer[m*MSG_SIZE], MSG_SIZE, MPI_INT, 0, m, MPI_COMM_WORLD, &requests[MSG_NUM-1-m]));
+					CHECK(MPI_Recv(&buffer[m*MSG_SIZE], MSG_SIZE, MPI_INT, 0, m, MPI_COMM_WORLD, &statuses[MSG_NUM-1-m]));
 				}
-				CHECK(MPI_Waitall(MSG_NUM, requests, statuses));
 
 				for (int m = 0; m < MSG_NUM; ++m) {
 					ASSERT(statuses[m].MPI_TAG == MSG_NUM - 1 - m);
