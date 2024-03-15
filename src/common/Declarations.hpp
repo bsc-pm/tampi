@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2024 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef DECLARATIONS_HPP
@@ -29,6 +29,7 @@ using MPI_Query_thread_t = SymbolDecl<int, int*>;
 //! Request waiting/testing operations in C
 using MPI_Test_t = SymbolDecl<int, MPI_Request*, int*, MPI_Status*>;
 using MPI_Testall_t = SymbolDecl<int, int, MPI_Request[], int*, MPI_Status[]>;
+using MPI_Testany_t = SymbolDecl<int, int, MPI_Request[], int*, int*, MPI_Status*>;
 using MPI_Testsome_t = SymbolDecl<int, int, MPI_Request[], int*, int[], MPI_Status[]>;
 using MPI_Wait_t = SymbolDecl<int, MPI_Request*, MPI_Status*>;
 using MPI_Waitall_t = SymbolDecl<int, int, MPI_Request[], MPI_Status[]>;
@@ -96,6 +97,7 @@ using mpi_query_thread_t = SymbolDecl<void, MPI_Fint*, MPI_Fint*>;
 //! Request testing/waiting operations in Fortran
 using mpi_test_t = SymbolDecl<void, MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*>;
 using mpi_testall_t = SymbolDecl<void, MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint*>;
+using mpi_testany_t = SymbolDecl<void, MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*>;
 using mpi_testsome_t = SymbolDecl<void, MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint[], MPI_Fint*>;
 using mpi_wait_t = SymbolDecl<void, MPI_Fint*, MPI_Fint*, MPI_Fint*>;
 using mpi_waitall_t = SymbolDecl<void, MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*>;
@@ -160,10 +162,6 @@ extern "C" {
 void mpi_comm_rank_(MPI_Fint*, MPI_Fint*, MPI_Fint*);
 void mpi_comm_size_(MPI_Fint*, MPI_Fint*, MPI_Fint*);
 void mpi_query_thread_(MPI_Fint*, MPI_Fint*);
-void mpi_test_(MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
-void mpi_testall_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint*);
-void mpi_testany_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint*, MPI_Fint*, MPI_Fint*);
-void mpi_testsome_(MPI_Fint*, MPI_Fint[], MPI_Fint*, MPI_Fint[], MPI_Fint[], MPI_Fint*);
 
 } // extern C
 

@@ -57,9 +57,7 @@ int main(int argc, char **argv)
 
 					#pragma omp task depend(in: message[0:MSG_SIZE-1])
 					{
-						MPI_Request request;
-						CHECK(MPI_Ibcast(message, MSG_SIZE, MPI_INT, 0, comms[m], &request));
-						CHECK(TAMPI_Iwait(&request, MPI_STATUS_IGNORE));
+						CHECK(TAMPI_Ibcast(message, MSG_SIZE, MPI_INT, 0, comms[m]));
 					}
 					message += MSG_SIZE;
 				}
@@ -69,9 +67,7 @@ int main(int argc, char **argv)
 				for (int m = MSG_NUM - 1; m >= 0; --m) {
 					#pragma omp task depend(out: message[0:MSG_SIZE-1])
 					{
-						MPI_Request request;
-						CHECK(MPI_Ibcast(message, MSG_SIZE, MPI_INT, 0, comms[m], &request));
-						CHECK(TAMPI_Iwait(&request, MPI_STATUS_IGNORE));
+						CHECK(TAMPI_Ibcast(message, MSG_SIZE, MPI_INT, 0, comms[m]));
 					}
 
 					#pragma omp task depend(in: message[0:MSG_SIZE-1])

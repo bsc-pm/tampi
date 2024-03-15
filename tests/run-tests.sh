@@ -1,7 +1,7 @@
 #!/bin/bash
 #	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 #
-#	Copyright (C) 2023 Barcelona Supercomputing Center (BSC)
+#	Copyright (C) 2023-2024 Barcelona Supercomputing Center (BSC)
 
 function usage {
 	if [ "$#" -eq 1 ]; then
@@ -17,6 +17,7 @@ function usage {
 	echo "                           inside a sbatch or salloc session where the number of nodes, tasks and cpus"
 	echo "                           per task has been defined"
 	echo "  --skip-omp               skip execution of OpenMP tests"
+	echo "  --keep                   do not remove binaries after executing"
 	echo "  -h, --help               display this help and exit"
 	echo ""
 	echo "Note: Make sure all MPI and OmpSs-2 binaries are available (i.e. through the \$PATH env. variable)"
@@ -75,6 +76,7 @@ tampi_path=
 tampi_inc_path=
 tampi_lib_path=
 skip_omp=0
+keep_bins=0
 
 nargs=$#
 args=("$@")
@@ -93,6 +95,9 @@ while (("$i" < "$nargs")); do
 		continue
 	elif [ "$opt" == "--skip-omp" ]; then
 		skip_omp=1
+		continue
+	elif [ "$opt" == "--keep" ]; then
+		keep_bins=1
 		continue
 	elif [ "$opt" == "-h" ] || [ "$opt" == "--help" ]; then
 		usage
@@ -200,9 +205,7 @@ progs=(
 	CollectiveNonBlk.omp.test
 	CollectiveNonBlk.oss.test
 	DoNotExecute.oss.test
-	DoNotExecutef.oss.test
 	HugeBlkTasks.oss.test
-	HugeTasksf.oss.test
 	InitAuto.oss.test
 	InitAutoTaskAware.oss.test
 	InitExplicit.oss.test
@@ -213,7 +216,6 @@ progs=(
 	PrimitiveBlk.oss.test
 	PrimitiveNonBlk.omp.test
 	PrimitiveNonBlk.oss.test
-	PrimitiveWrappers.oss.test
 	ThreadDisableTaskAwareness.oss.test
 	ThreadTaskAwareness.oss.test
 )
@@ -266,9 +268,11 @@ for ((i=0;i<nprogs;i++)); do
 	fi
 done
 
-make -f $makefile -B -s clean $compile_args
-if [ $? -ne 0 ]; then
-	exit 1
+if [ $keep_bins -eq 0 ]; then
+	make -f $makefile -B -s clean $compile_args
+	if [ $? -ne 0 ]; then
+		exit 1
+	fi
 fi
 
 echo "---------------------------------------"

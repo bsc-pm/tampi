@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2024 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TASK_CONTEXT_HPP
@@ -26,7 +26,9 @@ private:
 
 public:
 	//! \brief Construct a task context
-	TaskContext()
+	TaskContext() :
+		_blocking(false),
+		_taskHandle(nullptr)
 	{
 	}
 

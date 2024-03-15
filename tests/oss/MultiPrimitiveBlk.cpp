@@ -72,28 +72,25 @@ int main(int argc, char **argv)
 			for (int m = MSG_NUM - 1; m >= 0; --m) {
 				#pragma oss task out(message1[0;MSG_SIZE], message2[0;MSG_SIZE], message3[0;MSG_SIZE]) label("recv")
 				{
-					MPI_Request requests[4];
-					MPI_Status statuses[4];
-					CHECK(MPI_Irecv(message1, MSG_SIZE, MPI_INT, 1, m, MPI_COMM_WORLD, &requests[0]));
-					CHECK(MPI_Irecv(message2, MSG_SIZE, MPI_INT, 2, m, MPI_COMM_WORLD, &requests[2]));
-					CHECK(MPI_Irecv(message3, MSG_SIZE, MPI_INT, 3, m, MPI_COMM_WORLD, &requests[3]));
-					requests[1] = MPI_REQUEST_NULL;
-					CHECK(MPI_Waitall(4, requests, statuses));
+					MPI_Status statuses[3];
+					CHECK(MPI_Recv(message1, MSG_SIZE, MPI_INT, 1, m, MPI_COMM_WORLD, &statuses[0]));
+					CHECK(MPI_Recv(message2, MSG_SIZE, MPI_INT, 2, m, MPI_COMM_WORLD, &statuses[1]));
+					CHECK(MPI_Recv(message3, MSG_SIZE, MPI_INT, 3, m, MPI_COMM_WORLD, &statuses[2]));
 
 					int count1, count2, count3;
 					CHECK(MPI_Get_count(&statuses[0], MPI_INT, &count1));
-					CHECK(MPI_Get_count(&statuses[2], MPI_INT, &count2));
-					CHECK(MPI_Get_count(&statuses[3], MPI_INT, &count3));
+					CHECK(MPI_Get_count(&statuses[1], MPI_INT, &count2));
+					CHECK(MPI_Get_count(&statuses[2], MPI_INT, &count3));
 					ASSERT(count1 == MSG_SIZE);
 					ASSERT(count2 == MSG_SIZE);
 					ASSERT(count3 == MSG_SIZE);
 
 					ASSERT(statuses[0].MPI_TAG == m);
 					ASSERT(statuses[0].MPI_SOURCE == 1);
+					ASSERT(statuses[1].MPI_TAG == m);
+					ASSERT(statuses[1].MPI_SOURCE == 2);
 					ASSERT(statuses[2].MPI_TAG == m);
-					ASSERT(statuses[2].MPI_SOURCE == 2);
-					ASSERT(statuses[3].MPI_TAG == m);
-					ASSERT(statuses[3].MPI_SOURCE == 3);
+					ASSERT(statuses[2].MPI_SOURCE == 3);
 				}
 
 				#pragma oss task in(message1[0;MSG_SIZE], message2[0;MSG_SIZE], message3[0;MSG_SIZE]) label("check")

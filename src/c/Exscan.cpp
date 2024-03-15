@@ -9,9 +9,8 @@
 #include "Declarations.hpp"
 #include "Environment.hpp"
 #include "Interface.hpp"
-#include "RequestManager.hpp"
+#include "OperationManager.hpp"
 #include "Symbol.hpp"
-#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -21,25 +20,28 @@ extern "C" {
 
 int MPI_Exscan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
-	int err = MPI_SUCCESS;
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		Instrument::enter<IssueNonBlockingOp>();
-
-		static Symbol<MPI_Iexscan_t> symbol("MPI_Iexscan");
-
-		MPI_Request request;
-		err = symbol(sendbuf, recvbuf, count, datatype, op, comm, &request);
-
-		Instrument::exit<IssueNonBlockingOp>();
-
-		if (err == MPI_SUCCESS)
-			RequestManager<C>::processRequest(request);
+		CollOperation<C> operation(EXSCAN, sendbuf, count, datatype, recvbuf, 0, MPI_BYTE, op, 0, comm);
+		OperationManager<C>::processOperation(operation, true);
+		return MPI_SUCCESS;
 	} else {
 		static Symbol<MPI_Exscan_t> symbol(__func__);
-		err = symbol(sendbuf, recvbuf, count, datatype, op, comm);
+		return symbol(sendbuf, recvbuf, count, datatype, op, comm);
 	}
-	return err;
+}
+
+int TAMPI_Iexscan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
+{
+	if (Environment::isNonBlockingEnabled()) {
+		Instrument::Guard<LibraryInterface> instrGuard;
+		CollOperation<C> operation(EXSCAN, sendbuf, count, datatype, recvbuf, 0, MPI_BYTE, op, 0, comm);
+		OperationManager<C>::processOperation(operation, false);
+		return MPI_SUCCESS;
+	} else {
+		ErrorHandler::fail(__func__, " not enabled");
+		return MPI_ERR_UNSUPPORTED_OPERATION;
+	}
 }
 
 } // extern C

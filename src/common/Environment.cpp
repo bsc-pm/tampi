@@ -17,7 +17,12 @@ Environment::State Environment::_state;
 thread_local bool Environment::State::threadTaskAwareness = true;
 
 TaskingModel::PollingInstance *Polling::_pollingInstance;
+TaskingModel::PollingInstance *Polling::_completionPollingInstance;
 PollingPeriodCtrl Polling::_periodCtrl;
+
+EnvironmentVariable<bool> CompletionManager::_enabled("TAMPI_POLLING_TASK_COMPLETION", true);
+EnvironmentVariable<uint64_t> CompletionManager::_period("TAMPI_POLLING_TASK_COMPLETION_PERIOD", 100);
+CompletionManager::queue_t CompletionManager::_queue;
 
 SpinLock ErrorHandler::_lock;
 

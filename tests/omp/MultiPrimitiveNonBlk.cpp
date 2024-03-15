@@ -69,10 +69,7 @@ int main(int argc, char **argv)
 
 					#pragma omp task depend(in: message[0:MSG_SIZE-1])
 					{
-						MPI_Request requests[2];
-						requests[0] = MPI_REQUEST_NULL;
-						CHECK(MPI_Isend(message, MSG_SIZE, MPI_INT, 0, m, MPI_COMM_WORLD, &requests[1]));
-						CHECK(TAMPI_Iwaitall(2, requests, MPI_STATUSES_IGNORE));
+						CHECK(TAMPI_Isend(message, MSG_SIZE, MPI_INT, 0, m, MPI_COMM_WORLD));
 					}
 					message += MSG_SIZE;
 				}
@@ -84,12 +81,9 @@ int main(int argc, char **argv)
 				for (int m = MSG_NUM - 1; m >= 0; --m) {
 					#pragma omp task depend(out: message1[0:MSG_SIZE-1], message2[0:MSG_SIZE-1], message3[0:MSG_SIZE-1]) depend(out: statuses[m])
 					{
-						MPI_Request requests[4];
-						CHECK(MPI_Irecv(message1, MSG_SIZE, MPI_INT, 1, m, MPI_COMM_WORLD, &requests[0]));
-						CHECK(MPI_Irecv(message2, MSG_SIZE, MPI_INT, 2, m, MPI_COMM_WORLD, &requests[1]));
-						CHECK(MPI_Irecv(message3, MSG_SIZE, MPI_INT, 3, m, MPI_COMM_WORLD, &requests[2]));
-						requests[3] = MPI_REQUEST_NULL;
-						CHECK(TAMPI_Iwaitall(4, requests, statuses[m].status));
+						CHECK(TAMPI_Irecv(message1, MSG_SIZE, MPI_INT, 1, m, MPI_COMM_WORLD, &statuses[m].status[0]));
+						CHECK(TAMPI_Irecv(message2, MSG_SIZE, MPI_INT, 2, m, MPI_COMM_WORLD, &statuses[m].status[1]));
+						CHECK(TAMPI_Irecv(message3, MSG_SIZE, MPI_INT, 3, m, MPI_COMM_WORLD, &statuses[m].status[2]));
 					}
 
 					#pragma omp task depend(in: message1[0:MSG_SIZE-1], message2[0:MSG_SIZE-1], message3[0:MSG_SIZE-1]) depend(in: statuses[m])

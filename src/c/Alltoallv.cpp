@@ -8,10 +8,8 @@
 
 #include "Declarations.hpp"
 #include "Environment.hpp"
-#include "Interface.hpp"
-#include "RequestManager.hpp"
+#include "OperationManager.hpp"
 #include "Symbol.hpp"
-#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -22,26 +20,37 @@ extern "C" {
 int MPI_Alltoallv(MPI3CONST void *sendbuf, MPI3CONST int sendcounts[], MPI3CONST int sdispls[], MPI_Datatype sendtype,
 		void *recvbuf, MPI3CONST int recvcounts[], MPI3CONST int rdispls[], MPI_Datatype recvtype, MPI_Comm comm)
 {
-	int err = MPI_SUCCESS;
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		Instrument::enter<IssueNonBlockingOp>();
-
-		static Symbol<MPI_Ialltoallv_t> symbol("MPI_Ialltoallv");
-
-		MPI_Request request;
-		err = symbol(sendbuf, sendcounts, sdispls, sendtype,
-				recvbuf, recvcounts, rdispls, recvtype, comm, &request);
-
-		Instrument::exit<IssueNonBlockingOp>();
-
-		if (err == MPI_SUCCESS)
-			RequestManager<C>::processRequest(request);
+		CollOperation<C> operation(ALLTOALLV, sendbuf, 0, sendtype, recvbuf, 0, recvtype, 0, 0, comm);
+		operation._sendcounts = sendcounts;
+		operation._senddispls = sdispls;
+		operation._recvcounts = recvcounts;
+		operation._recvdispls = rdispls;
+		OperationManager<C>::processOperation(operation, true);
+		return MPI_SUCCESS;
 	} else {
 		static Symbol<MPI_Alltoallv_t> symbol(__func__);
-		err = symbol(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm);
+		return symbol(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm);
 	}
-	return err;
+}
+
+int TAMPI_Ialltoallv(MPI3CONST void *sendbuf, MPI3CONST int sendcounts[], MPI3CONST int sdispls[], MPI_Datatype sendtype,
+		void *recvbuf, MPI3CONST int recvcounts[], MPI3CONST int rdispls[], MPI_Datatype recvtype, MPI_Comm comm)
+{
+	if (Environment::isNonBlockingEnabled()) {
+		Instrument::Guard<LibraryInterface> instrGuard;
+		CollOperation<C> operation(ALLTOALLV, sendbuf, 0, sendtype, recvbuf, 0, recvtype, 0, 0, comm);
+		operation._sendcounts = sendcounts;
+		operation._senddispls = sdispls;
+		operation._recvcounts = recvcounts;
+		operation._recvdispls = rdispls;
+		OperationManager<C>::processOperation(operation, false);
+		return MPI_SUCCESS;
+	} else {
+		ErrorHandler::fail(__func__, " not enabled");
+		return MPI_ERR_UNSUPPORTED_OPERATION;
+	}
 }
 
 } // extern C

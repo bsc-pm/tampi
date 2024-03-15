@@ -47,7 +47,7 @@ all: $(PROGS)
 
 %.omp.test: omp/%.cpp
 	@echo "  MPICXX $@"
-	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(CFLAGS) $(TAMPI_CPPFLAGS) -fopenmp $^ -o $@ $(TAMPI_LDCFLAGS)
+	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(CFLAGS) $(TAMPI_CPPFLAGS) -fopenmp=libompv $^ -o $@ $(TAMPI_LDCFLAGS)
 
 clean:
 	rm -f *.o *.test *.mod

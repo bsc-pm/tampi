@@ -8,8 +8,7 @@
 
 #include "Declarations.hpp"
 #include "Environment.hpp"
-#include "Interface.hpp"
-#include "RequestManager.hpp"
+#include "OperationManager.hpp"
 #include "Symbol.hpp"
 #include "instrument/Instrument.hpp"
 
@@ -22,27 +21,31 @@ extern "C" {
 int MPI_Allgather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		void *recvbuf, int recvcount, MPI_Datatype recvtype, MPI_Comm comm)
 {
-	int err = MPI_SUCCESS;
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		Instrument::enter<IssueNonBlockingOp>();
-
-		static Symbol<MPI_Iallgather_t> symbol("MPI_Iallgather");
-
-		MPI_Request request;
-		err = symbol(sendbuf, sendcount, sendtype,
-				recvbuf, recvcount, recvtype,
-				comm, &request);
-
-		Instrument::exit<IssueNonBlockingOp>();
-
-		if (err == MPI_SUCCESS)
-			RequestManager<C>::processRequest(request);
+		CollOperation<C> operation(ALLGATHER, sendbuf, sendcount, sendtype, recvbuf,
+				recvcount, recvtype, 0, 0, comm);
+		OperationManager<C>::processOperation(operation, true);
+		return MPI_SUCCESS;
 	} else {
 		static Symbol<MPI_Allgather_t> symbol(__func__);
-		err = symbol(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm);
+		return symbol(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm);
 	}
-	return err;
+}
+
+int TAMPI_Iallgather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
+		void *recvbuf, int recvcount, MPI_Datatype recvtype, MPI_Comm comm)
+{
+	if (Environment::isNonBlockingEnabled()) {
+		Instrument::Guard<LibraryInterface> instrGuard;
+		CollOperation<C> operation(ALLGATHER, sendbuf, sendcount, sendtype, recvbuf,
+				recvcount, recvtype, 0, 0, comm);
+		OperationManager<C>::processOperation(operation, false);
+		return MPI_SUCCESS;
+	} else {
+		ErrorHandler::fail(__func__, " not enabled");
+		return MPI_ERR_UNSUPPORTED_OPERATION;
+	}
 }
 
 } // extern C

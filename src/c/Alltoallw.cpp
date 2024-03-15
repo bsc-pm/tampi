@@ -8,10 +8,8 @@
 
 #include "Declarations.hpp"
 #include "Environment.hpp"
-#include "Interface.hpp"
-#include "RequestManager.hpp"
+#include "OperationManager.hpp"
 #include "Symbol.hpp"
-#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -22,27 +20,41 @@ extern "C" {
 int MPI_Alltoallw(MPI3CONST void *sendbuf, MPI3CONST int sendcounts[], MPI3CONST int sdispls[], MPI3CONST MPI_Datatype sendtypes[],
 		void *recvbuf, MPI3CONST int recvcounts[], MPI3CONST int rdispls[], MPI3CONST MPI_Datatype recvtypes[], MPI_Comm comm)
 {
-	int err = MPI_SUCCESS;
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		Instrument::enter<IssueNonBlockingOp>();
-
-		static Symbol<MPI_Ialltoallw_t> symbol("MPI_Ialltoallw");
-
-		MPI_Request request;
-		err = symbol(sendbuf, sendcounts, sdispls, sendtypes,
-				recvbuf, recvcounts, rdispls, recvtypes,
-				comm, &request);
-
-		Instrument::exit<IssueNonBlockingOp>();
-
-		if (err == MPI_SUCCESS)
-			RequestManager<C>::processRequest(request);
+		CollOperation<C> operation(ALLTOALLW, sendbuf, 0, 0, recvbuf, 0, 0, 0, 0, comm);
+		operation._sendcounts = sendcounts;
+		operation._senddispls = sdispls;
+		operation._sendtypes = sendtypes;
+		operation._recvcounts = recvcounts;
+		operation._recvdispls = rdispls;
+		operation._recvtypes = recvtypes;
+		OperationManager<C>::processOperation(operation, true);
+		return MPI_SUCCESS;
 	} else {
-		static Symbol<MPI_Alltoallw_t> symbol(__func__);
-		err = symbol(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm);
+		ErrorHandler::fail("TAMPI: ", __func__, " not supported");
+		return MPI_ERR_UNSUPPORTED_OPERATION;
 	}
-	return err;
+}
+
+int TAMPI_Ialltoallw(MPI3CONST void *sendbuf, MPI3CONST int sendcounts[], MPI3CONST int sdispls[], MPI3CONST MPI_Datatype sendtypes[],
+		void *recvbuf, MPI3CONST int recvcounts[], MPI3CONST int rdispls[], MPI3CONST MPI_Datatype recvtypes[], MPI_Comm comm)
+{
+	if (Environment::isNonBlockingEnabled()) {
+		Instrument::Guard<LibraryInterface> instrGuard;
+		CollOperation<C> operation(ALLTOALLW, sendbuf, 0, 0, recvbuf, 0, 0, 0, 0, comm);
+		operation._sendcounts = sendcounts;
+		operation._senddispls = sdispls;
+		operation._sendtypes = sendtypes;
+		operation._recvcounts = recvcounts;
+		operation._recvdispls = rdispls;
+		operation._recvtypes = recvtypes;
+		OperationManager<C>::processOperation(operation, false);
+		return MPI_SUCCESS;
+	} else {
+		ErrorHandler::fail(__func__, " not enabled");
+		return MPI_ERR_UNSUPPORTED_OPERATION;
+	}
 }
 
 } // extern C

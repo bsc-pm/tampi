@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2024 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TICKET_HPP
@@ -14,15 +14,12 @@
 
 namespace tampi {
 
-//! Class that tracks the pending requests issued by a task
+//! Class that tracks a pending operation issued by a task
 template <typename Lang>
 class Ticket {
 private:
 	typedef typename Types<Lang>::status_t status_t;
 	typedef typename Types<Lang>::status_ptr_t status_ptr_t;
-
-	//! Number of pending requests assigned to the ticket
-	int _pending;
 
 	//! The context of the owner task
 	TaskContext _taskContext;
@@ -33,7 +30,6 @@ private:
 public:
 	//! \brief Construct an empty ticket
 	Ticket() :
-		_pending(0),
 		_taskContext(),
 		_firstStatus(nullptr)
 	{
@@ -45,60 +41,34 @@ public:
 	//!                    the statuses or STATUS_IGNORE
 	//! \param blocking Whether the TAMPI operation is blocking
 	Ticket(status_ptr_t firstStatus, bool blocking) :
-		_pending(0),
 		_taskContext(blocking),
 		_firstStatus(firstStatus)
 	{
 	}
 
-	//! \brief Indicate whether the ticket is blocking
-	bool isBlocking() const
-	{
-		return _taskContext.isBlocking();
-	}
-
-	//! \brief Get the number of pending requests
-	int getPendingRequests() const
-	{
-		return _pending;
-	}
-
-	//! \brief Add pending requests to the ticket
+	//! \brief Add pending operation to the ticket
 	//!
-	//! \param num The number of pending requests to add
-	void addPendingRequests(int num)
+	//! \param num The number of pending operations to add
+	void addPendingOperation(int num = 1)
 	{
-		_pending += num;
 		_taskContext.bindEvents(num);
 	}
 
-	//! \brief Reset the pending requests of the ticket
-	//!
-	//! Notice this function does not alter the number of bound events
-	void resetPendingRequests(int num)
+	//! \brief Mark the ticket as completed
+	void complete()
 	{
-		_pending = num;
+		_taskContext.completeEvents(1, true);
 	}
 
-	//! \brief Mark a request of the ticket as completed
-	//!
-	//! \param status The status of the completed request
-	//! \param statusPosition The local position in the array of statuses
-	void requestCompleted(const status_t& status, int statusPosition)
+	//! \brief Get the task context
+	const TaskContext &getTaskContext() const
 	{
-		assert(_pending > 0);
-		--_pending;
-
-		if (!ignoreStatus()) {
-			storeStatus(status, statusPosition);
-		}
-
-		_taskContext.completeEvents(1, _pending == 0);
+		return _taskContext;
 	}
 
-	//! \brief Wait until all requests complete
+	//! \brief Wait until all operations complete
 	//!
-	//! This function blocks the current task until all requests
+	//! This function blocks the current task until all operations
 	//! complete. Note this is only valid for tickets of blocking
 	//! TAMPI operations
 	void wait()
@@ -106,13 +76,13 @@ public:
 		_taskContext.waitEventsCompletion();
 	}
 
-private:
 	//! \brief Indicate whether the statuses should be ignored
 	//!
 	//! \returns Whether ignore the statuses
 	bool ignoreStatus() const
 	{
-		return (_firstStatus == Interface<Lang>::STATUS_IGNORE || _firstStatus == Interface<Lang>::STATUSES_IGNORE);
+		return (_firstStatus == Interface<Lang>::STATUS_IGNORE
+			|| _firstStatus == Interface<Lang>::STATUSES_IGNORE);
 	}
 
 	//! \brief Store the status of a request
@@ -126,7 +96,7 @@ private:
 
 		status_t *outStatus = (status_t *) _firstStatus;
 		outStatus += statusPosition;
-		std::copy(&status, &status+1, outStatus);
+		std::copy(&status, &status + 1, outStatus);
 	}
 };
 

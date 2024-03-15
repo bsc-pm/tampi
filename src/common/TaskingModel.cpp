@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2024 Barcelona Supercomputing Center (BSC)
 */
 
 #include "Symbol.hpp"
@@ -24,6 +24,9 @@ void TaskingModel::initialize(bool requireTaskBlockingAPI, bool requireTaskEvent
 	_alpi_task_self.load(attr);
 	_alpi_task_spawn.load(attr);
 	_alpi_task_waitfor_ns.load(attr);
+	_alpi_cpu_count.load(attr);
+	_alpi_cpu_logical_id.load(attr);
+	_alpi_cpu_system_id.load(attr);
 
 	// Load the task blocking API functions if needed
 	if (requireTaskBlockingAPI) {
@@ -81,5 +84,14 @@ TaskingModel::_alpi_task_waitfor_ns("alpi_task_waitfor_ns", /* load */ false);
 
 Symbol<TaskingModel::alpi_task_spawn_t>
 TaskingModel::_alpi_task_spawn("alpi_task_spawn", /* load */ false);
+
+Symbol<TaskingModel::alpi_cpu_count_t>
+TaskingModel::_alpi_cpu_count("alpi_cpu_count", /* load */ false);
+
+Symbol<TaskingModel::alpi_cpu_logical_id_t>
+TaskingModel::_alpi_cpu_logical_id("alpi_cpu_logical_id", /* load */ false);
+
+Symbol<TaskingModel::alpi_cpu_system_id_t>
+TaskingModel::_alpi_cpu_system_id("alpi_cpu_system_id", /* load */ false);
 
 } // namespace tampi
