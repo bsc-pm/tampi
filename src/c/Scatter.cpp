@@ -23,7 +23,7 @@ int MPI_Scatter(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(SCATTER, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, 0, root, comm);
+		CollOperation<C> operation(SCATTER, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, 0, root);
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
@@ -37,7 +37,7 @@ int TAMPI_Iscatter(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype
 {
 	if (Environment::isNonBlockingEnabled()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(SCATTER, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, 0, root, comm);
+		CollOperation<C> operation(SCATTER, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, 0, root);
 		OperationManager<C>::processOperation(operation, false);
 		return MPI_SUCCESS;
 	} else {

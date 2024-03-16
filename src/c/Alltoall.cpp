@@ -24,7 +24,7 @@ int MPI_Alltoall(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLTOALL, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, 0, 0, comm);
+		CollOperation<C> operation(ALLTOALL, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype);
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
@@ -39,7 +39,7 @@ int TAMPI_Ialltoall(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtyp
 {
 	if (Environment::isNonBlockingEnabled()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLTOALL, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, 0, 0, comm);
+		CollOperation<C> operation(ALLTOALL, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype);
 		OperationManager<C>::processOperation(operation, false);
 		return MPI_SUCCESS;
 	} else {

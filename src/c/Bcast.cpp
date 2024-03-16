@@ -22,7 +22,7 @@ int	MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(BCAST, nullptr, 0, MPI_BYTE, buffer, count, datatype, 0, root, comm);
+		CollOperation<C> operation(BCAST, comm, nullptr, 0, MPI_BYTE, buffer, count, datatype, 0, root);
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
@@ -35,7 +35,7 @@ int TAMPI_Ibcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_C
 {
 	if (Environment::isNonBlockingEnabled()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(BCAST, nullptr, 0, MPI_BYTE, buffer, count, datatype, 0, root, comm);
+		CollOperation<C> operation(BCAST, comm, nullptr, 0, MPI_BYTE, buffer, count, datatype, 0, root);
 		OperationManager<C>::processOperation(operation, false);
 		return MPI_SUCCESS;
 	} else {
