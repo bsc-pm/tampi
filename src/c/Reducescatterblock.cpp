@@ -25,7 +25,7 @@ int MPI_Reduce_scatter_block(MPI3CONST void *sendbuf, void *recvbuf, int recvcou
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
-		static Symbol<MPI_Reduce_scatter_block_t> symbol(__func__);
+		static Symbol<Prototypes<C>::mpi_reduce_scatter_block_t> symbol(__func__);
 		return symbol(sendbuf, recvbuf, recvcount, datatype, op, comm);
 	}
 }

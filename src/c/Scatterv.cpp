@@ -26,7 +26,7 @@ int MPI_Scatterv(MPI3CONST void* sendbuf, MPI3CONST int sendcounts[], MPI3CONST 
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
-		static Symbol<MPI_Scatterv_t> symbol(__func__);
+		static Symbol<Prototypes<C>::mpi_scatterv_t> symbol(__func__);
 		return symbol(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm);
 	}
 }
