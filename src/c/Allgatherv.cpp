@@ -23,9 +23,7 @@ int MPI_Allgatherv(MPI3CONST void* sendbuf, int sendcount, MPI_Datatype sendtype
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLGATHERV, sendbuf, sendcount, sendtype, recvbuf, 0, recvtype, 0, 0, comm);
-		operation._recvcounts = recvcounts;
-		operation._recvdispls = displs;
+		CollOperation<C> operation(ALLGATHERV, comm, sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype);
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
@@ -40,9 +38,7 @@ int TAMPI_Iallgatherv(MPI3CONST void* sendbuf, int sendcount, MPI_Datatype sendt
 {
 	if (Environment::isNonBlockingEnabled()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLGATHERV, sendbuf, sendcount, sendtype, recvbuf, 0, recvtype, 0, 0, comm);
-		operation._recvcounts = recvcounts;
-		operation._recvdispls = displs;
+		CollOperation<C> operation(ALLGATHERV, comm, sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype);
 		OperationManager<C>::processOperation(operation, false);
 		return MPI_SUCCESS;
 	} else {

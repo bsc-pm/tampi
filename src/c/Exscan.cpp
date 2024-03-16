@@ -22,7 +22,7 @@ int MPI_Exscan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype d
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(EXSCAN, sendbuf, count, datatype, recvbuf, 0, MPI_BYTE, op, 0, comm);
+		CollOperation<C> operation(EXSCAN, comm, sendbuf, count, datatype, recvbuf, 0, MPI_BYTE, op);
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
@@ -35,7 +35,7 @@ int TAMPI_Iexscan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatyp
 {
 	if (Environment::isNonBlockingEnabled()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(EXSCAN, sendbuf, count, datatype, recvbuf, 0, MPI_BYTE, op, 0, comm);
+		CollOperation<C> operation(EXSCAN, comm, sendbuf, count, datatype, recvbuf, 0, MPI_BYTE, op);
 		OperationManager<C>::processOperation(operation, false);
 		return MPI_SUCCESS;
 	} else {

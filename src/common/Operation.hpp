@@ -93,39 +93,83 @@ struct CollOperation {
 	typedef typename Types<Lang>::comm_t comm_t;
 	typedef typename Types<Lang>::request_t request_t;
 
-	const void *_sendbuf;
+	MPI3CONST void *_sendbuf;
 	void *_recvbuf;
-	const int_t *_senddispls;
-	const int_t *_recvdispls;
+	MPI3CONST int_t *_senddispls;
+	MPI3CONST int_t *_recvdispls;
 	union {
 		int_t _sendcount;
-		const int_t *_sendcounts;
+		MPI3CONST int_t *_sendcounts;
 	};
 	union {
 		int_t _recvcount;
-		const int_t *_recvcounts;
+		MPI3CONST int_t *_recvcounts;
 	};
 	union {
 		datatype_t _sendtype;
-		const datatype_t *_sendtypes;
+		MPI3CONST datatype_t *_sendtypes;
 	};
 	union {
 		datatype_t _recvtype;
-		const datatype_t *_recvtypes;
+		MPI3CONST datatype_t *_recvtypes;
 	};
 	comm_t _comm;
 	int_t _rank;
 	op_t _op;
 	opcode_t _opcode;
 
-	CollOperation(opcode_t opcode,
-		const void *sendbuf, int_t sendcount, datatype_t sendtype,
+	CollOperation(opcode_t opcode, comm_t comm,
+		MPI3CONST void *sendbuf, int_t sendcount, datatype_t sendtype,
 		void *recvbuf, int_t recvcount, datatype_t recvtype,
-		op_t op, int_t rank, comm_t comm
+		op_t op = 0, int_t rank = 0
 	) :
-		_sendbuf(sendbuf), _recvbuf(recvbuf),
-		_sendcount(sendcount), _recvcount(recvcount), _sendtype(sendtype),
-		_recvtype(recvtype), _comm(comm), _rank(rank), _op(op), _opcode(opcode)
+		_sendbuf(sendbuf), _recvbuf(recvbuf), _sendcount(sendcount),
+		_recvcount(recvcount), _sendtype(sendtype), _recvtype(recvtype),
+		_comm(comm), _rank(rank), _op(op), _opcode(opcode)
+	{
+	}
+
+	CollOperation(opcode_t opcode, comm_t comm,
+		MPI3CONST void *sendbuf, MPI3CONST int_t sendcounts[], MPI3CONST int_t senddispls[],
+		datatype_t sendtype, void *recvbuf, int_t recvcount, datatype_t recvtype,
+		op_t op = 0, int_t rank = 0
+	) :
+		_sendbuf(sendbuf), _recvbuf(recvbuf), _senddispls(senddispls), _sendcounts(sendcounts),
+		_recvcount(recvcount), _sendtype(sendtype), _recvtype(recvtype), _comm(comm),
+		_rank(rank), _op(op), _opcode(opcode)
+	{
+	}
+
+	CollOperation(opcode_t opcode, comm_t comm,
+		MPI3CONST void *sendbuf, int_t sendcount, datatype_t sendtype,
+		void *recvbuf, MPI3CONST int_t recvcounts[], MPI3CONST int_t recvdispls[],
+		datatype_t recvtype, op_t op = 0, int_t rank = 0
+	) :
+		_sendbuf(sendbuf), _recvbuf(recvbuf), _recvdispls(recvdispls), _sendcount(sendcount),
+		_recvcounts(recvcounts), _sendtype(sendtype), _recvtype(recvtype), _comm(comm),
+		_rank(rank), _op(op), _opcode(opcode)
+	{
+	}
+
+	CollOperation(opcode_t opcode, comm_t comm,
+		MPI3CONST void *sendbuf, MPI3CONST int_t sendcounts[], MPI3CONST int_t senddispls[],
+		datatype_t sendtype, void *recvbuf, MPI3CONST int_t recvcounts[],
+		MPI3CONST int_t recvdispls[], datatype_t recvtype, op_t op = 0, int_t rank = 0
+	) :
+		_sendbuf(sendbuf), _recvbuf(recvbuf), _senddispls(senddispls), _recvdispls(recvdispls),
+		_sendcounts(sendcounts), _recvcounts(recvcounts), _sendtype(sendtype), _recvtype(recvtype),
+		_comm(comm), _rank(rank), _op(op), _opcode(opcode)
+	{
+	}
+
+	CollOperation(opcode_t opcode, comm_t comm,
+		MPI3CONST void *sendbuf, MPI3CONST int_t sendcounts[], MPI3CONST int_t senddispls[],
+		MPI3CONST datatype_t sendtypes[], void *recvbuf, MPI3CONST int_t recvcounts[],
+		MPI3CONST int_t recvdispls[], MPI3CONST datatype_t recvtypes[], op_t op = 0, int_t rank = 0
+	) :
+		_sendbuf(sendbuf), _recvbuf(recvbuf), _senddispls(senddispls), _recvdispls(recvdispls),
+		_sendcounts(sendcounts), _recvcounts(recvcounts), _sendtypes(sendtypes), _recvtypes(recvtypes),
+		_comm(comm), _rank(rank), _op(op), _opcode(opcode)
 	{
 	}
 

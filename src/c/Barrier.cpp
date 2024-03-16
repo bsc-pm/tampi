@@ -22,7 +22,7 @@ int MPI_Barrier(MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(BARRIER, nullptr, 0, MPI_BYTE, nullptr, 0, MPI_BYTE, 0, 0, comm);
+		CollOperation<C> operation(BARRIER, comm, nullptr, 0, MPI_BYTE, nullptr, 0, MPI_BYTE);
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
@@ -35,7 +35,7 @@ int TAMPI_Ibarrier(MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(BARRIER, nullptr, 0, MPI_BYTE, nullptr, 0, MPI_BYTE, 0, 0, comm);
+		CollOperation<C> operation(BARRIER, comm, nullptr, 0, MPI_BYTE, nullptr, 0, MPI_BYTE);
 		OperationManager<C>::processOperation(operation, false);
 		return MPI_SUCCESS;
 	} else {

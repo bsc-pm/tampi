@@ -21,7 +21,7 @@ int MPI_Reduce_scatter_block(MPI3CONST void *sendbuf, void *recvbuf, int recvcou
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(REDUCESCATTERBLOCK, sendbuf, 0, datatype, recvbuf, recvcount, MPI_BYTE, op, 0, comm);
+		CollOperation<C> operation(REDUCESCATTERBLOCK, comm, sendbuf, 0, datatype, recvbuf, recvcount, MPI_BYTE, op);
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
@@ -34,7 +34,7 @@ int TAMPI_Ireduce_scatter_block(MPI3CONST void *sendbuf, void *recvbuf, int recv
 {
 	if (Environment::isNonBlockingEnabled()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(REDUCESCATTERBLOCK, sendbuf, 0, datatype, recvbuf, recvcount, MPI_BYTE, op, 0, comm);
+		CollOperation<C> operation(REDUCESCATTERBLOCK, comm, sendbuf, 0, datatype, recvbuf, recvcount, MPI_BYTE, op);
 		OperationManager<C>::processOperation(operation, false);
 		return MPI_SUCCESS;
 	} else {

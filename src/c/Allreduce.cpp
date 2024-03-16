@@ -22,7 +22,7 @@ int MPI_Allreduce(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatyp
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLREDUCE, sendbuf, count, datatype, recvbuf, count, datatype, op, 0, comm);
+		CollOperation<C> operation(ALLREDUCE, comm, sendbuf, count, datatype, recvbuf, count, datatype, op);
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
@@ -35,7 +35,7 @@ int TAMPI_Iallreduce(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Data
 {
 	if (Environment::isNonBlockingEnabled()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLREDUCE, sendbuf, count, datatype, recvbuf, count, datatype, op, 0, comm);
+		CollOperation<C> operation(ALLREDUCE, comm, sendbuf, count, datatype, recvbuf, count, datatype, op);
 		OperationManager<C>::processOperation(operation, false);
 		return MPI_SUCCESS;
 	} else {

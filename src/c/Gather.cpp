@@ -24,8 +24,7 @@ int MPI_Gather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(GATHER, sendbuf, sendcount, sendtype, recvbuf,
-				recvcount, recvtype, 0, root, comm);
+		CollOperation<C> operation(GATHER, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, 0, root);
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
@@ -40,8 +39,7 @@ int TAMPI_Igather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 {
 	if (Environment::isNonBlockingEnabled()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(GATHER, sendbuf, sendcount, sendtype, recvbuf,
-				recvcount, recvtype, 0, root, comm);
+		CollOperation<C> operation(GATHER, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, 0, root);
 		OperationManager<C>::processOperation(operation, false);
 		return MPI_SUCCESS;
 	} else {

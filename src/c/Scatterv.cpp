@@ -22,9 +22,7 @@ int MPI_Scatterv(MPI3CONST void* sendbuf, MPI3CONST int sendcounts[], MPI3CONST 
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(SCATTERV, sendbuf, 0, sendtype, recvbuf, recvcount, recvtype, 0, root, comm);
-		operation._sendcounts = sendcounts;
-		operation._senddispls = displs;
+		CollOperation<C> operation(SCATTERV, comm, sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, 0, root);
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
@@ -38,9 +36,7 @@ int TAMPI_Iscatterv(MPI3CONST void* sendbuf, MPI3CONST int sendcounts[], MPI3CON
 {
 	if (Environment::isNonBlockingEnabled()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(SCATTERV, sendbuf, 0, sendtype, recvbuf, recvcount, recvtype, 0, root, comm);
-		operation._sendcounts = sendcounts;
-		operation._senddispls = displs;
+		CollOperation<C> operation(SCATTERV, comm, sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, 0, root);
 		OperationManager<C>::processOperation(operation, false);
 		return MPI_SUCCESS;
 	} else {

@@ -23,8 +23,7 @@ int MPI_Allgather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLGATHER, sendbuf, sendcount, sendtype, recvbuf,
-				recvcount, recvtype, 0, 0, comm);
+		CollOperation<C> operation(ALLGATHER, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype);
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
@@ -38,8 +37,7 @@ int TAMPI_Iallgather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendty
 {
 	if (Environment::isNonBlockingEnabled()) {
 		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLGATHER, sendbuf, sendcount, sendtype, recvbuf,
-				recvcount, recvtype, 0, 0, comm);
+		CollOperation<C> operation(ALLGATHER, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype);
 		OperationManager<C>::processOperation(operation, false);
 		return MPI_SUCCESS;
 	} else {
