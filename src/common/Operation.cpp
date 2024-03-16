@@ -110,4 +110,18 @@ Operation<C>::request_t CollOperation<C>::issue()
 	return request;
 }
 
+template <>
+Types<Fortran>::request_t Operation<Fortran>::issue()
+{
+	ErrorHandler::fail("Fortran not supported");
+	return Interface<Fortran>::REQUEST_NULL;
+}
+
+template <>
+Types<Fortran>::request_t CollOperation<Fortran>::issue()
+{
+	ErrorHandler::fail("Fortran not supported");
+	return Interface<Fortran>::REQUEST_NULL;
+}
+
 } // namespace tampi
