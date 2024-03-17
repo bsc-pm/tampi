@@ -26,7 +26,7 @@ int MPI_Reduce(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype d
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
-		static Symbol<MPI_Reduce_t> symbol(__func__);
+		static Symbol<Prototypes<C>::mpi_reduce_t> symbol(__func__);
 		return symbol(sendbuf, recvbuf, count, datatype, op, root, comm);
 	}
 }

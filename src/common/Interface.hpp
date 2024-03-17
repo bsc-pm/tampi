@@ -9,30 +9,13 @@
 
 #include <mpi.h>
 #include <array>
+#include <string_view>
 
 #include "Declarations.hpp"
 #include "Symbol.hpp"
 #include "util/ErrorHandler.hpp"
 
 namespace tampi {
-
-//! Classes representing C/C++ and Fortran languages. The MPI interface
-//! is very different between the C/C++ and the Fortran launagues, so we
-//! try to define common code and we use specific classes with the
-//! differences, such as MPI functions and types.
-struct C {
-	static constexpr const char *Test = "MPI_Test";
-	static constexpr const char *Testall = "MPI_Testall";
-	static constexpr const char *Testany = "MPI_Testany";
-	static constexpr const char *Testsome = "MPI_Testsome";
-};
-
-struct Fortran {
-	static constexpr const char *Test = "mpi_test_";
-	static constexpr const char *Testall = "mpi_testall_";
-	static constexpr const char *Testany = "mpi_testany_";
-	static constexpr const char *Testsome = "mpi_testsome_";
-};
 
 //! Class for defining typedefs
 template <typename Lang>
@@ -47,11 +30,6 @@ struct Types<C> {
 	typedef MPI_Datatype datatype_t;
 	typedef MPI_Op op_t;
 	typedef MPI_Comm comm_t;
-
-	typedef MPI_Test_t test_t;
-	typedef MPI_Testall_t testall_t;
-	typedef MPI_Testany_t testany_t;
-	typedef MPI_Testsome_t testsome_t;
 };
 
 template <>
@@ -63,11 +41,6 @@ struct Types<Fortran> {
 	typedef MPI_Fint* datatype_t;
 	typedef MPI_Fint op_t;
 	typedef MPI_Fint comm_t;
-
-	typedef mpi_test_t test_t;
-	typedef mpi_testall_t testall_t;
-	typedef mpi_testany_t testany_t;
-	typedef mpi_testsome_t testsome_t;
 };
 
 //! Class providing MPI constants and functions. Each function must be specialized
@@ -78,12 +51,38 @@ class Interface {
 	typedef typename Types<Lang>::status_t status_t;
 	typedef typename Types<Lang>::status_ptr_t status_ptr_t;
 
-	static Symbol<typename Types<Lang>::test_t> _test;
-	static Symbol<typename Types<Lang>::testall_t> _testall;
-	static Symbol<typename Types<Lang>::testany_t> _testany;
-	static Symbol<typename Types<Lang>::testsome_t> _testsome;
-
 public:
+	static Symbol<typename Prototypes<Lang>::mpi_test_t> mpi_test;
+	static Symbol<typename Prototypes<Lang>::mpi_testall_t> mpi_testall;
+	static Symbol<typename Prototypes<Lang>::mpi_testany_t> mpi_testany;
+	static Symbol<typename Prototypes<Lang>::mpi_testsome_t> mpi_testsome;
+	static Symbol<typename Prototypes<Lang>::mpi_comm_rank_t> mpi_comm_rank;
+	static Symbol<typename Prototypes<Lang>::mpi_comm_size_t> mpi_comm_size;
+
+	static Symbol<typename Prototypes<Lang>::mpi_ibsend_t> mpi_ibsend;
+	static Symbol<typename Prototypes<Lang>::mpi_irecv_t> mpi_irecv;
+	static Symbol<typename Prototypes<Lang>::mpi_irsend_t> mpi_irsend;
+	static Symbol<typename Prototypes<Lang>::mpi_isend_t> mpi_isend;
+	static Symbol<typename Prototypes<Lang>::mpi_issend_t> mpi_issend;
+
+	static Symbol<typename Prototypes<Lang>::mpi_iallgather_t> mpi_iallgather;
+	static Symbol<typename Prototypes<Lang>::mpi_iallgatherv_t> mpi_iallgatherv;
+	static Symbol<typename Prototypes<Lang>::mpi_iallreduce_t> mpi_iallreduce;
+	static Symbol<typename Prototypes<Lang>::mpi_ialltoall_t>  mpi_ialltoall;
+	static Symbol<typename Prototypes<Lang>::mpi_ialltoallv_t> mpi_ialltoallv;
+	static Symbol<typename Prototypes<Lang>::mpi_ialltoallw_t> mpi_ialltoallw;
+	static Symbol<typename Prototypes<Lang>::mpi_ibarrier_t> mpi_ibarrier;
+	static Symbol<typename Prototypes<Lang>::mpi_ibcast_t> mpi_ibcast;
+	static Symbol<typename Prototypes<Lang>::mpi_igather_t> mpi_igather;
+	static Symbol<typename Prototypes<Lang>::mpi_igatherv_t> mpi_igatherv;
+	static Symbol<typename Prototypes<Lang>::mpi_ireduce_t> mpi_ireduce;
+	static Symbol<typename Prototypes<Lang>::mpi_ireduce_scatter_t> mpi_ireduce_scatter;
+	static Symbol<typename Prototypes<Lang>::mpi_ireduce_scatter_block_t> mpi_ireduce_scatter_block;
+	static Symbol<typename Prototypes<Lang>::mpi_iscatter_t> mpi_iscatter;
+	static Symbol<typename Prototypes<Lang>::mpi_iscatterv_t> mpi_iscatterv;
+	static Symbol<typename Prototypes<Lang>::mpi_iscan_t> mpi_iscan;
+	static Symbol<typename Prototypes<Lang>::mpi_iexscan_t> mpi_iexscan;
+
 	static request_t REQUEST_NULL;
 	static status_ptr_t STATUS_IGNORE;
 	static status_ptr_t STATUSES_IGNORE;
@@ -91,6 +90,7 @@ public:
 	static int nranks;
 
 	static void initialize();
+	static void loadSymbols();
 
 	static bool test(request_t &request, status_ptr_t status);
 	static bool testall(int size, request_t *requests, status_ptr_t statuses);
@@ -105,12 +105,10 @@ inline void Interface<C>::initialize()
 	STATUS_IGNORE = MPI_STATUS_IGNORE;
 	STATUSES_IGNORE = MPI_STATUS_IGNORE;
 
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &nranks);
+	loadSymbols();
 
-	_test.load(SymbolAttr::Next, true);
-	_testall.load(SymbolAttr::Next, true);
-	_testsome.load(SymbolAttr::Next, true);
+	mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	mpi_comm_size(MPI_COMM_WORLD, &nranks);
 }
 
 template <>
@@ -120,22 +118,54 @@ inline void Interface<Fortran>::initialize()
 	STATUS_IGNORE = MPI_F_STATUS_IGNORE;
 	STATUSES_IGNORE = MPI_F_STATUSES_IGNORE;
 
+	loadSymbols();
+
 	MPI_Fint comm = MPI_Comm_c2f(MPI_COMM_WORLD);
+	MPI_Fint err;
+	mpi_comm_rank(&comm, &rank, &err);
+	mpi_comm_size(&comm, &nranks, &err);
+}
 
-	int err;
-	mpi_comm_rank_(&comm, &rank, &err);
-	mpi_comm_size_(&comm, &nranks, &err);
+template <typename Lang>
+inline void Interface<Lang>::loadSymbols()
+{
+	mpi_test.load(SymbolAttr::Next, true);
+	mpi_testall.load(SymbolAttr::Next, true);
+	mpi_testany.load(SymbolAttr::Next, true);
+	mpi_testsome.load(SymbolAttr::Next, true);
+	mpi_comm_rank.load(SymbolAttr::Next, true);
+	mpi_comm_size.load(SymbolAttr::Next, true);
 
-	_test.load(SymbolAttr::Next, true);
-	_testall.load(SymbolAttr::Next, true);
-	_testsome.load(SymbolAttr::Next, true);
+	mpi_ibsend.load(SymbolAttr::Next, true);
+	mpi_irecv.load(SymbolAttr::Next, true);
+	mpi_irsend.load(SymbolAttr::Next, true);
+	mpi_isend.load(SymbolAttr::Next, true);
+	mpi_issend.load(SymbolAttr::Next, true);
+
+	mpi_iallgather.load(SymbolAttr::Next, true);
+	mpi_iallgatherv.load(SymbolAttr::Next, true);
+	mpi_iallreduce.load(SymbolAttr::Next, true);
+	mpi_ialltoall.load(SymbolAttr::Next, true);
+	mpi_ialltoallv.load(SymbolAttr::Next, true);
+	mpi_ialltoallw.load(SymbolAttr::Next, true);
+	mpi_ibarrier.load(SymbolAttr::Next, true);
+	mpi_ibcast.load(SymbolAttr::Next, true);
+	mpi_igather.load(SymbolAttr::Next, true);
+	mpi_igatherv.load(SymbolAttr::Next, true);
+	mpi_ireduce.load(SymbolAttr::Next, true);
+	mpi_ireduce_scatter.load(SymbolAttr::Next, true);
+	mpi_ireduce_scatter_block.load(SymbolAttr::Next, true);
+	mpi_iscatter.load(SymbolAttr::Next, true);
+	mpi_iscatterv.load(SymbolAttr::Next, true);
+	mpi_iscan.load(SymbolAttr::Next, true);
+	mpi_iexscan.load(SymbolAttr::Next, true);
 }
 
 template <>
 inline bool Interface<C>::test(request_t &request, status_ptr_t status)
 {
 	int completed;
-	int err = _test(&request, &completed, status);
+	int err = mpi_test(&request, &completed, status);
 	if (err != MPI_SUCCESS)
 		ErrorHandler::fail("Unexpected return code from MPI_Test");
 
@@ -146,7 +176,7 @@ template <>
 inline bool Interface<C>::testall(int size, request_t *requests, status_ptr_t statuses)
 {
 	int completed;
-	int err = _testall(size, requests, &completed, statuses);
+	int err = mpi_testall(size, requests, &completed, statuses);
 	if (err != MPI_SUCCESS)
 		ErrorHandler::fail("Unexpected return code from MPI_Testall");
 
@@ -157,7 +187,7 @@ template <>
 inline bool Interface<C>::testany(int size, request_t *requests, int *index, status_ptr_t status)
 {
 	int completed;
-	int err = _testany(size, requests, index, &completed, status);
+	int err = mpi_testany(size, requests, index, &completed, status);
 	if (err != MPI_SUCCESS)
 		ErrorHandler::fail("Unexpected return code from MPI_Testany");
 	else if (completed && *index == MPI_UNDEFINED)
@@ -173,7 +203,7 @@ template <>
 inline int Interface<C>::testsome(int size, request_t *requests, int *indices, status_ptr_t statuses)
 {
 	int completed;
-	int err = _testsome(size, requests, &completed, indices, statuses);
+	int err = mpi_testsome(size, requests, &completed, indices, statuses);
 	if (err != MPI_SUCCESS)
 		ErrorHandler::fail("Unexpected return code from MPI_Testsome");
 	if (completed == MPI_UNDEFINED)
@@ -189,7 +219,7 @@ template <>
 inline bool Interface<Fortran>::test(request_t &request, status_ptr_t status)
 {
 	int completed, err;
-	_test(&request, &completed, status, &err);
+	mpi_test(&request, &completed, status, &err);
 	if (err != MPI_SUCCESS)
 		ErrorHandler::fail("Unexpected return code from MPI_Test");
 
@@ -200,7 +230,7 @@ template <>
 inline bool Interface<Fortran>::testall(int size, request_t *requests, status_ptr_t statuses)
 {
 	int completed, err;
-	_testall(&size, requests, &completed, statuses, &err);
+	mpi_testall(&size, requests, &completed, statuses, &err);
 	if (err != MPI_SUCCESS)
 		ErrorHandler::fail("Unexpected return code from MPI_Testall");
 	return completed;
@@ -210,7 +240,7 @@ template <>
 inline bool Interface<Fortran>::testany(int size, request_t *requests, int *index, status_ptr_t status)
 {
 	int completed, err;
-	_testany(&size, requests, index, &completed, status, &err);
+	mpi_testany(&size, requests, index, &completed, status, &err);
 	if (err != MPI_SUCCESS)
 		ErrorHandler::fail("Unexpected return code from MPI_Testany");
 	else if (completed && *index == MPI_UNDEFINED)
@@ -230,7 +260,7 @@ template <>
 inline int Interface<Fortran>::testsome(int size, request_t *requests, int *indices, status_ptr_t statuses)
 {
 	int err, completed;
-	_testsome(&size, requests, &completed, indices, statuses, &err);
+	mpi_testsome(&size, requests, &completed, indices, statuses, &err);
 	if (err != MPI_SUCCESS)
 		ErrorHandler::fail("Unexpected return code from MPI_Testsome");
 	else if (completed == MPI_UNDEFINED)
@@ -248,30 +278,74 @@ inline int Interface<Fortran>::testsome(int size, request_t *requests, int *indi
 
 template <typename Lang>
 typename Types<Lang>::request_t Interface<Lang>::REQUEST_NULL;
-
 template <typename Lang>
 typename Types<Lang>::status_ptr_t Interface<Lang>::STATUS_IGNORE;
-
 template <typename Lang>
 typename Types<Lang>::status_ptr_t Interface<Lang>::STATUSES_IGNORE;
 
 template <typename Lang>
 int Interface<Lang>::rank;
-
 template <typename Lang>
 int Interface<Lang>::nranks;
 
 template <typename Lang>
-Symbol<typename Types<Lang>::test_t> Interface<Lang>::_test(Lang::Test, false);
+Symbol<typename Prototypes<Lang>::mpi_test_t> Interface<Lang>::mpi_test(Names<Lang>::mpi_test, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_testall_t> Interface<Lang>::mpi_testall(Names<Lang>::mpi_testall, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_testany_t> Interface<Lang>::mpi_testany(Names<Lang>::mpi_testany, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_testsome_t> Interface<Lang>::mpi_testsome(Names<Lang>::mpi_testsome, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_comm_rank_t> Interface<Lang>::mpi_comm_rank(Names<Lang>::mpi_comm_rank, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_comm_size_t> Interface<Lang>::mpi_comm_size(Names<Lang>::mpi_comm_size, false);
 
 template <typename Lang>
-Symbol<typename Types<Lang>::testall_t> Interface<Lang>::_testall(Lang::Testall, false);
+Symbol<typename Prototypes<Lang>::mpi_ibsend_t> Interface<Lang>::mpi_ibsend(Names<Lang>::mpi_ibsend, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_irecv_t> Interface<Lang>::mpi_irecv(Names<Lang>::mpi_irecv, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_irsend_t> Interface<Lang>::mpi_irsend(Names<Lang>::mpi_irsend, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_isend_t> Interface<Lang>::mpi_isend(Names<Lang>::mpi_isend, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_issend_t> Interface<Lang>::mpi_issend(Names<Lang>::mpi_issend, false);
 
 template <typename Lang>
-Symbol<typename Types<Lang>::testany_t> Interface<Lang>::_testany(Lang::Testany, false);
-
+Symbol<typename Prototypes<Lang>::mpi_iallgather_t> Interface<Lang>::mpi_iallgather(Names<Lang>::mpi_iallgather, false);
 template <typename Lang>
-Symbol<typename Types<Lang>::testsome_t> Interface<Lang>::_testsome(Lang::Testsome, false);
+Symbol<typename Prototypes<Lang>::mpi_iallgatherv_t> Interface<Lang>::mpi_iallgatherv(Names<Lang>::mpi_iallgatherv, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_iallreduce_t> Interface<Lang>::mpi_iallreduce(Names<Lang>::mpi_iallreduce, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_ialltoall_t>  Interface<Lang>::mpi_ialltoall(Names<Lang>::mpi_ialltoall, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_ialltoallv_t> Interface<Lang>::mpi_ialltoallv(Names<Lang>::mpi_ialltoallv, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_ialltoallw_t> Interface<Lang>::mpi_ialltoallw(Names<Lang>::mpi_ialltoallw, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_ibarrier_t> Interface<Lang>::mpi_ibarrier(Names<Lang>::mpi_ibarrier, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_ibcast_t> Interface<Lang>::mpi_ibcast(Names<Lang>::mpi_ibcast, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_igather_t> Interface<Lang>::mpi_igather(Names<Lang>::mpi_igather, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_igatherv_t> Interface<Lang>::mpi_igatherv(Names<Lang>::mpi_igatherv, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_ireduce_t> Interface<Lang>::mpi_ireduce(Names<Lang>::mpi_ireduce, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_ireduce_scatter_t> Interface<Lang>::mpi_ireduce_scatter(Names<Lang>::mpi_ireduce_scatter, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_ireduce_scatter_block_t> Interface<Lang>::mpi_ireduce_scatter_block(Names<Lang>:: mpi_ireduce_scatter_block, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_iscatter_t> Interface<Lang>::mpi_iscatter(Names<Lang>::mpi_iscatter, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_iscatterv_t> Interface<Lang>::mpi_iscatterv(Names<Lang>::mpi_iscatterv, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_iscan_t> Interface<Lang>::mpi_iscan(Names<Lang>::mpi_iscan, false);
+template <typename Lang>
+Symbol<typename Prototypes<Lang>::mpi_iexscan_t> Interface<Lang>::mpi_iexscan(Names<Lang>::mpi_iexscan, false);
 
 #if !defined(DISABLE_C_LANG)
 using InterfaceAny = Interface<C>;

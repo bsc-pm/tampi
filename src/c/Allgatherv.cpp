@@ -27,7 +27,7 @@ int MPI_Allgatherv(MPI3CONST void* sendbuf, int sendcount, MPI_Datatype sendtype
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
-		static Symbol<MPI_Allgatherv_t> symbol(__func__);
+		static Symbol<Prototypes<C>::mpi_allgatherv_t> symbol(__func__);
 		return symbol(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm);
 	}
 }

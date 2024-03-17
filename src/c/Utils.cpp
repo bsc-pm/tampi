@@ -31,7 +31,7 @@ int MPI_Query_thread(int *provided)
 	if (blocking) {
 		*provided = MPI_TASK_MULTIPLE;
 	} else {
-		static Symbol<MPI_Query_thread_t> symbol(__func__);
+		static Symbol<Prototypes<C>::mpi_query_thread_t> symbol(__func__);
 		return symbol(provided);
 	}
 	return MPI_SUCCESS;

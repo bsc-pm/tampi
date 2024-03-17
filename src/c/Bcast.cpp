@@ -26,7 +26,7 @@ int	MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
-		static Symbol<MPI_Bcast_t> symbol(__func__);
+		static Symbol<Prototypes<C>::mpi_bcast_t> symbol(__func__);
 		return symbol(buffer, count, datatype, root, comm);
 	}
 }

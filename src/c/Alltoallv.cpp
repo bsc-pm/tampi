@@ -26,7 +26,7 @@ int MPI_Alltoallv(MPI3CONST void *sendbuf, MPI3CONST int sendcounts[], MPI3CONST
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
-		static Symbol<MPI_Alltoallv_t> symbol(__func__);
+		static Symbol<Prototypes<C>::mpi_alltoallv_t> symbol(__func__);
 		return symbol(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm);
 	}
 }

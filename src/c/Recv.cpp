@@ -26,7 +26,7 @@ int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag, M
 		OperationManager<C>::processOperation(operation, true, status);
 		return MPI_SUCCESS;
 	} else {
-		static Symbol<MPI_Recv_t> symbol(__func__);
+		static Symbol<Prototypes<C>::mpi_recv_t> symbol(__func__);
 		return symbol(buf, count, datatype, source, tag, comm, status);
 	}
 }

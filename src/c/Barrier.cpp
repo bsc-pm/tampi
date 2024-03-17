@@ -26,7 +26,7 @@ int MPI_Barrier(MPI_Comm comm)
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
-		static Symbol<MPI_Barrier_t> symbol(__func__);
+		static Symbol<Prototypes<C>::mpi_barrier_t> symbol(__func__);
 		return symbol(comm);
 	}
 }

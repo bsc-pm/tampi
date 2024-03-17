@@ -25,7 +25,7 @@ int MPI_Scan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype dat
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
-		static Symbol<MPI_Scan_t> symbol(__func__);
+		static Symbol<Prototypes<C>::mpi_scan_t> symbol(__func__);
 		return symbol(sendbuf, recvbuf, count, datatype, op, comm);
 	}
 }

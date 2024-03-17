@@ -22,7 +22,7 @@ int MPI_Wait(MPI_Request *request, MPI_Status *status)
 		ErrorHandler::fail(__func__, " with task-aware behavior not supported");
 		return MPI_ERR_UNSUPPORTED_OPERATION;
 	} else {
-		static Symbol<MPI_Wait_t> symbol(__func__);
+		static Symbol<Prototypes<C>::mpi_wait_t> symbol(__func__);
 		return symbol(request, status);
 	}
 }
@@ -33,7 +33,7 @@ int MPI_Waitall(int count, MPI_Request array_of_requests[], MPI_Status array_of_
 		ErrorHandler::fail(__func__, " with task-aware behavior not supported");
 		return MPI_ERR_UNSUPPORTED_OPERATION;
 	} else {
-		static Symbol<MPI_Waitall_t> symbol(__func__);
+		static Symbol<Prototypes<C>::mpi_waitall_t> symbol(__func__);
 		return symbol(count, array_of_requests, array_of_statuses);
 	}
 }

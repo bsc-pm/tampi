@@ -9,7 +9,7 @@
 
 #include <cassert>
 #include <dlfcn.h>
-#include <string>
+#include <string_view>
 
 #include "util/ErrorHandler.hpp"
 
@@ -43,13 +43,13 @@ class Symbol {
 	using ReturnTy = typename SymbolDecl::ReturnTy;
 
 	//! The symbol name
-	const char *_name;
+	std::string_view _name;
 
 	//! The loaded symbol or nullptr
 	SymbolTy *_symbol;
 
 public:
-	Symbol(const char *name, bool preload = true) :
+	Symbol(std::string_view name, bool preload = true) :
 		_name(name), _symbol(nullptr)
 	{
 		if (preload)
@@ -68,7 +68,7 @@ public:
 
 		void *handle = (attr == SymbolAttr::Next) ? RTLD_NEXT : RTLD_DEFAULT;
 
-		_symbol = (SymbolTy *) dlsym(handle, _name);
+		_symbol = (SymbolTy *) dlsym(handle, _name.data());
 		if (_symbol == nullptr && mandatory)
 			ErrorHandler::fail("Could not find symbol ", _name);
 

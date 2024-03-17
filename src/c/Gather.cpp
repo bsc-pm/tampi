@@ -28,7 +28,7 @@ int MPI_Gather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
-		static Symbol<MPI_Gather_t> symbol(__func__);
+		static Symbol<Prototypes<C>::mpi_gather_t> symbol(__func__);
 		return symbol(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm);
 	}
 }

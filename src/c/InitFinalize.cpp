@@ -22,7 +22,7 @@ extern "C" {
 
 int MPI_Init(int *argc, char ***argv)
 {
-	static Symbol<MPI_Init_t> symbol(__func__);
+	static Symbol<Prototypes<C>::mpi_init_t> symbol(__func__);
 
 	// Call MPI_Init
 	int err = symbol(argc, argv);
@@ -46,7 +46,7 @@ int MPI_Init(int *argc, char ***argv)
 
 int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
 {
-	static Symbol<MPI_Init_thread_t> symbol(__func__);
+	static Symbol<Prototypes<C>::mpi_init_thread_t> symbol(__func__);
 
 	// When TAMPI is in explicit initialization mode, the MPI_Init_thread acts
 	// as the standard call and does not support MPI_TASK_MULTIPLE. In such
@@ -76,7 +76,7 @@ int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
 
 int MPI_Finalize(void)
 {
-	static Symbol<MPI_Finalize_t> symbol(__func__);
+	static Symbol<Prototypes<C>::mpi_finalize_t> symbol(__func__);
 
 	// Call MPI_Finalize
 	int err = symbol();

@@ -26,7 +26,7 @@ int MPI_Send(MPI3CONST void *buf, int count, MPI_Datatype datatype, int dest, in
 		OperationManager<C>::processOperation(operation, true);
 		return MPI_SUCCESS;
 	} else {
-		static Symbol<MPI_Send_t> symbol(__func__);
+		static Symbol<Prototypes<C>::mpi_send_t> symbol(__func__);
 		return symbol(buf, count, datatype, dest, tag, comm);
 	}
 }
