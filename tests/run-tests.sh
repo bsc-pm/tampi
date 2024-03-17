@@ -166,7 +166,7 @@ else
 	launcher=$(find_binary mpiexec.hydra mpiexec mpirun)
 fi
 
-check_binaries $mpicxx $mpif90 $launcher clang++ mfc
+check_binaries $mpicxx $mpif90 $launcher clang++
 
 echo "---------------------------------------"
 echo "TAMPI TEST SUITE"
@@ -183,7 +183,6 @@ echo "  Launcher:      $(which $launcher)"
 echo ""
 echo "Using OmpSs-2 from:"
 echo "  clang++ (C++): $(which clang++)"
-echo "  mfc (Fortran): $(which mfc)"
 echo ""
 echo "Using input data:"
 if [ $large_input -eq 1 ]; then
