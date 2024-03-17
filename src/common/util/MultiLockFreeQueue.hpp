@@ -33,7 +33,7 @@ enum class MultiQueuePopPolicy {
 	BlockRoundRobin,
 };
 
-template <typename T, MultiQueuePopPolicy Policy, size_t MaxQueues = 64>
+template <typename T, MultiQueuePopPolicy Policy, size_t Capacity = 32*1024, size_t MaxQueues = MaxSystemCPUs>
 class MultiLockFreeQueue {
 	typedef uint64_t counter_t;
 	typedef std::atomic<counter_t> atomic_counter_t;
@@ -77,7 +77,7 @@ class MultiLockFreeQueue {
 
 public:
 	MultiLockFreeQueue() :
-		_capacity(32 * 1024),
+		_capacity(Capacity),
 		_queues(TaskingModel::getNumLogicalCPUs()),
 		_data(alignedAllocate(_queues, _capacity)),
 		_fullFailure("TAMPI_QUEUES_FULL_FAILURE", true),
