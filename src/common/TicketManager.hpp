@@ -366,29 +366,52 @@ inline void TicketManager<Lang>::transferEntries(EntryBase<OperationTy> *entries
 
 	request_t requests[BatchSize];
 	status_t statuses[BatchSize];
-	int indices[BatchSize];
-	bool processed[BatchSize] = {};
+
 	bool useCompletionManager = CompletionManager::isEnabled();
+
+	int complentries[BatchSize];
+	int req2entry[BatchSize];
+	int testcompl2req[BatchSize];
 
 	Uninitialized<TaskContext, BatchSize> contexts;
 
-	for (int r = 0; r < count; ++r) {
+	int ncompl = 0;
+	int nreqs = 0;
+	int ntestcompl = 0;
+
+	for (int e = 0; e < count; ++e) {
 		Instrument::enter<IssueNonBlockingOp>();
 
 		// Issue the non-blocking operation
-		requests[r] = entries[r]._operation.issue();
+		requests[nreqs] = entries[e]._operation.issue();
+		if (requests[nreqs] != Interface<Lang>::REQUEST_NULL) {
+			req2entry[nreqs++] = e;
+		} else {
+			complentries[ncompl++] = e;
+		}
 
 		Instrument::exit<IssueNonBlockingOp>();
 	}
 
-	int completed = internalTestRequests(_immediateTesting, count, requests, indices, (status_ptr_t) statuses);
+	if (nreqs)
+		ntestcompl = internalTestRequests(_immediateTesting, nreqs,
+				requests, testcompl2req, (status_ptr_t) statuses);
 
-	for (int c = 0; c < completed; ++c) {
-		int index = indices[c];
-		Ticket &ticket = entries[index]._ticket;
+	for (int c = 0; c < ntestcompl; ++c) {
+		int req = testcompl2req[c];
+		int entry = req2entry[req];
+		Ticket &ticket = entries[entry]._ticket;
 
 		if (!ticket.ignoreStatus())
 			ticket.storeStatus(statuses[c], 0);
+
+		complentries[ncompl++] = entry;
+		req2entry[req] = -1;
+	}
+
+	for (int c = 0; c < ncompl; ++c) {
+		int entry = complentries[c];
+		Ticket &ticket = entries[entry]._ticket;
 
 		if (useCompletionManager) {
 			contexts[c] = ticket.getTaskContext();
@@ -397,19 +420,18 @@ inline void TicketManager<Lang>::transferEntries(EntryBase<OperationTy> *entries
 			ticket.complete();
 			Instrument::exit<CompletedRequest>();
 		}
-
-		processed[index] = true;
 	}
 
-	if (useCompletionManager)
-		CompletionManager::transfer((TaskContext *) contexts, completed);
+	if (useCompletionManager && ncompl > 0)
+		CompletionManager::transfer((TaskContext *) contexts, ncompl);
 
-	for (int r = 0; r < count; ++r) {
-		if (processed[r])
+	for (int r = 0; r < nreqs; ++r) {
+		int entry = req2entry[r];
+		if (entry < 0)
 			continue;
 
 		// Allocate a copy of the ticket and associate it with the request
-		Ticket &ticket = _arrays.allocateTicket(_pending, entries[r]._ticket);
+		Ticket &ticket = _arrays.allocateTicket(_pending, entries[entry]._ticket);
 		_arrays.associateRequest(_pending, requests[r], ticket, 0);
 		++_pending;
 	}
