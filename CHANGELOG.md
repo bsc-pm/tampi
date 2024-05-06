@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 3.0.2, Mon May 6, 2024
+The 3.0.2 release introduces bug fixes and minor improvements.
+
+### General
+- Use `ovni_thread_require` when instrumenting with ovni
+- Require ovni 1.5.0 or greater
+- Fix include and library flags of the detected MPI implementation
+- Fix and improve testing scripts
+
+
 ## Version 3.0.1, Thu Dec 7, 2023
 The 3.0.1 release introduces bug fixes.
 
