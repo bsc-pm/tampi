@@ -29,6 +29,9 @@ private:
 	//! The polling instance of the task that processes completions
 	static TaskingModel::PollingInstance *_completionPollingInstance;
 
+	//! The controller of the completion polling period
+	static PollingPeriodCtrl _completionPeriodCtrl;
+
 public:
 	Polling() = delete;
 	Polling(const Polling &) = delete;
@@ -82,11 +85,21 @@ private:
 		return _periodCtrl.getPeriod(completed, pending);
 	}
 
+	//! \brief Polling function that checks the completions
+	//!
+	//! This function is periodically called by the tasking runtime system
+	//! and should notify it about any completion. This function is only
+	//! executed when the completion polling task is enabled
+	//!
+	//! \param args An opaque pointer to the arguments
+	//! \param prevWaitUs The actual wait time in microseconds
+	//!
+	//! \returns How many microseconds should the task wait in the next call
 	static uint64_t completions(void *, uint64_t)
 	{
-		CompletionManager::process();
+		size_t completed = CompletionManager::process();
 
-		return CompletionManager::getPeriod();
+		return _completionPeriodCtrl.getPeriod(completed, 0);
 	}
 };
 

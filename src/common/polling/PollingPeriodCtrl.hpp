@@ -63,7 +63,9 @@ public:
 	//! The controller reads the TAMPI_POLLING_PERIOD envar to determine the period
 	//! in which TAMPI will check its MPI requests. If the envar is not defined,
 	//! the period is 100us as a default value
-	PollingPeriodCtrl();
+	//!
+	//! \param envar The envar specifying the polling period
+	PollingPeriodCtrl(const std::string &envar);
 
 	~PollingPeriodCtrl();
 
