@@ -12,8 +12,8 @@
 
 namespace tampi {
 
-PollingPeriodCtrl::PollingPeriodCtrl() :
-	_envar("TAMPI_POLLING_PERIOD", std::to_string(DefaultPeriodUs)),
+PollingPeriodCtrl::PollingPeriodCtrl(const std::string &envar) :
+	_envar(envar, std::to_string(DefaultPeriodUs)),
 	_minPeriod(0),
 	_maxPeriod(0),
 	_dynamic(false),

@@ -18,10 +18,10 @@ thread_local bool Environment::State::threadTaskAwareness = true;
 
 TaskingModel::PollingInstance *Polling::_pollingInstance;
 TaskingModel::PollingInstance *Polling::_completionPollingInstance;
-PollingPeriodCtrl Polling::_periodCtrl;
+PollingPeriodCtrl Polling::_periodCtrl("TAMPI_POLLING_PERIOD");
+PollingPeriodCtrl Polling::_completionPeriodCtrl("TAMPI_POLLING_TASK_COMPLETION_PERIOD");
 
 EnvironmentVariable<bool> CompletionManager::_enabled("TAMPI_POLLING_TASK_COMPLETION", true);
-EnvironmentVariable<uint64_t> CompletionManager::_period("TAMPI_POLLING_TASK_COMPLETION_PERIOD", 100);
 CompletionManager::queue_t CompletionManager::_queue;
 
 SpinLock ErrorHandler::_lock;
