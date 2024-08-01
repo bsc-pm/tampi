@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 //! Constant defining the major version of the current interface
-#define TAMPI_VERSION_MAJOR 3
+#define TAMPI_VERSION_MAJOR 4
 
 //! Constant defining the minor version of the current interface
 #define TAMPI_VERSION_MINOR 0
