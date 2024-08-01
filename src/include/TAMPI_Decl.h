@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2023 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2024 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TAMPI_DECL_H
@@ -14,6 +14,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+//! Constant defining the major version of the current interface
+#define TAMPI_VERSION_MAJOR 3
+
+//! Constant defining the minor version of the current interface
+#define TAMPI_VERSION_MINOR 0
 
 //! The MPI thread level that enables the task-aware blocking mode
 #define MPI_TASK_MULTIPLE (MPI_THREAD_MULTIPLE + 1)
