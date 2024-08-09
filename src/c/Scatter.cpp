@@ -10,7 +10,6 @@
 #include "Environment.hpp"
 #include "OperationManager.hpp"
 #include "Symbol.hpp"
-#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -22,9 +21,7 @@ int MPI_Scatter(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(SCATTER, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, 0, root);
-		OperationManager<C>::processOperation(operation, true);
+		OperationManager<C, CollOperation>::process(SCATTER, BLK, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, MPI_OP_NULL, root);
 		return MPI_SUCCESS;
 	} else {
 		static Symbol<Prototypes<C>::mpi_scatter_t> symbol(__func__);
@@ -36,9 +33,7 @@ int TAMPI_Iscatter(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype
 		void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(SCATTER, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, 0, root);
-		OperationManager<C>::processOperation(operation, false);
+		OperationManager<C, CollOperation>::process(SCATTER, NONBLK, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, MPI_OP_NULL, root);
 		return MPI_SUCCESS;
 	} else {
 		ErrorHandler::fail(__func__, " not enabled");

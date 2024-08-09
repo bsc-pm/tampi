@@ -10,7 +10,6 @@
 #include "Environment.hpp"
 #include "OperationManager.hpp"
 #include "Symbol.hpp"
-#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -21,9 +20,7 @@ extern "C" {
 int MPI_Barrier(MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(BARRIER, comm, nullptr, 0, MPI_BYTE, nullptr, 0, MPI_BYTE);
-		OperationManager<C>::processOperation(operation, true);
+		OperationManager<C, CollOperation>::process(BARRIER, BLK, comm, nullptr, 0, MPI_DATATYPE_NULL, nullptr, 0, MPI_DATATYPE_NULL);
 		return MPI_SUCCESS;
 	} else {
 		static Symbol<Prototypes<C>::mpi_barrier_t> symbol(__func__);
@@ -34,9 +31,7 @@ int MPI_Barrier(MPI_Comm comm)
 int TAMPI_Ibarrier(MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(BARRIER, comm, nullptr, 0, MPI_BYTE, nullptr, 0, MPI_BYTE);
-		OperationManager<C>::processOperation(operation, false);
+		OperationManager<C, CollOperation>::process(BARRIER, NONBLK, comm, nullptr, 0, MPI_DATATYPE_NULL, nullptr, 0, MPI_DATATYPE_NULL);
 		return MPI_SUCCESS;
 	} else {
 		ErrorHandler::fail(__func__, " not enabled");

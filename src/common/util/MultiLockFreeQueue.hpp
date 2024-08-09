@@ -61,7 +61,7 @@ public:
 	MultiLockFreeQueue() :
 		_capacity(Capacity),
 		_queues(TaskingModel::getNumLogicalCPUs()),
-		_data(Memory::alignedAllocate<T>(_queues * _capacity)),
+		_data(Memory::alignedAlloc<T>(_queues * _capacity)),
 		_fullFailure("TAMPI_QUEUES_FULL_FAILURE", true),
 		_tail(),
 		_head(),
@@ -81,7 +81,7 @@ public:
 
 	~MultiLockFreeQueue()
 	{
-		Memory::alignedDeallocate<T>(_data, _queues * _capacity);
+		Memory::alignedFree<T>(_data, _queues * _capacity);
 	}
 
 private:

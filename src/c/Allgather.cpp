@@ -10,7 +10,6 @@
 #include "Environment.hpp"
 #include "OperationManager.hpp"
 #include "Symbol.hpp"
-#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -22,9 +21,7 @@ int MPI_Allgather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		void *recvbuf, int recvcount, MPI_Datatype recvtype, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLGATHER, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype);
-		OperationManager<C>::processOperation(operation, true);
+		OperationManager<C, CollOperation>::process(ALLGATHER, BLK, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype);
 		return MPI_SUCCESS;
 	} else {
 		static Symbol<Prototypes<C>::mpi_allgather_t> symbol(__func__);
@@ -36,9 +33,7 @@ int TAMPI_Iallgather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendty
 		void *recvbuf, int recvcount, MPI_Datatype recvtype, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLGATHER, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype);
-		OperationManager<C>::processOperation(operation, false);
+		OperationManager<C, CollOperation>::process(ALLGATHER, NONBLK, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype);
 		return MPI_SUCCESS;
 	} else {
 		ErrorHandler::fail(__func__, " not enabled");

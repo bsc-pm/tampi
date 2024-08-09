@@ -10,7 +10,6 @@
 #include "Environment.hpp"
 #include "OperationManager.hpp"
 #include "Symbol.hpp"
-#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -23,9 +22,7 @@ int MPI_Alltoall(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLTOALL, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype);
-		OperationManager<C>::processOperation(operation, true);
+		OperationManager<C, CollOperation>::process(ALLTOALL, BLK, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype);
 		return MPI_SUCCESS;
 	} else {
 		static Symbol<Prototypes<C>::mpi_alltoall_t> symbol(__func__);
@@ -38,9 +35,7 @@ int TAMPI_Ialltoall(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtyp
 		MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLTOALL, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype);
-		OperationManager<C>::processOperation(operation, false);
+		OperationManager<C, CollOperation>::process(ALLTOALL, NONBLK, comm, sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype);
 		return MPI_SUCCESS;
 	} else {
 		ErrorHandler::fail(__func__, " not enabled");

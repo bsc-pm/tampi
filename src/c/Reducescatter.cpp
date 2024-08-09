@@ -20,9 +20,7 @@ extern "C" {
 int MPI_Reduce_scatter(MPI3CONST void *sendbuf, void *recvbuf, MPI3CONST int recvcounts[], MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(REDUCESCATTER, comm, sendbuf, 0, datatype, recvbuf, recvcounts, nullptr, MPI_BYTE, op);
-		OperationManager<C>::processOperation(operation, true);
+		OperationManager<C, CollOperation>::process(REDUCESCATTER, BLK, comm, sendbuf, 0, datatype, recvbuf, recvcounts, nullptr, MPI_DATATYPE_NULL, op);
 		return MPI_SUCCESS;
 	} else {
 		static Symbol<Prototypes<C>::mpi_reduce_scatter_t> symbol(__func__);
@@ -33,9 +31,7 @@ int MPI_Reduce_scatter(MPI3CONST void *sendbuf, void *recvbuf, MPI3CONST int rec
 int TAMPI_Ireduce_scatter(MPI3CONST void *sendbuf, void *recvbuf, MPI3CONST int recvcounts[], MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(REDUCESCATTER, comm, sendbuf, 0, datatype, recvbuf, recvcounts, nullptr, MPI_BYTE, op);
-		OperationManager<C>::processOperation(operation, false);
+		OperationManager<C, CollOperation>::process(REDUCESCATTER, NONBLK, comm, sendbuf, 0, datatype, recvbuf, recvcounts, nullptr, MPI_DATATYPE_NULL, op);
 		return MPI_SUCCESS;
 	} else {
 		ErrorHandler::fail(__func__, " not enabled");

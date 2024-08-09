@@ -21,9 +21,7 @@ int MPI_Scatterv(MPI3CONST void* sendbuf, MPI3CONST int sendcounts[], MPI3CONST 
 		void* recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(SCATTERV, comm, sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, 0, root);
-		OperationManager<C>::processOperation(operation, true);
+		OperationManager<C, CollOperation>::process(SCATTERV, BLK, comm, sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, MPI_OP_NULL, root);
 		return MPI_SUCCESS;
 	} else {
 		static Symbol<Prototypes<C>::mpi_scatterv_t> symbol(__func__);
@@ -35,9 +33,7 @@ int TAMPI_Iscatterv(MPI3CONST void* sendbuf, MPI3CONST int sendcounts[], MPI3CON
 		void* recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(SCATTERV, comm, sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, 0, root);
-		OperationManager<C>::processOperation(operation, false);
+		OperationManager<C, CollOperation>::process(SCATTERV, NONBLK, comm, sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, MPI_OP_NULL, root);
 		return MPI_SUCCESS;
 	} else {
 		ErrorHandler::fail(__func__, " not enabled");

@@ -17,7 +17,7 @@
 
 namespace tampi {
 
-enum opcode_t : char {
+enum OpCode : char {
 	NONE = 0,
 	// Point-to-point operations
 	BSEND,
@@ -45,30 +45,41 @@ enum opcode_t : char {
 	SCATTERV,
 };
 
+enum OpNature : char {
+	BLK = 0,
+	NONBLK
+};
+
 template <typename Lang>
 struct Operation {
 	typedef typename Types<Lang>::int_t int_t;
 	typedef typename Types<Lang>::datatype_t datatype_t;
 	typedef typename Types<Lang>::comm_t comm_t;
 	typedef typename Types<Lang>::request_t request_t;
+	typedef typename Types<Lang>::status_ptr_t status_ptr_t;
 
+	TaskingModel::task_handle_t _task;
+	status_ptr_t _status;
 	void *_buffer;
 	int_t _count;
 	datatype_t _datatype;
 	comm_t _comm;
 	int_t _rank;
 	int_t _tag;
-	opcode_t _opcode;
+	OpCode _code;
+	OpNature _nature;
 
-	Operation(opcode_t opcode, const void *buffer, int_t count,
-		datatype_t datatype, int_t rank, int_t tag, comm_t comm
+	Operation(TaskingModel::task_handle_t task, OpCode code, OpNature nature,
+		const void *buffer, int_t count, datatype_t datatype, int_t rank,
+		int_t tag, comm_t comm, status_ptr_t status = Interface<Lang>::STATUS_IGNORE
 	) :
+		_task(task), _status(status),
 		_buffer(const_cast<void *>(buffer)), _count(count), _datatype(datatype),
-		_comm(comm), _rank(rank), _tag(tag), _opcode(opcode)
+		_comm(comm), _rank(rank), _tag(tag), _code(code), _nature(nature)
 	{
 	}
 
-	Operation() : _opcode(NONE)
+	Operation() : _code(NONE)
 	{
 	}
 
@@ -93,6 +104,7 @@ struct CollOperation {
 	typedef typename Types<Lang>::comm_t comm_t;
 	typedef typename Types<Lang>::request_t request_t;
 
+	TaskingModel::task_handle_t _task;
 	MPI3CONST void *_sendbuf;
 	void *_recvbuf;
 	MPI3CONST int_t *_senddispls;
@@ -116,64 +128,72 @@ struct CollOperation {
 	comm_t _comm;
 	int_t _rank;
 	op_t _op;
-	opcode_t _opcode;
+	OpCode _code;
+	OpNature _nature;
 
-	CollOperation(opcode_t opcode, comm_t comm,
-		MPI3CONST void *sendbuf, int_t sendcount, datatype_t sendtype,
+	CollOperation(TaskingModel::task_handle_t task, OpCode code, OpNature nature,
+		comm_t comm, MPI3CONST void *sendbuf, int_t sendcount, datatype_t sendtype,
 		void *recvbuf, int_t recvcount, datatype_t recvtype,
-		op_t op = 0, int_t rank = 0
+		op_t op = MPI_OP_NULL, int_t rank = 0
 	) :
-		_sendbuf(sendbuf), _recvbuf(recvbuf), _sendcount(sendcount),
+		_task(task), _sendbuf(sendbuf), _recvbuf(recvbuf), _sendcount(sendcount),
 		_recvcount(recvcount), _sendtype(sendtype), _recvtype(recvtype),
-		_comm(comm), _rank(rank), _op(op), _opcode(opcode)
+		_comm(comm), _rank(rank), _op(op), _code(code), _nature(nature)
 	{
 	}
 
-	CollOperation(opcode_t opcode, comm_t comm,
-		MPI3CONST void *sendbuf, MPI3CONST int_t sendcounts[], MPI3CONST int_t senddispls[],
-		datatype_t sendtype, void *recvbuf, int_t recvcount, datatype_t recvtype,
-		op_t op = 0, int_t rank = 0
+	CollOperation(TaskingModel::task_handle_t task, OpCode code, OpNature nature,
+		comm_t comm, MPI3CONST void *sendbuf, MPI3CONST int_t sendcounts[],
+		MPI3CONST int_t senddispls[], datatype_t sendtype, void *recvbuf, int_t recvcount,
+		datatype_t recvtype,
+		op_t op = MPI_OP_NULL, int_t rank = 0
 	) :
-		_sendbuf(sendbuf), _recvbuf(recvbuf), _senddispls(senddispls), _sendcounts(sendcounts),
-		_recvcount(recvcount), _sendtype(sendtype), _recvtype(recvtype), _comm(comm),
-		_rank(rank), _op(op), _opcode(opcode)
+		_task(task), _sendbuf(sendbuf), _recvbuf(recvbuf), _senddispls(senddispls),
+		_sendcounts(sendcounts), _recvcount(recvcount), _sendtype(sendtype),
+		_recvtype(recvtype), _comm(comm), _rank(rank), _op(op),
+		_code(code), _nature(nature)
 	{
 	}
 
-	CollOperation(opcode_t opcode, comm_t comm,
-		MPI3CONST void *sendbuf, int_t sendcount, datatype_t sendtype,
+	CollOperation(TaskingModel::task_handle_t task, OpCode code, OpNature nature,
+		comm_t comm, MPI3CONST void *sendbuf, int_t sendcount, datatype_t sendtype,
 		void *recvbuf, MPI3CONST int_t recvcounts[], MPI3CONST int_t recvdispls[],
-		datatype_t recvtype, op_t op = 0, int_t rank = 0
+		datatype_t recvtype, op_t op = MPI_OP_NULL, int_t rank = 0
 	) :
-		_sendbuf(sendbuf), _recvbuf(recvbuf), _recvdispls(recvdispls), _sendcount(sendcount),
-		_recvcounts(recvcounts), _sendtype(sendtype), _recvtype(recvtype), _comm(comm),
-		_rank(rank), _op(op), _opcode(opcode)
+		_task(task), _sendbuf(sendbuf), _recvbuf(recvbuf), _recvdispls(recvdispls),
+		_sendcount(sendcount), _recvcounts(recvcounts), _sendtype(sendtype),
+		_recvtype(recvtype), _comm(comm), _rank(rank), _op(op),
+		_code(code), _nature(nature)
 	{
 	}
 
-	CollOperation(opcode_t opcode, comm_t comm,
-		MPI3CONST void *sendbuf, MPI3CONST int_t sendcounts[], MPI3CONST int_t senddispls[],
-		datatype_t sendtype, void *recvbuf, MPI3CONST int_t recvcounts[],
-		MPI3CONST int_t recvdispls[], datatype_t recvtype, op_t op = 0, int_t rank = 0
+	CollOperation(TaskingModel::task_handle_t task, OpCode code, OpNature nature,
+		comm_t comm, MPI3CONST void *sendbuf, MPI3CONST int_t sendcounts[],
+		MPI3CONST int_t senddispls[], datatype_t sendtype, void *recvbuf,
+		MPI3CONST int_t recvcounts[], MPI3CONST int_t recvdispls[], datatype_t recvtype,
+		op_t op = MPI_OP_NULL, int_t rank = 0
 	) :
-		_sendbuf(sendbuf), _recvbuf(recvbuf), _senddispls(senddispls), _recvdispls(recvdispls),
-		_sendcounts(sendcounts), _recvcounts(recvcounts), _sendtype(sendtype), _recvtype(recvtype),
-		_comm(comm), _rank(rank), _op(op), _opcode(opcode)
+		_task(task), _sendbuf(sendbuf), _recvbuf(recvbuf), _senddispls(senddispls),
+		_recvdispls(recvdispls), _sendcounts(sendcounts), _recvcounts(recvcounts),
+		_sendtype(sendtype), _recvtype(recvtype), _comm(comm), _rank(rank), _op(op),
+		_code(code), _nature(nature)
 	{
 	}
 
-	CollOperation(opcode_t opcode, comm_t comm,
-		MPI3CONST void *sendbuf, MPI3CONST int_t sendcounts[], MPI3CONST int_t senddispls[],
-		MPI3CONST datatype_t sendtypes[], void *recvbuf, MPI3CONST int_t recvcounts[],
-		MPI3CONST int_t recvdispls[], MPI3CONST datatype_t recvtypes[], op_t op = 0, int_t rank = 0
+	CollOperation(TaskingModel::task_handle_t task, OpCode code, OpNature nature,
+		comm_t comm, MPI3CONST void *sendbuf, MPI3CONST int_t sendcounts[],
+		MPI3CONST int_t senddispls[], MPI3CONST datatype_t sendtypes[],
+		void *recvbuf, MPI3CONST int_t recvcounts[], MPI3CONST int_t recvdispls[],
+		MPI3CONST datatype_t recvtypes[], op_t op = MPI_OP_NULL, int_t rank = 0
 	) :
-		_sendbuf(sendbuf), _recvbuf(recvbuf), _senddispls(senddispls), _recvdispls(recvdispls),
-		_sendcounts(sendcounts), _recvcounts(recvcounts), _sendtypes(sendtypes), _recvtypes(recvtypes),
-		_comm(comm), _rank(rank), _op(op), _opcode(opcode)
+		_task(task), _sendbuf(sendbuf), _recvbuf(recvbuf), _senddispls(senddispls),
+		_recvdispls(recvdispls), _sendcounts(sendcounts), _recvcounts(recvcounts),
+		_sendtypes(sendtypes), _recvtypes(recvtypes), _comm(comm), _rank(rank), _op(op),
+		_code(code), _nature(nature)
 	{
 	}
 
-	CollOperation() : _opcode(NONE)
+	CollOperation() : _code(NONE)
 	{
 	}
 
