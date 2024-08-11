@@ -12,8 +12,11 @@
 #endif
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <utility>
+#include <sys/mman.h>
 
 #ifndef CACHELINE_SIZE
 #define CACHELINE_SIZE 64
@@ -123,6 +126,27 @@ public:
 	const T &operator[](size_t idx) const
 	{
 		return *(get() + idx);
+	}
+};
+
+class Memory {
+public:
+	template <typename T>
+	static T *alignedAllocate(size_t n)
+	{
+		void *ptr = mmap(NULL, sizeof(T) * n, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, 0, 0);
+		if (ptr == MAP_FAILED)
+			ErrorHandler::fail("Failed to allocate aligned memory");
+		if ((uintptr_t) ptr % CacheAlignment != 0)
+			ErrorHandler::fail("Aligned memory is not aligned to ", CacheAlignment);
+
+		return (T *) ptr;
+	}
+
+	template <typename T>
+	static void alignedDeallocate(T *data, size_t n)
+	{
+		munmap(data, sizeof(T) * n);
 	}
 };
 
