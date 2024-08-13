@@ -10,7 +10,6 @@
 #include "Environment.hpp"
 #include "OperationManager.hpp"
 #include "Symbol.hpp"
-#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -21,9 +20,7 @@ extern "C" {
 int	MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(BCAST, comm, nullptr, 0, MPI_BYTE, buffer, count, datatype, 0, root);
-		OperationManager<C>::processOperation(operation, true);
+		OperationManager<C, CollOperation>::process(BCAST, BLK, comm, nullptr, 0, MPI_DATATYPE_NULL, buffer, count, datatype, MPI_OP_NULL, root);
 		return MPI_SUCCESS;
 	} else {
 		static Symbol<Prototypes<C>::mpi_bcast_t> symbol(__func__);
@@ -34,9 +31,7 @@ int	MPI_Bcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm
 int TAMPI_Ibcast(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(BCAST, comm, nullptr, 0, MPI_BYTE, buffer, count, datatype, 0, root);
-		OperationManager<C>::processOperation(operation, false);
+		OperationManager<C, CollOperation>::process(BCAST, NONBLK, comm, nullptr, 0, MPI_DATATYPE_NULL, buffer, count, datatype, MPI_OP_NULL, root);
 		return MPI_SUCCESS;
 	} else {
 		ErrorHandler::fail(__func__, " not enabled");

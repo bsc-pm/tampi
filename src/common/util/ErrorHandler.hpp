@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2019-2023 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2019-2024 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef ERROR_HANDLER_HPP
@@ -13,8 +13,7 @@
 #include <sstream>
 #include <string.h>
 #include <unistd.h>
-
-#include "SpinLock.hpp"
+#include <mutex>
 
 
 namespace tampi {
@@ -22,7 +21,7 @@ namespace tampi {
 //! Class providing the functionality of error handling
 class ErrorHandler {
 private:
-	static SpinLock _lock;
+	static std::mutex _lock;
 
 	template <typename T, typename... TS>
 	static void emitReasonParts(std::ostringstream &oss, T const &firstReasonPart, TS... reasonParts)
@@ -93,7 +92,7 @@ public:
 		oss << std::endl;
 
 		{
-			std::lock_guard<SpinLock> guard(_lock);
+			std::lock_guard<std::mutex> guard(_lock);
 			std::cerr << oss.str();
 		}
 
@@ -129,7 +128,7 @@ public:
 		oss << std::endl;
 
 		{
-			std::lock_guard<SpinLock> guard(_lock);
+			std::lock_guard<std::mutex> guard(_lock);
 			std::cerr << oss.str();
 		}
 	}

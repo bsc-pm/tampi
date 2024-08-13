@@ -55,6 +55,7 @@ c_api_sources = \
  src/c/Utils.cpp
 
 common_sources = \
+ src/common/Allocator.cpp \
  src/common/Environment.cpp \
  src/common/Operation.cpp \
  src/common/TaskingModel.cpp \
@@ -62,6 +63,7 @@ common_sources = \
  src/common/polling/PollingPeriodCtrl.cpp
 
 noinst_HEADERS = \
+ src/common/Allocator.hpp \
  src/common/ALPI.hpp \
  src/common/Declarations.hpp \
  src/common/CompletionManager.hpp \
@@ -86,6 +88,7 @@ noinst_HEADERS = \
  src/common/util/Clock.hpp \
  src/common/util/EnvironmentVariable.hpp \
  src/common/util/ErrorHandler.hpp \
+ src/common/util/FixedSizeStack.hpp \
  src/common/util/MultiLockFreeQueue.hpp \
  src/common/util/SpinLock.hpp \
  src/common/util/SpinWait.hpp \

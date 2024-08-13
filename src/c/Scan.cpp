@@ -20,9 +20,7 @@ extern "C" {
 int MPI_Scan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(SCAN, comm, sendbuf, count, datatype, recvbuf, 0, MPI_BYTE, op);
-		OperationManager<C>::processOperation(operation, true);
+		OperationManager<C, CollOperation>::process(SCAN, BLK, comm, sendbuf, count, datatype, recvbuf, 0, MPI_DATATYPE_NULL, op);
 		return MPI_SUCCESS;
 	} else {
 		static Symbol<Prototypes<C>::mpi_scan_t> symbol(__func__);
@@ -33,9 +31,7 @@ int MPI_Scan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype dat
 int TAMPI_Iscan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(SCAN, comm, sendbuf, count, datatype, recvbuf, 0, MPI_BYTE, op);
-		OperationManager<C>::processOperation(operation, false);
+		OperationManager<C, CollOperation>::process(SCAN, NONBLK, comm, sendbuf, count, datatype, recvbuf, 0, MPI_DATATYPE_NULL, op);
 		return MPI_SUCCESS;
 	} else {
 		ErrorHandler::fail(__func__, " not enabled");

@@ -21,9 +21,7 @@ int MPI_Alltoallv(MPI3CONST void *sendbuf, MPI3CONST int sendcounts[], MPI3CONST
 		void *recvbuf, MPI3CONST int recvcounts[], MPI3CONST int rdispls[], MPI_Datatype recvtype, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLTOALLV, comm, sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype);
-		OperationManager<C>::processOperation(operation, true);
+		OperationManager<C, CollOperation>::process(ALLTOALLV, BLK, comm, sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype);
 		return MPI_SUCCESS;
 	} else {
 		static Symbol<Prototypes<C>::mpi_alltoallv_t> symbol(__func__);
@@ -35,9 +33,7 @@ int TAMPI_Ialltoallv(MPI3CONST void *sendbuf, MPI3CONST int sendcounts[], MPI3CO
 		void *recvbuf, MPI3CONST int recvcounts[], MPI3CONST int rdispls[], MPI_Datatype recvtype, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLTOALLV, comm, sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype);
-		OperationManager<C>::processOperation(operation, false);
+		OperationManager<C, CollOperation>::process(ALLTOALLV, NONBLK, comm, sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype);
 		return MPI_SUCCESS;
 	} else {
 		ErrorHandler::fail(__func__, " not enabled");

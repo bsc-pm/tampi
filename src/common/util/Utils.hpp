@@ -12,8 +12,11 @@
 #endif
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <utility>
+#include <sys/mman.h>
 
 #ifndef CACHELINE_SIZE
 #define CACHELINE_SIZE 64
@@ -123,6 +126,41 @@ public:
 	const T &operator[](size_t idx) const
 	{
 		return *(get() + idx);
+	}
+};
+
+//! Class that provides memory allocation utilities
+class Memory {
+public:
+	//! \brief Allocate aligned memory for several objects
+	//!
+	//! The operation only allocates memory; it does not construct the objects
+	//!
+	//! \param n The number of objects (of type T) to allocate
+	//!
+	//! \returns The pointer to the objects
+	template <typename T>
+	static T *alignedAlloc(size_t n)
+	{
+		void *ptr = mmap(NULL, sizeof(T) * n, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, 0, 0);
+		if (ptr == MAP_FAILED)
+			ErrorHandler::fail("Failed to allocate aligned memory");
+		if ((uintptr_t) ptr % CacheAlignment != 0)
+			ErrorHandler::fail("Aligned memory is not aligned to ", CacheAlignment);
+		return (T *) ptr;
+	}
+
+	//! \brief Free aligned memory holding several objects
+	//!
+	//! The operation only frees memory; it does not destroy any object. The
+	//! memory must have been allocated by the 'alignedAlloc' function
+	//!
+	//! \param data The pointer to the objects (of type T)
+	//! \param n The number of objects
+	template <typename T>
+	static void alignedFree(T *data, size_t n)
+	{
+		munmap(data, sizeof(T) * n);
 	}
 };
 

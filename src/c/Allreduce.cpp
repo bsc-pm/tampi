@@ -10,7 +10,6 @@
 #include "Environment.hpp"
 #include "OperationManager.hpp"
 #include "Symbol.hpp"
-#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -21,9 +20,7 @@ extern "C" {
 int MPI_Allreduce(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLREDUCE, comm, sendbuf, count, datatype, recvbuf, count, datatype, op);
-		OperationManager<C>::processOperation(operation, true);
+		OperationManager<C, CollOperation>::process(ALLREDUCE, BLK, comm, sendbuf, count, datatype, recvbuf, count, datatype, op);
 		return MPI_SUCCESS;
 	} else {
 		static Symbol<Prototypes<C>::mpi_allreduce_t> symbol(__func__);
@@ -34,9 +31,7 @@ int MPI_Allreduce(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatyp
 int TAMPI_Iallreduce(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		CollOperation<C> operation(ALLREDUCE, comm, sendbuf, count, datatype, recvbuf, count, datatype, op);
-		OperationManager<C>::processOperation(operation, false);
+		OperationManager<C, CollOperation>::process(ALLREDUCE, NONBLK, comm, sendbuf, count, datatype, recvbuf, count, datatype, op);
 		return MPI_SUCCESS;
 	} else {
 		ErrorHandler::fail(__func__, " not enabled");

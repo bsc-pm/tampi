@@ -14,7 +14,6 @@
 #include <cstdlib>
 #include <cstddef>
 #include <cstdint>
-#include <sys/mman.h>
 
 #include "EnvironmentVariable.hpp"
 #include "Utils.hpp"
@@ -58,28 +57,11 @@ class MultiLockFreeQueue {
 
 	alignas(CacheAlignment) size_t _totalRemaining;
 
-	static T *alignedAllocate(size_t queues, size_t capacity)
-	{
-		size_t size = sizeof(T) * queues * capacity;
-		void *const ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANON, 0, 0);
-		if (ptr == MAP_FAILED)
-			ErrorHandler::fail("Failed to allocate aligned memory");
-		if ((uintptr_t) ptr % CacheAlignment != 0)
-			ErrorHandler::fail("Aligned memory is not aligned to ", CacheAlignment);
-
-		return (T *) ptr;
-	}
-
-	static void alignedDeallocate(T *data, size_t queues, size_t capacity)
-	{
-		munmap(data, sizeof(T) * queues * capacity);
-	}
-
 public:
 	MultiLockFreeQueue() :
 		_capacity(Capacity),
 		_queues(TaskingModel::getNumLogicalCPUs()),
-		_data(alignedAllocate(_queues, _capacity)),
+		_data(Memory::alignedAlloc<T>(_queues * _capacity)),
 		_fullFailure("TAMPI_QUEUES_FULL_FAILURE", true),
 		_tail(),
 		_head(),
@@ -99,7 +81,7 @@ public:
 
 	~MultiLockFreeQueue()
 	{
-		alignedDeallocate(_data, _queues, _capacity);
+		Memory::alignedFree<T>(_data, _queues * _capacity);
 	}
 
 private:

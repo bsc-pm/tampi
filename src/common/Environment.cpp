@@ -24,7 +24,7 @@ PollingPeriodCtrl Polling::_completionPeriodCtrl("TAMPI_POLLING_TASK_COMPLETION_
 EnvironmentVariable<bool> CompletionManager::_enabled("TAMPI_POLLING_TASK_COMPLETION", true);
 CompletionManager::queue_t CompletionManager::_queue;
 
-SpinLock ErrorHandler::_lock;
+std::mutex ErrorHandler::_lock;
 
 } // namespace tampi
 

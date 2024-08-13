@@ -10,6 +10,7 @@
 #include <cassert>
 
 #include "Interface.hpp"
+#include "Operation.hpp"
 #include "TaskContext.hpp"
 
 namespace tampi {
@@ -43,6 +44,18 @@ public:
 	Ticket(status_ptr_t firstStatus, bool blocking) :
 		_taskContext(blocking),
 		_firstStatus(firstStatus)
+	{
+	}
+
+	Ticket(const Operation<Lang> &operation) :
+		_taskContext(operation._nature == BLK, operation._task),
+		_firstStatus(operation._status)
+	{
+	}
+
+	Ticket(const CollOperation<Lang> &operation) :
+		_taskContext(operation._nature == BLK, operation._task),
+		_firstStatus(Interface<Lang>::STATUS_IGNORE)
 	{
 	}
 

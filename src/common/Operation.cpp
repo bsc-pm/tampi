@@ -15,7 +15,7 @@ Operation<C>::request_t Operation<C>::issue()
 	int err = MPI_SUCCESS;
 	request_t request = Interface<C>::REQUEST_NULL;
 
-	switch (_opcode) {
+	switch (_code) {
 		case SEND:
 			err = Interface<C>::mpi_isend(_buffer, _count, _datatype, _rank, _tag, _comm, &request);
 			break;
@@ -32,12 +32,12 @@ Operation<C>::request_t Operation<C>::issue()
 			err = Interface<C>::mpi_irecv(_buffer, _count, _datatype, _rank, _tag, _comm, &request);
 			break;
 		default:
-			ErrorHandler::fail("Invalid operation ", _opcode);
+			ErrorHandler::fail("Invalid operation ", _code);
 			break;
 	}
 
 	if (err != MPI_SUCCESS)
-		ErrorHandler::fail("Operation ", _opcode, " failed");
+		ErrorHandler::fail("Operation with code ", _code, " failed");
 
 	return request;
 }
@@ -48,7 +48,7 @@ Operation<C>::request_t CollOperation<C>::issue()
 	int err = MPI_SUCCESS;
 	request_t request = Interface<C>::REQUEST_NULL;
 
-	switch (_opcode) {
+	switch (_code) {
 		case ALLGATHER:
 			err = Interface<C>::mpi_iallgather(_sendbuf, _sendcount, _sendtype, _recvbuf, _recvcount, _recvtype, _comm, &request);
 			break;
@@ -101,12 +101,12 @@ Operation<C>::request_t CollOperation<C>::issue()
 			err = Interface<C>::mpi_iscatterv(_sendbuf, _sendcounts, _senddispls, _sendtype, _recvbuf, _recvcount, _recvtype, _rank, _comm, &request);
 			break;
 		default:
-			ErrorHandler::fail("Invalid large operation ", _opcode);
+			ErrorHandler::fail("Invalid large operation ", _code);
 			break;
 	}
 
 	if (err != MPI_SUCCESS)
-		ErrorHandler::fail("Operation ", _opcode, " failed");
+		ErrorHandler::fail("Operation with code", _code, " failed");
 
 	return request;
 }

@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <mutex>
 
+#include "Allocator.hpp"
 #include "CompletionManager.hpp"
 #include "Interface.hpp"
 #include "Operation.hpp"
@@ -50,27 +51,9 @@ private:
 	typedef tampi::CollOperation<Lang> CollOperation;
 
 	template <typename T>
-	struct EntryBase {
-		T _operation;
-		Ticket _ticket;
-
-		EntryBase(const T &operation, const Ticket &ticket) :
-			_operation(operation), _ticket(ticket)
-		{
-		}
-
-		EntryBase()
-		{
-		}
-	};
-
-	typedef EntryBase<Operation> P2PEntry;
-	typedef EntryBase<CollOperation> CollEntry;
-
+	using P2PMultiQueue = MultiLockFreeQueue<T, MultiQueuePopPolicy::CyclicRoundRobin>;
 	template <typename T>
-	using P2PEntryMultiQueue = MultiLockFreeQueue<T, MultiQueuePopPolicy::CyclicRoundRobin>;
-	template <typename T>
-	using CollEntryQueue = BoostLockFreeQueue<T>;
+	using CollQueue = BoostLockFreeQueue<T>;
 
 	//! The approaches for request testing
 	enum class TestingApproach {
@@ -96,10 +79,10 @@ private:
 	TicketManagerInternals<Lang, TicketManagerCapacityCtrl::max()> _arrays;
 
 	//! Pre-queues for point-to-point operations
-	P2PEntryMultiQueue<P2PEntry> _p2pEntries;
+	P2PMultiQueue<Operation *> _p2pOperations;
 
 	//! Pre-queues for collective operations
-	CollEntryQueue<CollEntry> _collEntries;
+	CollQueue<CollOperation *> _collOperations;
 
 	//! Spinlock for consuming requests from pre-queues and checking in-flight
 	//! requests from the general array
@@ -109,8 +92,8 @@ public:
 	TicketManager() :
 		_generalTesting(parseTestingOption("TAMPI_REQUESTS_TESTING", TestingApproach::TestSome)),
 		_immediateTesting(parseTestingOption("TAMPI_REQUESTS_IMMEDIATE_TESTING", _generalTesting)),
-		_capacityCtrl(), _pending(0), _arrays(), _p2pEntries(),
-		_collEntries(), _mutex()
+		_capacityCtrl(), _pending(0), _arrays(), _p2pOperations(),
+		_collOperations(), _mutex()
 	{
 		if (_generalTesting == TestingApproach::None)
 			ErrorHandler::fail("Invalid approach for general request testing");
@@ -150,7 +133,7 @@ public:
 			inserted = completed = 0;
 
 			if (_pending < _capacityCtrl.get())
-				inserted = internalCheckEntryQueues(BatchSize*2);
+				inserted = internalCheckOperationQueues(BatchSize*2);
 
 			if (_pending)
 				completed = internalCheckRequests();
@@ -165,19 +148,18 @@ public:
 		return totalCompleted;
 	}
 
-	//! \brief Add a ticket and its operation to the pre-queues
+	//! \brief Add an operation to the pre-queues
 	//!
-	//! \param ticket The ticket which the request belongs to
-	//! \param operation The operation associated to the ticket
+	//! \param operation The operation to add
 	template <typename T>
-	void addTicket(Ticket &ticket, T &operation)
+	void addOperation(T *operation)
 	{
+		assert(operation != nullptr);
+
 		if constexpr (std::is_same_v<T, Operation>) {
-			P2PEntry entry(operation, ticket);
-			_p2pEntries.push(entry);
+			_p2pOperations.push(operation);
 		} else {
-			CollEntry entry(operation, ticket);
-			_collEntries.push(entry);
+			_collOperations.push(operation);
 		}
 	}
 
@@ -214,17 +196,19 @@ private:
 		return completed;
 	}
 
-	//! \brief Internal function to check and transfer requests from pre-queues
+	//! \brief Internal function to check and transfer operations from pre-queues
 	//!
 	//! This function assumes the lock is already acquired
-	int internalCheckEntryQueues(int maxEntries);
+	//!
+	//! \param max Maximum operations to transfer
+	int internalCheckOperationQueues(int max);
 
 	//! \brief Transfers operations to the general array
 	//!
-	//! \param entries The array of entries containing the operations to transfer
-	//! \param count The number of operations to add
+	//! \param operations The array of operations to transfer
+	//! \param count The number of operations to transfer
 	template <typename OperationTy>
-	void transferEntries(EntryBase<OperationTy> *entries, int count);
+	void transferOperations(OperationTy *operations[], int count);
 
 	//! \brief Parse request testing option
 	static TestingApproach parseTestingOption(
@@ -327,29 +311,29 @@ inline int TicketManager<Lang>::internalCheckRequests()
 }
 
 template <typename Lang>
-inline int TicketManager<Lang>::internalCheckEntryQueues(int maxEntries)
+inline int TicketManager<Lang>::internalCheckOperationQueues(int max)
 {
 	Instrument::Guard<TransferQueues> instrGuard;
 
-	Uninitialized<P2PEntry, BatchSize> tmpP2PEntries;
-	Uninitialized<CollEntry, BatchSize> tmpCollEntries;
+	Operation *tmpP2POps[BatchSize];
+	CollOperation *tmpCollOps[BatchSize];
 
-	const int navailable = std::min(_capacityCtrl.get() - _pending, maxEntries);
+	const int navailable = std::min(_capacityCtrl.get() - _pending, max);
 	int np2p, ncoll;
 	int ntotal = 0;
 
 	do {
 		np2p = std::min(navailable - ntotal, BatchSize);
-		np2p = _p2pEntries.pop(tmpP2PEntries, np2p);
+		np2p = _p2pOperations.pop(tmpP2POps, np2p);
 		if (np2p > 0) {
-			transferEntries(tmpP2PEntries.get(), np2p);
+			transferOperations(tmpP2POps, np2p);
 			ntotal += np2p;
 		}
 
 		ncoll = std::min(navailable - ntotal, BatchSize);
-		ncoll = _collEntries.pop(tmpCollEntries, ncoll);
+		ncoll = _collOperations.pop(tmpCollOps, ncoll);
 		if (ncoll > 0) {
-			transferEntries(tmpCollEntries.get(), ncoll);
+			transferOperations(tmpCollOps, ncoll);
 			ntotal += ncoll;
 		}
 	} while (ntotal < navailable && (np2p > 0 || ncoll > 0));
@@ -359,7 +343,7 @@ inline int TicketManager<Lang>::internalCheckEntryQueues(int maxEntries)
 
 template <typename Lang>
 template <typename OperationTy>
-inline void TicketManager<Lang>::transferEntries(EntryBase<OperationTy> *entries, int count)
+inline void TicketManager<Lang>::transferOperations(OperationTy *operations[], int count)
 {
 	assert(count <= BatchSize);
 	assert(_pending + count <= _capacityCtrl.get());
@@ -373,6 +357,8 @@ inline void TicketManager<Lang>::transferEntries(EntryBase<OperationTy> *entries
 	int req2entry[BatchSize];
 	int testcompl2req[BatchSize];
 
+	// Avoid pre-initializing these objects
+	Uninitialized<Ticket, BatchSize> tickets;
 	Uninitialized<TaskContext, BatchSize> contexts;
 
 	int ncompl = 0;
@@ -380,27 +366,33 @@ inline void TicketManager<Lang>::transferEntries(EntryBase<OperationTy> *entries
 	int ntestcompl = 0;
 
 	for (int e = 0; e < count; ++e) {
-		Instrument::enter<IssueNonBlockingOp>();
+		// Construct the temporary ticket
+		Instrument::enter<CreateTicket>();
+		new (&tickets[e]) Ticket(*operations[e]);
+		Instrument::exit<CreateTicket>();
 
-		// Issue the non-blocking operation
-		requests[nreqs] = entries[e]._operation.issue();
+		// Issue the non-blocking MPI operation
+		Instrument::enter<IssueNonBlockingOp>();
+		requests[nreqs] = operations[e]->issue();
 		if (requests[nreqs] != Interface<Lang>::REQUEST_NULL) {
 			req2entry[nreqs++] = e;
 		} else {
+			// Some Intel MPI libraries return MPI_REQUEST_NULL directly
 			complentries[ncompl++] = e;
 		}
-
 		Instrument::exit<IssueNonBlockingOp>();
 	}
 
+	// Check the completion of the pending requests
 	if (nreqs)
 		ntestcompl = internalTestRequests(_immediateTesting, nreqs,
 				requests, testcompl2req, (status_ptr_t) statuses);
 
+	// Filter our the immediately completed operations
 	for (int c = 0; c < ntestcompl; ++c) {
 		int req = testcompl2req[c];
 		int entry = req2entry[req];
-		Ticket &ticket = entries[entry]._ticket;
+		Ticket &ticket = tickets[entry];
 
 		if (!ticket.ignoreStatus())
 			ticket.storeStatus(statuses[c], 0);
@@ -409,10 +401,12 @@ inline void TicketManager<Lang>::transferEntries(EntryBase<OperationTy> *entries
 		req2entry[req] = -1;
 	}
 
+	// Process the completed tickets
 	for (int c = 0; c < ncompl; ++c) {
 		int entry = complentries[c];
-		Ticket &ticket = entries[entry]._ticket;
+		Ticket &ticket = tickets[entry];
 
+		// Delegate the completion or process it directly
 		if (useCompletionManager) {
 			contexts[c] = ticket.getTaskContext();
 		} else {
@@ -422,19 +416,24 @@ inline void TicketManager<Lang>::transferEntries(EntryBase<OperationTy> *entries
 		}
 	}
 
+	// Send the completed tickets to the completion task (if needed)
 	if (useCompletionManager && ncompl > 0)
 		CompletionManager::transfer((TaskContext *) contexts, ncompl);
 
+	// Move the pending tickets to the global array
 	for (int r = 0; r < nreqs; ++r) {
 		int entry = req2entry[r];
 		if (entry < 0)
 			continue;
 
 		// Allocate a copy of the ticket and associate it with the request
-		Ticket &ticket = _arrays.allocateTicket(_pending, entries[entry]._ticket);
+		Ticket &ticket = _arrays.allocateTicket(_pending, tickets[entry]);
 		_arrays.associateRequest(_pending, requests[r], ticket, 0);
 		++_pending;
 	}
+
+	// Free the processed operations
+	Allocator::free(operations, count);
 }
 
 } // namespace tampi

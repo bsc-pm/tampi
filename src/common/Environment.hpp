@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <mutex>
 
+#include "Allocator.hpp"
 #include "Interface.hpp"
 #include "TaskContext.hpp"
 #include "TaskingModel.hpp"
@@ -231,9 +232,11 @@ public:
 		// Initialize the instrumentation
 		Instrument::initialize(rank, nranks);
 
-		// Launch a polling task if required
-		if (enableBlocking || enableNonBlocking)
+		// Initialize allocators and launch a polling task if required
+		if (enableBlocking || enableNonBlocking) {
+			Allocator::initialize();
 			Polling::initialize();
+		}
 
 		// Mark the library as initialized
 		_state.blockingMode.store(enableBlocking, std::memory_order_release);
@@ -262,9 +265,11 @@ public:
 		// Finalize the instrumentation
 		Instrument::finalize();
 
-		// Finalize the polling task if it was running
-		if (_state.blockingMode || _state.nonBlockingMode)
+		// Finalize the polling task and the allocators
+		if (_state.blockingMode || _state.nonBlockingMode) {
 			Polling::finalize();
+			Allocator::finalize();
+		}
 
 		// Disable both modes
 		_state.blockingMode.store(false);

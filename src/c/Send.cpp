@@ -10,7 +10,6 @@
 #include "Environment.hpp"
 #include "OperationManager.hpp"
 #include "Symbol.hpp"
-#include "instrument/Instrument.hpp"
 
 using namespace tampi;
 
@@ -21,9 +20,7 @@ extern "C" {
 int MPI_Send(MPI3CONST void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		Operation<C> operation(SEND, buf, count, datatype, dest, tag, comm);
-		OperationManager<C>::processOperation(operation, true);
+		OperationManager<C, Operation>::process(SEND, BLK, buf, count, datatype, dest, tag, comm);
 		return MPI_SUCCESS;
 	} else {
 		static Symbol<Prototypes<C>::mpi_send_t> symbol(__func__);
@@ -34,9 +31,7 @@ int MPI_Send(MPI3CONST void *buf, int count, MPI_Datatype datatype, int dest, in
 int TAMPI_Isend(MPI3CONST void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
-		Instrument::Guard<LibraryInterface> instrGuard;
-		Operation<C> operation(SEND, buf, count, datatype, dest, tag, comm);
-		OperationManager<C>::processOperation(operation, false);
+		OperationManager<C, Operation>::process(SEND, NONBLK, buf, count, datatype, dest, tag, comm);
 		return MPI_SUCCESS;
 	} else {
 		ErrorHandler::fail(__func__, " not enabled");

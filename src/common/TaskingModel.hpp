@@ -14,6 +14,7 @@
 #include <string>
 
 #include "ALPI.hpp"
+#include "Symbol.hpp"
 #include "util/EnvironmentVariable.hpp"
 
 namespace tampi {
