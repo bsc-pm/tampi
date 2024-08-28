@@ -33,7 +33,6 @@ private:
 	typedef boost::lockfree::spsc_queue<TaskContext, boost::lockfree::capacity<Size> > queue_t;
 
 	static EnvironmentVariable<bool> _enabled;
-	static EnvironmentVariable<uint64_t> _period;
 
 	static queue_t _queue;
 
@@ -58,11 +57,6 @@ public:
 			[&](TaskContext &context) {
 				context.completeEvents(1, true);
 			});
-	}
-
-	static uint64_t getPeriod()
-	{
-		return _period;
 	}
 
 	static bool isEnabled()
