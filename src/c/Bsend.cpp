@@ -17,7 +17,7 @@ using namespace tampi;
 
 extern "C" {
 
-int MPI_Bsend(MPI3CONST void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
+int MPI_Bsend(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		OperationManager<C, Operation>::process(BSEND, BLK, buf, count, datatype, dest, tag, comm);
@@ -28,7 +28,7 @@ int MPI_Bsend(MPI3CONST void *buf, int count, MPI_Datatype datatype, int dest, i
 	}
 }
 
-int TAMPI_Ibsend(MPI3CONST void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
+int TAMPI_Ibsend(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
 		OperationManager<C, Operation>::process(BSEND, NONBLK, buf, count, datatype, dest, tag, comm);

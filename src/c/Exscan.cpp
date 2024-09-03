@@ -18,7 +18,7 @@ using namespace tampi;
 
 extern "C" {
 
-int MPI_Exscan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
+int MPI_Exscan(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		OperationManager<C, CollOperation>::process(EXSCAN, BLK, comm, sendbuf, count, datatype, recvbuf, 0, MPI_DATATYPE_NULL, op);
@@ -29,7 +29,7 @@ int MPI_Exscan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype d
 	}
 }
 
-int TAMPI_Iexscan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
+int TAMPI_Iexscan(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
 		OperationManager<C, CollOperation>::process(EXSCAN, NONBLK, comm, sendbuf, count, datatype, recvbuf, 0, MPI_DATATYPE_NULL, op);

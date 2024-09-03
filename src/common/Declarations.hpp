@@ -13,13 +13,6 @@
 
 #include <Symbol.hpp>
 
-//! Read only buffers must be defined as const in versions MPI 3.0 and later
-#if MPI_VERSION >= 3
-#define MPI3CONST const
-#else
-#define MPI3CONST
-#endif
-
 namespace tampi {
 
 //! Classes representing C/C++ and Fortran languages. The MPI interface
@@ -51,58 +44,58 @@ struct Prototypes<C> {
 	using mpi_waitall_t = SymbolDecl<int, int, MPI_Request[], MPI_Status[]>;
 
 	//! Point-to-point blocking operations in C
-	using mpi_bsend_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm>;
+	using mpi_bsend_t = SymbolDecl<int, const void*, int, MPI_Datatype, int, int, MPI_Comm>;
 	using mpi_recv_t = SymbolDecl<int, void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status*>;
-	using mpi_rsend_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm>;
-	using mpi_sendrecv_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, int, int, void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status*>;
+	using mpi_rsend_t = SymbolDecl<int, const void*, int, MPI_Datatype, int, int, MPI_Comm>;
+	using mpi_sendrecv_t = SymbolDecl<int, const void*, int, MPI_Datatype, int, int, void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Status*>;
 	using mpi_sendrecv_replace_t = SymbolDecl<int, void*, int, MPI_Datatype, int, int, int, int, MPI_Comm, MPI_Status*>;
-	using mpi_ssend_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm>;
-	using mpi_send_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm>;
+	using mpi_ssend_t = SymbolDecl<int, const void*, int, MPI_Datatype, int, int, MPI_Comm>;
+	using mpi_send_t = SymbolDecl<int, const void*, int, MPI_Datatype, int, int, MPI_Comm>;
 
 	//! Point-to-point non-blocking operations in C
-	using mpi_ibsend_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request*>;
+	using mpi_ibsend_t = SymbolDecl<int, const void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request*>;
 	using mpi_irecv_t = SymbolDecl<int, void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request*>;
-	using mpi_irsend_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request*>;
-	using mpi_issend_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request*>;
-	using mpi_isend_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request*>;
+	using mpi_irsend_t = SymbolDecl<int, const void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request*>;
+	using mpi_issend_t = SymbolDecl<int, const void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request*>;
+	using mpi_isend_t = SymbolDecl<int, const void*, int, MPI_Datatype, int, int, MPI_Comm, MPI_Request*>;
 
 	//! Collective blocking operations in C
-	using mpi_allgather_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm>;
-	using mpi_allgatherv_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, void*, MPI3CONST int[], MPI3CONST int[], MPI_Datatype, MPI_Comm>;
-	using mpi_allreduce_t = SymbolDecl<int, MPI3CONST void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm>;
-	using mpi_alltoall_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm>;
-	using mpi_alltoallv_t = SymbolDecl<int, MPI3CONST void*, MPI3CONST int[], MPI3CONST int[], MPI_Datatype, void*, MPI3CONST int[], MPI3CONST int[], MPI_Datatype, MPI_Comm>;
-	using mpi_alltoallw_t = SymbolDecl<int, MPI3CONST void*, MPI3CONST int[], MPI3CONST int[], MPI3CONST MPI_Datatype[], void*, MPI3CONST int[], MPI3CONST int[], MPI3CONST MPI_Datatype[], MPI_Comm>;
+	using mpi_allgather_t = SymbolDecl<int, const void*, int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm>;
+	using mpi_allgatherv_t = SymbolDecl<int, const void*, int, MPI_Datatype, void*, const int[], const int[], MPI_Datatype, MPI_Comm>;
+	using mpi_allreduce_t = SymbolDecl<int, const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm>;
+	using mpi_alltoall_t = SymbolDecl<int, const void*, int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm>;
+	using mpi_alltoallv_t = SymbolDecl<int, const void*, const int[], const int[], MPI_Datatype, void*, const int[], const int[], MPI_Datatype, MPI_Comm>;
+	using mpi_alltoallw_t = SymbolDecl<int, const void*, const int[], const int[], const MPI_Datatype[], void*, const int[], const int[], const MPI_Datatype[], MPI_Comm>;
 	using mpi_barrier_t = SymbolDecl<int, MPI_Comm>;
 	using mpi_bcast_t = SymbolDecl<int, void*, int, MPI_Datatype, int, MPI_Comm>;
-	using mpi_gather_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm>;
-	using mpi_gatherv_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, void*, MPI3CONST int[], MPI3CONST int[], MPI_Datatype, int, MPI_Comm>;
-	using mpi_reduce_t = SymbolDecl<int, MPI3CONST void*, void*, int, MPI_Datatype, MPI_Op, int, MPI_Comm>;
-	using mpi_reduce_scatter_t = SymbolDecl<int, MPI3CONST void*, void*, MPI3CONST int[], MPI_Datatype, MPI_Op, MPI_Comm>;
-	using mpi_reduce_scatter_block_t = SymbolDecl<int, MPI3CONST void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm>;
-	using mpi_scatter_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm>;
-	using mpi_scatterv_t = SymbolDecl<int, MPI3CONST void*, MPI3CONST int[], MPI3CONST int[], MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm>;
-	using mpi_scan_t = SymbolDecl<int, MPI3CONST void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm>;
-	using mpi_exscan_t = SymbolDecl<int, MPI3CONST void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm>;
+	using mpi_gather_t = SymbolDecl<int, const void*, int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm>;
+	using mpi_gatherv_t = SymbolDecl<int, const void*, int, MPI_Datatype, void*, const int[], const int[], MPI_Datatype, int, MPI_Comm>;
+	using mpi_reduce_t = SymbolDecl<int, const void*, void*, int, MPI_Datatype, MPI_Op, int, MPI_Comm>;
+	using mpi_reduce_scatter_t = SymbolDecl<int, const void*, void*, const int[], MPI_Datatype, MPI_Op, MPI_Comm>;
+	using mpi_reduce_scatter_block_t = SymbolDecl<int, const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm>;
+	using mpi_scatter_t = SymbolDecl<int, const void*, int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm>;
+	using mpi_scatterv_t = SymbolDecl<int, const void*, const int[], const int[], MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm>;
+	using mpi_scan_t = SymbolDecl<int, const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm>;
+	using mpi_exscan_t = SymbolDecl<int, const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm>;
 
 	//! Collective non-blocking operations in C
-	using mpi_iallgather_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm, MPI_Request*>;
-	using mpi_iallgatherv_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, void*, MPI3CONST int[], MPI3CONST int[], MPI_Datatype, MPI_Comm, MPI_Request*>;
-	using mpi_iallreduce_t = SymbolDecl<int, MPI3CONST void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Request*>;
-	using mpi_ialltoall_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm, MPI_Request*>;
-	using mpi_ialltoallv_t = SymbolDecl<int, MPI3CONST void*, MPI3CONST int[], MPI3CONST int[], MPI_Datatype, void*, MPI3CONST int[], MPI3CONST int[], MPI_Datatype, MPI_Comm, MPI_Request*>;
-	using mpi_ialltoallw_t = SymbolDecl<int, MPI3CONST void*, MPI3CONST int[], MPI3CONST int[], MPI3CONST MPI_Datatype[], void*, MPI3CONST int[], MPI3CONST int[], MPI3CONST MPI_Datatype[], MPI_Comm, MPI_Request*>;
+	using mpi_iallgather_t = SymbolDecl<int, const void*, int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm, MPI_Request*>;
+	using mpi_iallgatherv_t = SymbolDecl<int, const void*, int, MPI_Datatype, void*, const int[], const int[], MPI_Datatype, MPI_Comm, MPI_Request*>;
+	using mpi_iallreduce_t = SymbolDecl<int, const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Request*>;
+	using mpi_ialltoall_t = SymbolDecl<int, const void*, int, MPI_Datatype, void*, int, MPI_Datatype, MPI_Comm, MPI_Request*>;
+	using mpi_ialltoallv_t = SymbolDecl<int, const void*, const int[], const int[], MPI_Datatype, void*, const int[], const int[], MPI_Datatype, MPI_Comm, MPI_Request*>;
+	using mpi_ialltoallw_t = SymbolDecl<int, const void*, const int[], const int[], const MPI_Datatype[], void*, const int[], const int[], const MPI_Datatype[], MPI_Comm, MPI_Request*>;
 	using mpi_ibarrier_t = SymbolDecl<int, MPI_Comm, MPI_Request*>;
 	using mpi_ibcast_t = SymbolDecl<int, void*, int, MPI_Datatype, int, MPI_Comm, MPI_Request*>;
-	using mpi_igather_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm, MPI_Request*>;
-	using mpi_igatherv_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, void*, MPI3CONST int[], MPI3CONST int[], MPI_Datatype, int, MPI_Comm, MPI_Request*>;
-	using mpi_ireduce_t = SymbolDecl<int, MPI3CONST void*, void*, int, MPI_Datatype, MPI_Op, int, MPI_Comm, MPI_Request*>;
-	using mpi_ireduce_scatter_t = SymbolDecl<int, MPI3CONST void*, void*, MPI3CONST int[], MPI_Datatype, MPI_Op, MPI_Comm, MPI_Request*>;
-	using mpi_ireduce_scatter_block_t = SymbolDecl<int, MPI3CONST void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Request*>;
-	using mpi_iscatter_t = SymbolDecl<int, MPI3CONST void*, int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm, MPI_Request*>;
-	using mpi_iscatterv_t = SymbolDecl<int, MPI3CONST void*, MPI3CONST int[], MPI3CONST int[], MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm, MPI_Request*>;
-	using mpi_iscan_t = SymbolDecl<int, MPI3CONST void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Request*>;
-	using mpi_iexscan_t = SymbolDecl<int, MPI3CONST void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Request*>;
+	using mpi_igather_t = SymbolDecl<int, const void*, int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm, MPI_Request*>;
+	using mpi_igatherv_t = SymbolDecl<int, const void*, int, MPI_Datatype, void*, const int[], const int[], MPI_Datatype, int, MPI_Comm, MPI_Request*>;
+	using mpi_ireduce_t = SymbolDecl<int, const void*, void*, int, MPI_Datatype, MPI_Op, int, MPI_Comm, MPI_Request*>;
+	using mpi_ireduce_scatter_t = SymbolDecl<int, const void*, void*, const int[], MPI_Datatype, MPI_Op, MPI_Comm, MPI_Request*>;
+	using mpi_ireduce_scatter_block_t = SymbolDecl<int, const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Request*>;
+	using mpi_iscatter_t = SymbolDecl<int, const void*, int, MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm, MPI_Request*>;
+	using mpi_iscatterv_t = SymbolDecl<int, const void*, const int[], const int[], MPI_Datatype, void*, int, MPI_Datatype, int, MPI_Comm, MPI_Request*>;
+	using mpi_iscan_t = SymbolDecl<int, const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Request*>;
+	using mpi_iexscan_t = SymbolDecl<int, const void*, void*, int, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Request*>;
 };
 
 

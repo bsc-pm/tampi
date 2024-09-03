@@ -13,90 +13,83 @@
 
 #pragma GCC visibility push(default)
 
-//! Read only buffers must be defined as const in versions MPI 3.0 and later
-#if MPI_VERSION >= 3
-	#define __MPI3CONST const
-#else
-	#define __MPI3CONST
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int TAMPI_Ibsend(__MPI3CONST void *buf, int count, MPI_Datatype datatype,
+int TAMPI_Ibsend(const void *buf, int count, MPI_Datatype datatype,
 		int dest, int tag, MPI_Comm comm);
 
 int TAMPI_Irecv(void *buf, int count, MPI_Datatype datatype, int source,
 		int tag, MPI_Comm comm, MPI_Status *status);
 
-int TAMPI_Irsend(__MPI3CONST void *buf, int count, MPI_Datatype datatype,
+int TAMPI_Irsend(const void *buf, int count, MPI_Datatype datatype,
 		int source, int tag, MPI_Comm comm);
 
-int TAMPI_Isend(__MPI3CONST void *buf, int count, MPI_Datatype datatype,
+int TAMPI_Isend(const void *buf, int count, MPI_Datatype datatype,
 		int dest, int tag, MPI_Comm comm);
 
-int TAMPI_Issend(__MPI3CONST void *buf, int count, MPI_Datatype datatype,
+int TAMPI_Issend(const void *buf, int count, MPI_Datatype datatype,
 		int source, int tag, MPI_Comm comm);
 
-int TAMPI_Iallgather(__MPI3CONST void *sendbuf, int sendcount,
+int TAMPI_Iallgather(const void *sendbuf, int sendcount,
 		MPI_Datatype sendtype, void *recvbuf, int recvcount,
 		MPI_Datatype recvtype, MPI_Comm comm);
 
-int TAMPI_Iallgatherv(__MPI3CONST void *sendbuf, int sendcount,
-		MPI_Datatype sendtype, void *recvbuf, __MPI3CONST int recvcounts[],
-		__MPI3CONST int displs[], MPI_Datatype recvtype, MPI_Comm comm);
+int TAMPI_Iallgatherv(const void *sendbuf, int sendcount,
+		MPI_Datatype sendtype, void *recvbuf, const int recvcounts[],
+		const int displs[], MPI_Datatype recvtype, MPI_Comm comm);
 
-int TAMPI_Iallreduce(__MPI3CONST void *sendbuf, void *recvbuf, int count,
+int TAMPI_Iallreduce(const void *sendbuf, void *recvbuf, int count,
 		MPI_Datatype datatype, MPI_Op op, MPI_Comm comm);
 
-int TAMPI_Ialltoall(__MPI3CONST void *sendbuf, int sendcount,
+int TAMPI_Ialltoall(const void *sendbuf, int sendcount,
 		MPI_Datatype sendtype, void *recvbuf, int recvcount,
 		MPI_Datatype recvtype, MPI_Comm comm);
 
-int TAMPI_Ialltoallv(__MPI3CONST void *sendbuf, __MPI3CONST int sendcounts[],
-		__MPI3CONST int sdispls[], MPI_Datatype sendtype, void *recvbuf,
-		__MPI3CONST int recvcounts[], __MPI3CONST int rdispls[],
+int TAMPI_Ialltoallv(const void *sendbuf, const int sendcounts[],
+		const int sdispls[], MPI_Datatype sendtype, void *recvbuf,
+		const int recvcounts[], const int rdispls[],
 		MPI_Datatype recvtype, MPI_Comm comm);
 
-int TAMPI_Ialltoallw(__MPI3CONST void *sendbuf, __MPI3CONST int sendcounts[],
-		__MPI3CONST int sdispls[], __MPI3CONST MPI_Datatype sendtypes[],
-		void *recvbuf, __MPI3CONST int recvcounts[], __MPI3CONST int rdispls[],
-		__MPI3CONST MPI_Datatype recvtypes[], MPI_Comm comm);
+int TAMPI_Ialltoallw(const void *sendbuf, const int sendcounts[],
+		const int sdispls[], const MPI_Datatype sendtypes[],
+		void *recvbuf, const int recvcounts[], const int rdispls[],
+		const MPI_Datatype recvtypes[], MPI_Comm comm);
 
 int TAMPI_Ibarrier(MPI_Comm comm);
 
 int TAMPI_Ibcast(void *buf, int count, MPI_Datatype datatype, int root,
 		MPI_Comm comm);
 
-int TAMPI_Igather(__MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
+int TAMPI_Igather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm);
 
-int TAMPI_Igatherv(__MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
-		void *recvbuf, __MPI3CONST int recvcounts[], __MPI3CONST int displs[],
+int TAMPI_Igatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+		void *recvbuf, const int recvcounts[], const int displs[],
 		MPI_Datatype recvtype, int root, MPI_Comm comm);
 
-int TAMPI_Ireduce(__MPI3CONST void *sendbuf, void *recvbuf, int count,
+int TAMPI_Ireduce(const void *sendbuf, void *recvbuf, int count,
 		MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm);
 
-int TAMPI_Ireduce_scatter(__MPI3CONST void *sendbuf, void *recvbuf,
-		__MPI3CONST int recvcounts[], MPI_Datatype datatype, MPI_Op op,
+int TAMPI_Ireduce_scatter(const void *sendbuf, void *recvbuf,
+		const int recvcounts[], MPI_Datatype datatype, MPI_Op op,
 		MPI_Comm comm);
 
-int TAMPI_Ireduce_scatter_block(__MPI3CONST void *sendbuf, void *recvbuf,
+int TAMPI_Ireduce_scatter_block(const void *sendbuf, void *recvbuf,
 		int recvcount, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm);
 
-int TAMPI_Iscatter(__MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
+int TAMPI_Iscatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm);
 
-int TAMPI_Iscatterv(__MPI3CONST void *sendbuf, __MPI3CONST int sendcounts[],
-		__MPI3CONST int displs[], MPI_Datatype sendtype, void *recvbuf, int recvcount,
+int TAMPI_Iscatterv(const void *sendbuf, const int sendcounts[],
+		const int displs[], MPI_Datatype sendtype, void *recvbuf, int recvcount,
 		MPI_Datatype recvtype, int root, MPI_Comm comm);
 
-int TAMPI_Iscan(__MPI3CONST void *sendbuf, void *recvbuf, int count,
+int TAMPI_Iscan(const void *sendbuf, void *recvbuf, int count,
 		MPI_Datatype datatype, MPI_Op op, MPI_Comm comm);
 
-int TAMPI_Iexscan(__MPI3CONST void *sendbuf, void *recvbuf, int count,
+int TAMPI_Iexscan(const void *sendbuf, void *recvbuf, int count,
 		MPI_Datatype datatype, MPI_Op op, MPI_Comm comm);
 
 #ifdef __cplusplus
