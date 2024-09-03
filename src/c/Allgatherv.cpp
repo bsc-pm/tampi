@@ -17,8 +17,8 @@ using namespace tampi;
 
 extern "C" {
 
-int MPI_Allgatherv(MPI3CONST void* sendbuf, int sendcount, MPI_Datatype sendtype,
-		void* recvbuf, MPI3CONST int recvcounts[], MPI3CONST int displs[],
+int MPI_Allgatherv(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
+		void* recvbuf, const int recvcounts[], const int displs[],
 		MPI_Datatype recvtype, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
@@ -30,8 +30,8 @@ int MPI_Allgatherv(MPI3CONST void* sendbuf, int sendcount, MPI_Datatype sendtype
 	}
 }
 
-int TAMPI_Iallgatherv(MPI3CONST void* sendbuf, int sendcount, MPI_Datatype sendtype,
-		void* recvbuf, MPI3CONST int recvcounts[], MPI3CONST int displs[],
+int TAMPI_Iallgatherv(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
+		void* recvbuf, const int recvcounts[], const int displs[],
 		MPI_Datatype recvtype, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {

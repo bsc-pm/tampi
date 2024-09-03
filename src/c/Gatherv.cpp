@@ -18,8 +18,8 @@ using namespace tampi;
 
 extern "C" {
 
-int MPI_Gatherv(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
-		void *recvbuf, MPI3CONST int recvcounts[], MPI3CONST int displs[],
+int MPI_Gatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+		void *recvbuf, const int recvcounts[], const int displs[],
 		MPI_Datatype recvtype, int root, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
@@ -31,8 +31,8 @@ int MPI_Gatherv(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 	}
 }
 
-int TAMPI_Igatherv(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
-		void *recvbuf, MPI3CONST int recvcounts[], MPI3CONST int displs[],
+int TAMPI_Igatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+		void *recvbuf, const int recvcounts[], const int displs[],
 		MPI_Datatype recvtype, int root, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {

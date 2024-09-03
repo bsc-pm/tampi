@@ -17,7 +17,7 @@ using namespace tampi;
 
 extern "C" {
 
-int MPI_Reduce(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
+int MPI_Reduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		OperationManager<C, CollOperation>::process(REDUCE, BLK, comm, sendbuf, count, datatype, recvbuf, count, datatype, op, root);
@@ -28,7 +28,7 @@ int MPI_Reduce(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype d
 	}
 }
 
-int TAMPI_Ireduce(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
+int TAMPI_Ireduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
 		OperationManager<C, CollOperation>::process(REDUCE, NONBLK, comm, sendbuf, count, datatype, recvbuf, count, datatype, op, root);

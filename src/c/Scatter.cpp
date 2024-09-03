@@ -17,7 +17,7 @@ using namespace tampi;
 
 extern "C" {
 
-int MPI_Scatter(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
+int MPI_Scatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
@@ -29,7 +29,7 @@ int MPI_Scatter(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 	}
 }
 
-int TAMPI_Iscatter(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
+int TAMPI_Iscatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {

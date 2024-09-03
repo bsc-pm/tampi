@@ -109,6 +109,38 @@ Please, check that provided directories are correct.
 ------------------------------])
   ])dnl
 
+  # Check that the MPI library supports standard 3 or later
+  AC_MSG_CHECKING([whether MPI supports standard 3.0 or later])
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM(
+      [
+        #ifdef HAVE_MPI_H
+          #include <mpi.h>
+        #endif
+
+        #ifndef MPI_VERSION
+          #error "MPI_VERSION not defined"
+        #endif
+
+        #if MPI_VERSION < 3
+          #error "The MPI standard version is lower than 3"
+        #endif
+      ],
+      [])
+    ],
+    [
+      AC_MSG_RESULT([yes])
+      mpi_support_standard_3=yes
+    ],
+    [
+      AC_MSG_RESULT([no])
+      mpi_support_standard_3=no
+    ])dnl
+
+  if test x"${mpi_support_standard_3}" = x"no" ; then
+    AC_MSG_ERROR([The MPI library does not support standard 3.0 or later])
+  fi
+
   AC_SUBST([mpiflags])
 
   AX_VAR_POPVALUE([CPPFLAGS])

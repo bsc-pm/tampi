@@ -17,7 +17,7 @@ using namespace tampi;
 
 extern "C" {
 
-int MPI_Scan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
+int MPI_Scan(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		OperationManager<C, CollOperation>::process(SCAN, BLK, comm, sendbuf, count, datatype, recvbuf, 0, MPI_DATATYPE_NULL, op);
@@ -28,7 +28,7 @@ int MPI_Scan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype dat
 	}
 }
 
-int TAMPI_Iscan(MPI3CONST void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
+int TAMPI_Iscan(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
 		OperationManager<C, CollOperation>::process(SCAN, NONBLK, comm, sendbuf, count, datatype, recvbuf, 0, MPI_DATATYPE_NULL, op);

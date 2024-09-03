@@ -17,7 +17,7 @@ using namespace tampi;
 
 extern "C" {
 
-int MPI_Allgather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
+int MPI_Allgather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		void *recvbuf, int recvcount, MPI_Datatype recvtype, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
@@ -29,7 +29,7 @@ int MPI_Allgather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 	}
 }
 
-int TAMPI_Iallgather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
+int TAMPI_Iallgather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		void *recvbuf, int recvcount, MPI_Datatype recvtype, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {

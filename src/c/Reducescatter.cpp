@@ -17,7 +17,7 @@ using namespace tampi;
 
 extern "C" {
 
-int MPI_Reduce_scatter(MPI3CONST void *sendbuf, void *recvbuf, MPI3CONST int recvcounts[], MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
+int MPI_Reduce_scatter(const void *sendbuf, void *recvbuf, const int recvcounts[], MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
 	if (Environment::isBlockingEnabledForCurrentThread()) {
 		OperationManager<C, CollOperation>::process(REDUCESCATTER, BLK, comm, sendbuf, 0, datatype, recvbuf, recvcounts, nullptr, MPI_DATATYPE_NULL, op);
@@ -28,7 +28,7 @@ int MPI_Reduce_scatter(MPI3CONST void *sendbuf, void *recvbuf, MPI3CONST int rec
 	}
 }
 
-int TAMPI_Ireduce_scatter(MPI3CONST void *sendbuf, void *recvbuf, MPI3CONST int recvcounts[], MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
+int TAMPI_Ireduce_scatter(const void *sendbuf, void *recvbuf, const int recvcounts[], MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
 {
 	if (Environment::isNonBlockingEnabled()) {
 		OperationManager<C, CollOperation>::process(REDUCESCATTER, NONBLK, comm, sendbuf, 0, datatype, recvbuf, recvcounts, nullptr, MPI_DATATYPE_NULL, op);

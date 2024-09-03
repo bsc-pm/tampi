@@ -17,7 +17,7 @@ using namespace tampi;
 
 extern "C" {
 
-int MPI_Gather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
+int MPI_Gather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		void *recvbuf, int recvcount, MPI_Datatype recvtype,
 		int root, MPI_Comm comm)
 {
@@ -30,7 +30,7 @@ int MPI_Gather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
 	}
 }
 
-int TAMPI_Igather(MPI3CONST void *sendbuf, int sendcount, MPI_Datatype sendtype,
+int TAMPI_Igather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
 		void *recvbuf, int recvcount, MPI_Datatype recvtype,
 		int root, MPI_Comm comm)
 {
