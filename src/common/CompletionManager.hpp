@@ -50,6 +50,9 @@ public:
 
 	static size_t process()
 	{
+		if (!_queue.read_available())
+			return 0;
+
 		Instrument::Guard<CompletedRequest> instrGuard;
 
 		// Complete all task contexts

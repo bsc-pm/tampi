@@ -277,7 +277,7 @@ inline int TicketManager<Lang>::internalCheckRequests()
 			}
 		}
 
-		if (useCompletionManager)
+		if (useCompletionManager && batchCompleted > 0)
 			CompletionManager::transfer((TaskContext *) contexts, batchCompleted);
 
 		checked += count;
