@@ -83,10 +83,10 @@ public:
 
 	//! \brief Execute the function
 	template <typename... Params>
-	ReturnTy operator()(Params... params) const
+	ReturnTy operator()(Params &&... params) const
 	{
 		assert(_symbol != nullptr);
-		return (*_symbol)(params...);
+		return (*_symbol)(std::forward<Params>(params)...);
 	}
 };
 
