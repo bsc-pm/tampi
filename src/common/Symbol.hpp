@@ -39,6 +39,7 @@ enum class SymbolAttr {
 //! Class that allows the dynamic loading of symbols at run-time
 template <typename SymbolDecl>
 class Symbol {
+protected:
 	using SymbolTy = typename SymbolDecl::SymbolTy;
 	using ReturnTy = typename SymbolDecl::ReturnTy;
 
@@ -83,10 +84,10 @@ public:
 
 	//! \brief Execute the function
 	template <typename... Params>
-	ReturnTy operator()(Params... params) const
+	ReturnTy operator()(Params &&... params) const
 	{
 		assert(_symbol != nullptr);
-		return (*_symbol)(params...);
+		return (*_symbol)(std::forward<Params>(params)...);
 	}
 };
 

@@ -19,6 +19,7 @@ void TaskingModel::initialize(bool requireTaskBlockingAPI, bool requireTaskEvent
 	// Find the first occurrence of the desired symbol
 	const SymbolAttr attr = SymbolAttr::First;
 
+	_alpi_error_string.load(attr);
 	_alpi_version_check.load(attr);
 	_alpi_version_get.load(attr);
 	_alpi_task_self.load(attr);
@@ -41,57 +42,56 @@ void TaskingModel::initialize(bool requireTaskBlockingAPI, bool requireTaskEvent
 	}
 
 	int expected[2] = { ALPI_VERSION_MAJOR, ALPI_VERSION_MINOR };
-	int provided[2];
+	int provided[2] = { false, false };
 
-	if (int err = _alpi_version_get(&provided[0], &provided[1]))
-		ErrorHandler::fail("Failed alpi_version_get: ", getError(err));
+	_alpi_version_get(&provided[0], &provided[1]);
 
-	int err = _alpi_version_check(expected[0], expected[1]);
+	int err = _alpi_version_check.callNative(expected[0], expected[1]);
 	if (err == ALPI_ERR_VERSION)
 		ErrorHandler::fail("Incompatible ALPI tasking interface versions:\n",
 			"\tExpected: ", expected[0], ".", expected[1], "\n",
 			"\tProvided: ", provided[0], ".", provided[1]);
 	else if (err)
-		ErrorHandler::fail("Failed alpi_version_check: ", getError(err));
+		_alpi_version_check.processFailure(err);
 }
 
-Symbol<TaskingModel::alpi_error_string_t>
-TaskingModel::_alpi_error_string("alpi_error_string", /* load */ false);
+ALPISymbol<ALPISymbolDecl::alpi_error_string_t>
+TaskingModel::_alpi_error_string("alpi_error_string", nullptr);
 
-Symbol<TaskingModel::alpi_version_check_t>
-TaskingModel::_alpi_version_check("alpi_version_check", /* load */ false);
+ALPISymbol<ALPISymbolDecl::alpi_version_check_t>
+TaskingModel::_alpi_version_check("alpi_version_check", &_alpi_error_string);
 
-Symbol<TaskingModel::alpi_version_get_t>
-TaskingModel::_alpi_version_get("alpi_version_get", /* load */ false);
+ALPISymbol<ALPISymbolDecl::alpi_version_get_t>
+TaskingModel::_alpi_version_get("alpi_version_get", &_alpi_error_string);
 
-Symbol<TaskingModel::alpi_task_self_t>
-TaskingModel::_alpi_task_self("alpi_task_self", /* load */ false);
+ALPISymbol<ALPISymbolDecl::alpi_task_self_t>
+TaskingModel::_alpi_task_self("alpi_task_self", &_alpi_error_string);
 
-Symbol<TaskingModel::alpi_task_block_t>
-TaskingModel::_alpi_task_block("alpi_task_block", /* load */ false);
+ALPISymbol<ALPISymbolDecl::alpi_task_block_t>
+TaskingModel::_alpi_task_block("alpi_task_block", &_alpi_error_string);
 
-Symbol<TaskingModel::alpi_task_unblock_t>
-TaskingModel::_alpi_task_unblock("alpi_task_unblock", /* load */ false);
+ALPISymbol<ALPISymbolDecl::alpi_task_unblock_t>
+TaskingModel::_alpi_task_unblock("alpi_task_unblock", &_alpi_error_string);
 
-Symbol<TaskingModel::alpi_task_events_increase_t>
-TaskingModel::_alpi_task_events_increase("alpi_task_events_increase", /* load */ false);
+ALPISymbol<ALPISymbolDecl::alpi_task_events_increase_t>
+TaskingModel::_alpi_task_events_increase("alpi_task_events_increase", &_alpi_error_string);
 
-Symbol<TaskingModel::alpi_task_events_decrease_t>
-TaskingModel::_alpi_task_events_decrease("alpi_task_events_decrease", /* load */ false);
+ALPISymbol<ALPISymbolDecl::alpi_task_events_decrease_t>
+TaskingModel::_alpi_task_events_decrease("alpi_task_events_decrease", &_alpi_error_string);
 
-Symbol<TaskingModel::alpi_task_waitfor_ns_t>
-TaskingModel::_alpi_task_waitfor_ns("alpi_task_waitfor_ns", /* load */ false);
+ALPISymbol<ALPISymbolDecl::alpi_task_waitfor_ns_t>
+TaskingModel::_alpi_task_waitfor_ns("alpi_task_waitfor_ns", &_alpi_error_string);
 
-Symbol<TaskingModel::alpi_task_spawn_t>
-TaskingModel::_alpi_task_spawn("alpi_task_spawn", /* load */ false);
+ALPISymbol<ALPISymbolDecl::alpi_task_spawn_t>
+TaskingModel::_alpi_task_spawn("alpi_task_spawn", &_alpi_error_string);
 
-Symbol<TaskingModel::alpi_cpu_count_t>
-TaskingModel::_alpi_cpu_count("alpi_cpu_count", /* load */ false);
+ALPISymbol<ALPISymbolDecl::alpi_cpu_count_t>
+TaskingModel::_alpi_cpu_count("alpi_cpu_count", &_alpi_error_string);
 
-Symbol<TaskingModel::alpi_cpu_logical_id_t>
-TaskingModel::_alpi_cpu_logical_id("alpi_cpu_logical_id", /* load */ false);
+ALPISymbol<ALPISymbolDecl::alpi_cpu_logical_id_t>
+TaskingModel::_alpi_cpu_logical_id("alpi_cpu_logical_id", &_alpi_error_string);
 
-Symbol<TaskingModel::alpi_cpu_system_id_t>
-TaskingModel::_alpi_cpu_system_id("alpi_cpu_system_id", /* load */ false);
+ALPISymbol<ALPISymbolDecl::alpi_cpu_system_id_t>
+TaskingModel::_alpi_cpu_system_id("alpi_cpu_system_id", &_alpi_error_string);
 
 } // namespace tampi
