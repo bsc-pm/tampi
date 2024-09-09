@@ -39,6 +39,7 @@ enum class SymbolAttr {
 //! Class that allows the dynamic loading of symbols at run-time
 template <typename SymbolDecl>
 class Symbol {
+protected:
 	using SymbolTy = typename SymbolDecl::SymbolTy;
 	using ReturnTy = typename SymbolDecl::ReturnTy;
 

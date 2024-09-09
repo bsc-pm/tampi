@@ -19,6 +19,82 @@
 
 namespace tampi {
 
+//! The symbol declarations of the ALPI functions
+struct ALPISymbolDecl {
+	using alpi_error_string_t = SymbolDecl<const char *, int>;
+	using alpi_version_check_t = SymbolDecl<int, int, int>;
+	using alpi_version_get_t = SymbolDecl<int, int *, int *>;
+	using alpi_task_self_t = SymbolDecl<int, struct alpi_task **>;
+	using alpi_task_block_t = SymbolDecl<int, struct alpi_task *>;
+	using alpi_task_unblock_t = SymbolDecl<int, struct alpi_task *>;
+	using alpi_task_events_increase_t = SymbolDecl<int, struct alpi_task *, uint64_t>;
+	using alpi_task_events_decrease_t = SymbolDecl<int, struct alpi_task *, uint64_t>;
+	using alpi_task_waitfor_ns_t = SymbolDecl<int, uint64_t, uint64_t *>;
+	using alpi_task_spawn_t = SymbolDecl<int, void (*)(void *), void *, void (*)(void *), void *, const char *, const struct alpi_attr *>;
+	using alpi_cpu_count_t = SymbolDecl<int, uint64_t *>;
+	using alpi_cpu_logical_id_t = SymbolDecl<int, uint64_t *>;
+	using alpi_cpu_system_id_t = SymbolDecl<int, uint64_t *>;
+};
+
+template <typename Decl>
+class ALPISymbol : public Symbol<Decl> {
+public:
+
+private:
+	//! The symbol base type
+	using BaseSymbol = Symbol<Decl>;
+
+	//! The symbol type for retrieving error descriptions
+	using ErrorSymbol = ALPISymbol<ALPISymbolDecl::alpi_error_string_t>;
+
+	//! The symbol for retrieving error descriptions
+	const ErrorSymbol *_errorSymbol;
+
+public:
+	ALPISymbol(std::string_view name, const ErrorSymbol *errorSymbol) :
+		BaseSymbol(name, false),
+		_errorSymbol(errorSymbol)
+	{
+	}
+
+	//! \brief Execute the function and check result
+	template <typename... Params>
+	void operator()(Params &&... params) const
+	{
+		int err = BaseSymbol::operator()(std::forward<Params>(params)...);
+		if (err)
+			processFailure(err);
+	}
+
+	//! \brief Execute the function and check result
+	template <typename... Params>
+	void call(Params &&... params) const
+	{
+		int err = BaseSymbol::operator()(std::forward<Params>(params)...);
+		if (err)
+			processFailure(err);
+	}
+
+	//! \brief Execute the function without checking
+	template <typename... Params>
+	typename BaseSymbol::ReturnTy callNative(Params &&... params) const
+	{
+		return BaseSymbol::operator()(std::forward<Params>(params)...);
+	}
+
+	//! \brief Process failure on a symbol call
+	//!
+	//! \param error The error code
+	void processFailure(int error) const
+	{
+		const char *string = "No description";
+		if (_errorSymbol != nullptr)
+			string = _errorSymbol->callNative(error);
+
+		ErrorHandler::fail("Failed ", this->_name, ": ", string);
+	}
+};
+
 //! Class that gives access to the tasking model features
 class TaskingModel {
 public:
@@ -41,35 +117,20 @@ public:
 	};
 
 private:
-	//! The symbol declarations of the tasking model functions
-	using alpi_error_string_t = SymbolDecl<const char *, int>;
-	using alpi_version_check_t = SymbolDecl<int, int, int>;
-	using alpi_version_get_t = SymbolDecl<int, int *, int *>;
-	using alpi_task_self_t = SymbolDecl<int, struct alpi_task **>;
-	using alpi_task_block_t = SymbolDecl<int, struct alpi_task *>;
-	using alpi_task_unblock_t = SymbolDecl<int, struct alpi_task *>;
-	using alpi_task_events_increase_t = SymbolDecl<int, struct alpi_task *, uint64_t>;
-	using alpi_task_events_decrease_t = SymbolDecl<int, struct alpi_task *, uint64_t>;
-	using alpi_task_waitfor_ns_t = SymbolDecl<int, uint64_t, uint64_t *>;
-	using alpi_task_spawn_t = SymbolDecl<int, void (*)(void *), void *, void (*)(void *), void *, const char *, const struct alpi_attr *>;
-	using alpi_cpu_count_t = SymbolDecl<int, uint64_t *>;
-	using alpi_cpu_logical_id_t = SymbolDecl<int, uint64_t *>;
-	using alpi_cpu_system_id_t = SymbolDecl<int, uint64_t *>;
-
 	//! The symbols of the tasking model functions
-	static Symbol<alpi_error_string_t> _alpi_error_string;
-	static Symbol<alpi_version_check_t> _alpi_version_check;
-	static Symbol<alpi_version_get_t> _alpi_version_get;
-	static Symbol<alpi_task_self_t> _alpi_task_self;
-	static Symbol<alpi_task_block_t> _alpi_task_block;
-	static Symbol<alpi_task_unblock_t> _alpi_task_unblock;
-	static Symbol<alpi_task_events_increase_t> _alpi_task_events_increase;
-	static Symbol<alpi_task_events_decrease_t> _alpi_task_events_decrease;
-	static Symbol<alpi_task_waitfor_ns_t> _alpi_task_waitfor_ns;
-	static Symbol<alpi_task_spawn_t> _alpi_task_spawn;
-	static Symbol<alpi_cpu_count_t> _alpi_cpu_count;
-	static Symbol<alpi_cpu_logical_id_t> _alpi_cpu_logical_id;
-	static Symbol<alpi_cpu_system_id_t> _alpi_cpu_system_id;
+	static ALPISymbol<ALPISymbolDecl::alpi_error_string_t> _alpi_error_string;
+	static ALPISymbol<ALPISymbolDecl::alpi_version_check_t> _alpi_version_check;
+	static ALPISymbol<ALPISymbolDecl::alpi_version_get_t> _alpi_version_get;
+	static ALPISymbol<ALPISymbolDecl::alpi_task_self_t> _alpi_task_self;
+	static ALPISymbol<ALPISymbolDecl::alpi_task_block_t> _alpi_task_block;
+	static ALPISymbol<ALPISymbolDecl::alpi_task_unblock_t> _alpi_task_unblock;
+	static ALPISymbol<ALPISymbolDecl::alpi_task_events_increase_t> _alpi_task_events_increase;
+	static ALPISymbol<ALPISymbolDecl::alpi_task_events_decrease_t> _alpi_task_events_decrease;
+	static ALPISymbol<ALPISymbolDecl::alpi_task_waitfor_ns_t> _alpi_task_waitfor_ns;
+	static ALPISymbol<ALPISymbolDecl::alpi_task_spawn_t> _alpi_task_spawn;
+	static ALPISymbol<ALPISymbolDecl::alpi_cpu_count_t> _alpi_cpu_count;
+	static ALPISymbol<ALPISymbolDecl::alpi_cpu_logical_id_t> _alpi_cpu_logical_id;
+	static ALPISymbol<ALPISymbolDecl::alpi_cpu_system_id_t> _alpi_cpu_system_id;
 
 public:
 	//! \brief Initialize and load the symbols of the tasking model
@@ -99,12 +160,10 @@ public:
 		assert(instance != nullptr);
 
 		// Spawn a task that will do the periodic polling
-		int err = _alpi_task_spawn(
+		_alpi_task_spawn(
 			genericPolling, static_cast<void *>(instance),
 			genericCompleted, static_cast<void *>(instance),
 			name.data(), nullptr);
-		if (err)
-			ErrorHandler::fail("Failed alpi_task_spawn: ", getError(err));
 
 		return instance;
 	}
@@ -129,8 +188,7 @@ public:
 		while (!instance->_finished) {
 			// Task yield to avoid consuming a CPU for waiting. Otherwise, in
 			// the case of a single CPU, the execution could hang
-			if (int err = _alpi_task_waitfor_ns(1000000, nullptr))
-				ErrorHandler::fail("Failed alpi_task_waitfor_ns: ", getError(err));
+			_alpi_task_waitfor_ns(1000000, nullptr);
 		}
 		delete instance;
 	}
@@ -139,8 +197,7 @@ public:
 	static task_handle_t getCurrentTask()
 	{
 		struct alpi_task *task;
-		if (int err = _alpi_task_self(&task))
-			ErrorHandler::fail("Failed alpi_task_self: ", getError(err));
+		_alpi_task_self(&task);
 
 		return task;
 	}
@@ -150,8 +207,7 @@ public:
 	//! \param task The current task's handle
 	static void blockCurrentTask(task_handle_t task)
 	{
-		if (int err = _alpi_task_block(task))
-			ErrorHandler::fail("Failed alpi_task_block: ", getError(err));
+		_alpi_task_block(task);
 	}
 
 	//! \brief Unblock a task
@@ -159,8 +215,7 @@ public:
 	//! \param task The task's handle to unblock
 	static void unblockTask(task_handle_t task)
 	{
-		if (int err = _alpi_task_unblock(task))
-			ErrorHandler::fail("Failed alpi_task_unblock: ", getError(err));
+		_alpi_task_unblock(task);
 	}
 
 	//! \brief Increase the events of the current task
@@ -169,8 +224,7 @@ public:
 	//! \param increment The amount of events to increase
 	static void increaseCurrentTaskEvents(task_handle_t task, uint64_t increment)
 	{
-		if (int err = _alpi_task_events_increase(task, increment))
-			ErrorHandler::fail("Failed alpi_task_events_increase: ", getError(err));
+		_alpi_task_events_increase(task, increment);
 	}
 
 	//! \brief Decrease the events of a task
@@ -179,16 +233,14 @@ public:
 	//! \param decrement The amount of events to decrease
 	static void decreaseTaskEvents(task_handle_t task, uint64_t decrement)
 	{
-		if (int err = _alpi_task_events_decrease(task, decrement))
-			ErrorHandler::fail("Failed alpi_task_events_decrease: ", getError(err));
+		_alpi_task_events_decrease(task, decrement);
 	}
 
 	//! \brief Get the number of logical available CPUs
 	static uint64_t getNumLogicalCPUs()
 	{
 		uint64_t count;
-		if (int err = _alpi_cpu_count(&count))
-			ErrorHandler::fail("Failed alpi_cpu_count: ", getError(err));
+		_alpi_cpu_count(&count);
 		return count;
 	}
 
@@ -196,8 +248,7 @@ public:
 	static uint64_t getCurrentLogicalCPU()
 	{
 		uint64_t id;
-		if (int err = _alpi_cpu_logical_id(&id))
-			ErrorHandler::fail("Failed alpi_cpu_logical_id: ", getError(err));
+		_alpi_cpu_logical_id(&id);
 		return id;
 	}
 
@@ -205,8 +256,7 @@ public:
 	static uint64_t getCurrentSystemCPU()
 	{
 		uint64_t id;
-		if (int err = _alpi_cpu_system_id(&id))
-			ErrorHandler::fail("Failed alpi_cpu_system_id: ", getError(err));
+		_alpi_cpu_system_id(&id);
 		return id;
 	}
 
@@ -233,8 +283,7 @@ private:
 			target = instance->_function(instance->_args, last);
 
 			// Pause the polling task for some microseconds
-			if (int err = _alpi_task_waitfor_ns(target * 1000, &last))
-				ErrorHandler::fail("Failed task_waitfor_ns: ", getError(err));
+			_alpi_task_waitfor_ns(target * 1000, &last);
 
 			last = last / 1000;
 		}
@@ -250,14 +299,6 @@ private:
 
 		// The polling task has completed
 		instance->_finished = true;
-	}
-
-	//! \brief Get the string describing the alpi error
-	//!
-	//! \param error The error code
-	static const char *getError(int error)
-	{
-		return _alpi_error_string(error);
 	}
 };
 
