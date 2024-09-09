@@ -19,6 +19,7 @@ void TaskingModel::initialize(bool requireTaskBlockingAPI, bool requireTaskEvent
 	// Find the first occurrence of the desired symbol
 	const SymbolAttr attr = SymbolAttr::First;
 
+	_alpi_error_string.load(attr);
 	_alpi_version_check.load(attr);
 	_alpi_version_get.load(attr);
 	_alpi_task_self.load(attr);
