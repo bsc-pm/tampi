@@ -56,6 +56,7 @@ class MultiLockFreeQueue {
 	alignas(CacheAlignment) PaddedArray<counter_t, MaxQueues> _available;
 
 	alignas(CacheAlignment) size_t _totalRemaining;
+	size_t _current;
 
 public:
 	MultiLockFreeQueue() :
@@ -66,7 +67,8 @@ public:
 		_tail(),
 		_head(),
 		_available(),
-		_totalRemaining(0)
+		_totalRemaining(0),
+		_current(0)
 	{
 		if (_queues > MaxQueues)
 			ErrorHandler::fail("Maximum number of queues exceeded");
@@ -159,7 +161,6 @@ private:
 
 	size_t cyclicRoundRobinPop(T __restrict__ values[], size_t n)
 	{
-		static size_t queue = 0;
 		if (n == 0)
 			return 0;
 
@@ -177,19 +178,19 @@ private:
 		for (size_t q = 0; q < _queues; ++q)
 			remaining[q] = _remaining[q];
 
-		const size_t queue0 = queue;
+		const size_t queue0 = _current;
 
 		size_t missing = n;
 		while (missing > 0) {
 			size_t perQueue = std::max<size_t>(missing / _queues, 1);
 			for (size_t q = 0; missing > 0 && q < _queues; ++q) {
-				assert(queue < _queues);
-				size_t avail = std::min<size_t>(remaining[queue], perQueue);
+				assert(_current < _queues);
+				size_t avail = std::min<size_t>(remaining[_current], perQueue);
 				if (avail) {
-					remaining[queue] -= avail;
+					remaining[_current] -= avail;
 					missing -= avail;
 				}
-				queue = (queue + 1) % _queues;
+				_current = (_current + 1) % _queues;
 			}
 		}
 
@@ -212,7 +213,6 @@ private:
 
 	size_t blockRoundRobinPop(T __restrict__ values[], size_t n)
 	{
-		static size_t queue = 0;
 		if (n == 0)
 			return 0;
 
@@ -228,13 +228,13 @@ private:
 
 		size_t i = 0;
 		while (i < n) {
-			assert(queue < _queues);
-			size_t assigned = std::min<size_t>(_remaining[queue], n - i);
+			assert(_current < _queues);
+			size_t assigned = std::min<size_t>(_remaining[_current], n - i);
 			if (assigned == 0) {
-				queue = (queue + 1) % _queues;
+				_current = (_current + 1) % _queues;
 				continue;
 			}
-			unsafePop(queue, values + i, assigned);
+			unsafePop(_current, values + i, assigned);
 			i += assigned;
 		}
 
