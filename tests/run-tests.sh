@@ -254,7 +254,7 @@ for ((i=0;i<nprogs;i++)); do
 	fi
 
 	if [ $use_slurm -eq 1 ]; then
-		${launcher} -N ${nnodes} -n ${nprocs} -c ${ncpusxproc} --cpu_bind=cores ./${prog} &> /dev/null
+		${launcher} -N ${nnodes} -n ${nprocs} -c ${ncpusxproc} ./${prog} &> /dev/null
 	else
 		${launcher} -np ${nprocs} ./${prog} &> /dev/null
 	fi
