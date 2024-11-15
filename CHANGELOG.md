@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 4.0, Fri Nov 15, 2024
+The 4.0 release introduces TAMPI-OPT, a newly optimized version of the library that ensures only a single thread accesses the MPI interface through delegation techniques. This approach gives access comparable to the highest MPI performance of single-threaded scenarios. Moreover, it introduces several bug fixes and usability and code improvements. Due to the new optimizations, some features have been ultimately dropped, while others will remain unsupported temporarily. For a detailed list check the bullet points below.
+
+### General
+- Major library optimizations by serializing communications
+- Bump required MPI standard to 3.0 or later
+- Add support to adjust the completion polling task period dynamically
+- Improved collective operations constructors
+- Improve allocations of Operations through a scalable allocator
+- Improved ALPI symbol handling
+- Other bug fixes and code/performance improvements
+
+### Unsupported Features
+- Temporarily dropped support for Fortran.
+- Temporarily dropped support for request-based MPI operations: `MPI_Wait`, `MPI_Waitall`, `TAMPI_Iwait`, `TAMPI_Iwaitall`.
+- Dropped support for `MPI_Sendrecv` and `MPI_Sendrecv_replace`. Every point-to-point and collective operation is **supported**.
+
+
 ## Version 3.0.1, Thu Dec 7, 2023
 The 3.0.1 release introduces bug fixes.
 
