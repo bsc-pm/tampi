@@ -57,8 +57,8 @@ public:
 
 		// Complete all task contexts
 		return _queue.consume_all(
-			[&](TaskContext &context) {
-				context.completeEvents(1, true);
+			[&]<typename T>(T &&context) {
+				std::forward<T>(context).completeEvents(1, true);
 			});
 	}
 
