@@ -160,11 +160,11 @@ AC_DEFUN([LX_QUERY_MPI_COMPILER],
      if [[ ! -z "$lx_mpi_command_line" ]]; then
          # Now extract the different parts of the MPI command line.  Do these separately in case we need to
          # parse them all out in future versions of this macro.
-         lx_mpi_defines=`    echo "$lx_mpi_command_line" | grep -o -- '\(^\| \)-D\([[^\"[:space:]]]\+\|\"[[^\"[:space:]]]\+\"\)'`
-         lx_mpi_includes=`   echo "$lx_mpi_command_line" | grep -o -- '\(^\| \)-I\([[^\"[:space:]]]\+\|\"[[^\"[:space:]]]\+\"\)'`
-         lx_mpi_link_paths=` echo "$lx_mpi_command_line" | grep -o -- '\(^\| \)-L\([[^\"[:space:]]]\+\|\"[[^\"[:space:]]]\+\"\)'`
-         lx_mpi_libs=`       echo "$lx_mpi_command_line" | grep -o -- '\(^\| \)-l\([[^\"[:space:]]]\+\|\"[[^\"[:space:]]]\+\"\)'`
-         lx_mpi_link_args=`  echo "$lx_mpi_command_line" | grep -o -- '\(^\| \)-Wl,\([[^\"[:space:]]]\+\|\"[[^\"[:space:]]]\+\"\)'`
+         lx_mpi_defines=`    echo "$lx_mpi_command_line" | grep -o -- '\(^\| \)-D\([[^\"[:space:]]]\+\|"[[^\"[:space:]]]\+"\)'`
+         lx_mpi_includes=`   echo "$lx_mpi_command_line" | grep -o -- '\(^\| \)-I\([[^\"[:space:]]]\+\|"[[^\"[:space:]]]\+"\)'`
+         lx_mpi_link_paths=` echo "$lx_mpi_command_line" | grep -o -- '\(^\| \)-L\([[^\"[:space:]]]\+\|"[[^\"[:space:]]]\+"\)'`
+         lx_mpi_libs=`       echo "$lx_mpi_command_line" | grep -o -- '\(^\| \)-l\([[^\"[:space:]]]\+\|"[[^\"[:space:]]]\+"\)'`
+         lx_mpi_link_args=`  echo "$lx_mpi_command_line" | grep -o -- '\(^\| \)-Wl,\([[^\"[:space:]]]\+\|"[[^"[:space:]]]\+"\)'`
 
          # Create variables and clean up newlines and multiple spaces
          MPI_$3FLAGS="$lx_mpi_defines $lx_mpi_includes"
@@ -177,11 +177,11 @@ AC_DEFUN([LX_QUERY_MPI_COMPILER],
          CPPFLAGS=$MPI_$3FLAGS
          LIBS=$MPI_$3LDFLAGS
 
-         AC_TRY_LINK([#include <mpi.h>],
+         AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <mpi.h>],
                      [int rank, size, provided;
                       MPI_Init_thread(NULL, NULL, MPI_THREAD_MULTIPLE, &provided);
                       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-                      MPI_Comm_size(MPI_COMM_WORLD, &size);],
+                      MPI_Comm_size(MPI_COMM_WORLD, &size);])],
                      [# Add a define for testing at compile time.
                       AC_DEFINE([HAVE_MPI], [1], [Define to 1 if you have MPI libs and headers.])
                       have_$3_mpi='yes'],

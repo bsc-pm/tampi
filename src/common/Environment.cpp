@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2015-2024 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2015-2025 Barcelona Supercomputing Center (BSC)
 */
 
 #include <cstdio>
@@ -20,6 +20,7 @@ TaskingModel::PollingInstance *Polling::_pollingInstance;
 TaskingModel::PollingInstance *Polling::_completionPollingInstance;
 PollingPeriodCtrl Polling::_periodCtrl("TAMPI_POLLING_PERIOD");
 PollingPeriodCtrl Polling::_completionPeriodCtrl("TAMPI_POLLING_TASK_COMPLETION_PERIOD");
+EnvironmentVariable<std::string> TaskingModel::_pollingMode("TAMPI_POLLING_MODE", "auto");
 
 EnvironmentVariable<bool> CompletionManager::_enabled("TAMPI_POLLING_TASK_COMPLETION", true);
 CompletionManager::queue_t CompletionManager::_queue;

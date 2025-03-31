@@ -1,7 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 #
-#	Copyright (C) 2023-2024 Barcelona Supercomputing Center (BSC)
+#	Copyright (C) 2023-2025 Barcelona Supercomputing Center (BSC)
+
+set -Eo pipefail
+
+trap 'exit 1' SIGINT
+trap '[ "$?" -ne 44 ] || usage "Subshell Failure"' ERR
 
 function usage {
 	if [ "$#" -eq 1 ]; then
@@ -32,29 +37,19 @@ function usage {
 }
 
 function find_binary {
-	found=0
 	for binary in "$@"; do
-		which $binary &> /dev/null
-		if [ $? -eq 0 ]; then
-			found=$binary
-			break
+		if command -v "$binary" &> /dev/null; then
+			echo "$binary"
+			return
 		fi
 	done
-
-	echo $found
+	echo "Could not find any of: $@" >&2
+	exit 44 # exit from subshell
 }
 
 function check_binaries {
-	nbins=$#
-	bins=("$@")
-
-	i=0
-	while (("$i" < "$nbins")); do
-		bin=${bins[$i]}
-		((i++))
-
-		which $bin &> /dev/null
-		if [ $? -ne 0 ]; then
+	for bin in "$@"; do
+		if ! command -v "$bin" &> /dev/null; then
 			usage "$bin binary not found"
 		fi
 	done
@@ -65,9 +60,18 @@ if [ ! -f $makefile ]; then
 	usage "Makefiles not found! Execute this script from the './tampi/tests' folder"
 fi
 
-red="\033[0;31m"
-green="\033[0;32m"
-clean="\033[0m"
+if [ -t 1 ]; then
+	# stdout is terminal
+	red="\033[0;31m"
+	green="\033[0;32m"
+	blue="\033[0;34m"
+	clean="\033[0m"
+else
+	red=""
+	green=""
+	blue=""
+	clean=""
+fi
 
 # Default parameters
 large_input=0
@@ -84,7 +88,7 @@ args=("$@")
 i=0
 while (("$i" < "$nargs")); do
 	opt=${args[$i]}
-	((i++))
+	((++i))
 
 	# Options without argument
 	if [ "$opt" == "-l" ] || [ "$opt" == "--large" ]; then
@@ -109,7 +113,7 @@ while (("$i" < "$nargs")); do
 	fi
 
 	val=${args[$i]}
-	((i++))
+	((++i))
 
 	# Options with argument
 	if [ "$opt" == "-p" ] || [ "$opt" == "--path" ]; then
@@ -131,14 +135,14 @@ if [ -z "$tampi_path" ]; then
 			usage "Specify a TAMPI installation"
 		fi
 	fi
-	tampi_path=$TAMPI_HOME
+	tampi_path="$TAMPI_HOME"
 fi
 
 if [ -z "$tampi_inc_path" ]; then
-	tampi_inc_path=$tampi_path/include
+	tampi_inc_path="$tampi_path/include"
 fi
 if [ -z "$tampi_lib_path" ]; then
-	tampi_lib_path=$tampi_path/lib
+	tampi_lib_path="$tampi_path/lib"
 fi
 
 # MPI/Slurm Commands
@@ -166,7 +170,7 @@ else
 	launcher=$(find_binary mpiexec.hydra mpiexec mpirun)
 fi
 
-check_binaries $mpicxx $mpif90 $launcher clang++
+check_binaries "$mpicxx" "$mpif90" "$launcher" clang++
 
 echo "---------------------------------------"
 echo "TAMPI TEST SUITE"
@@ -177,12 +181,12 @@ echo "  Headers:       $tampi_inc_path"
 echo "  Libraries:     $tampi_lib_path"
 echo ""
 echo "Using MPI from:"
-echo "  C++:           $(which $mpicxx)"
-echo "  Fortran:       $(which $mpif90)"
-echo "  Launcher:      $(which $launcher)"
+echo "  C++:           $(command -v $mpicxx)"
+echo "  Fortran:       $(command -v $mpif90)"
+echo "  Launcher:      $(command -v $launcher)"
 echo ""
 echo "Using OmpSs-2 from:"
-echo "  clang++ (C++): $(which clang++)"
+echo "  clang++ (C++): $(command -v clang++)"
 echo ""
 echo "Using input data:"
 if [ $large_input -eq 1 ]; then
@@ -200,23 +204,23 @@ fi
 echo ""
 
 progs=(
-	CollectiveBlk.oss.test
+	CollectiveBlk.oss.{nodes,nanos6}.test
 	CollectiveNonBlk.omp.test
-	CollectiveNonBlk.oss.test
-	DoNotExecute.oss.test
-	HugeBlkTasks.oss.test
-	InitAuto.oss.test
-	InitAutoTaskAware.oss.test
-	InitExplicit.oss.test
-	InitExplicitTaskAware.oss.test
-	MultiPrimitiveBlk.oss.test
+	CollectiveNonBlk.oss.{nodes,nanos6}.test
+	DoNotExecute.oss.{nodes,nanos6}.test
+	HugeBlkTasks.oss.{nodes,nanos6}.test
+	InitAuto.oss.{nodes,nanos6}.test
+	InitAutoTaskAware.oss.{nodes,nanos6}.test
+	InitExplicit.oss.{nodes,nanos6}.test
+	InitExplicitTaskAware.oss.{nodes,nanos6}.test
+	MultiPrimitiveBlk.oss.{nodes,nanos6}.test
 	MultiPrimitiveNonBlk.omp.test
-	MultiPrimitiveNonBlk.oss.test
-	PrimitiveBlk.oss.test
+	MultiPrimitiveNonBlk.oss.{nodes,nanos6}.test
+	PrimitiveBlk.oss.{nodes,nanos6}.test
 	PrimitiveNonBlk.omp.test
-	PrimitiveNonBlk.oss.test
-	ThreadDisableTaskAwareness.oss.test
-	ThreadTaskAwareness.oss.test
+	PrimitiveNonBlk.oss.{nodes,nanos6}.test
+	ThreadDisableTaskAwareness.oss.{nodes,nanos6}.test
+	ThreadTaskAwareness.oss.{nodes,nanos6}.test
 )
 
 echo "Compiling tests..."
@@ -226,62 +230,64 @@ if [ $large_input -eq 1 ]; then
 fi
 
 make -f $makefile -B -s ${progs[*]} $compile_args
-if [ $? -ne 0 ]; then
-	exit 1
-fi
 
 nprogs=${#progs[@]}
 nfailed=0
+nskipped=0
+total=0
+
+if [ $use_slurm -eq 1 ]; then
+	launch_cmd="${launcher} -N ${nnodes} -n ${nprocs} -c ${ncpusxproc}"
+else
+	launch_cmd="${launcher} -np ${nprocs}"
+fi
 
 echo "---------------------------------------"
 echo "TOTAL TESTS: $nprogs"
 echo "---------------------------------------"
 
-for ((i=0;i<nprogs;i++)); do
-	prog=${progs[$i]}
-
+for prog in "${progs[@]}"; do
 	echo -n "${prog} "
 
 	if [[ "$prog" == *"DoNotExecute"* ]]; then
-		echo -e "${green}SKIPPED${clean}"
+		echo -e "${blue}SKIPPED${clean}"
+		nskipped=$(($nskipped + 1))
 		continue
 	fi
 	if [ $skip_omp -eq 1 ]; then
 		if [[ "$prog" == *".omp."* ]]; then
-			echo -e "${green}SKIPPED${clean}"
+			echo -e "${blue}SKIPPED${clean}"
+			nskipped=$(($nskipped + 1))
 			continue
 		fi
 	fi
 
-	if [ $use_slurm -eq 1 ]; then
-		${launcher} -N ${nnodes} -n ${nprocs} -c ${ncpusxproc} ./${prog} &> /dev/null
+	tic=$(date +%s.%N)
+	if ${launch_cmd} ./${prog} &> /dev/null ; then
+		echo -en "${green}PASSED${clean}"
 	else
-		${launcher} -np ${nprocs} ./${prog} &> /dev/null
-	fi
-
-	if [ $? -eq 0 ]; then
-		echo -e "${green}PASSED${clean}"
-	else
-		echo -e "${red}FAILED${clean}"
+		echo -en "${red}FAILED${clean}"
 		nfailed=$(($nfailed + 1))
 	fi
+	toc=$(date +%s.%N)
+	took="$(echo "$toc - $tic" | bc)"
+	printf " (%.2fs)\n" $took
+	total="$(echo $took + $total | bc)"
 done
 
 if [ $keep_bins -eq 0 ]; then
 	make -f $makefile -B -s clean $compile_args
-	if [ $? -ne 0 ]; then
-		exit 1
-	fi
 fi
 
 echo "---------------------------------------"
 if [ $nfailed -eq 0 ]; then
-	echo -e "SUMMARY: ${green}ALL TESTS PASSED${clean}"
+	echo -e "SUMMARY: ${green}ALL TESTS PASSED${clean} (${blue}${nskipped} SKIPPED${clean})"
 	err=0
 else
-	echo -e "SUMMARY: ${red}${nfailed}/${nprogs} TESTS FAILED${clean}"
+	echo -e "SUMMARY: ${red}${nfailed}/${nprogs} TESTS FAILED${clean} (${blue}${nskipped} SKIPPED${clean})"
 	err=1
 fi
+echo "TOTAL TIME (excluding compilation): ${total}s"
 echo "---------------------------------------"
 
 exit $err
