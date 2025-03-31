@@ -1,13 +1,19 @@
 /*
 	This file is part of ALPI and is licensed under the terms contained in the COPYING file.
 
-	Copyright (C) 2023 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2023-2025 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef ALPI_INTERFACE_H
 #define ALPI_INTERFACE_H
 
 #include <stdint.h>
+#include <stddef.h>
+
+#define ALPI_FEATURE_BLOCKING  (1 << 0) //! Blocking API checking
+#define ALPI_FEATURE_EVENTS    (1 << 1) //! Task events API
+#define ALPI_FEATURE_RESOURCES (1 << 2) //! Resource checking
+#define ALPI_FEATURE_SUSPEND   (1 << 3) //! Suspend API
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,7 +48,7 @@ struct alpi_attr;
 /**
  * Constant defining the minor version of the current interface
  */
-#define ALPI_VERSION_MINOR 0
+#define ALPI_VERSION_MINOR 2
 
 /**
  * The list of all errors that can be returned by any interface's function
@@ -55,8 +61,18 @@ typedef enum {
 	ALPI_ERR_OUT_OF_MEMORY,   /**< Not enough memory to perform operation */
 	ALPI_ERR_OUTSIDE_TASK,    /**< Must be executed within a running task */
 	ALPI_ERR_UNKNOWN,         /**< Unknown or internal error */
+	ALPI_ERR_FEATURE_UNKNOWN, /**< The optional ALPI feature is unsupported or unknown */
 	ALPI_ERR_MAX,             /**< Value only used by the implementation */
 } alpi_error_t;
+
+/**
+ * The list of all the information fields reported by the underlying runtime
+ */
+typedef enum {
+	ALPI_INFO_RUNTIME_NAME,   /**< Name of the underlying runtime */
+	ALPI_INFO_RUNTIME_VENDOR, /**< Name of the vendor of the underlying runtime */
+	ALPI_INFO_VERSION,        /**< Full version string of the underlying runtime */
+} alpi_info_t;
 
 /**
  * Get a string error from an error code
@@ -69,7 +85,46 @@ typedef enum {
  *
  * @return A string explaining the error code
  */
-const char *alpi_error_string(int error);
+const char *alpi_error_string(alpi_error_t error);
+
+/**
+ * Get information of the underlying tasking runtime
+ *
+ * This function enables obtaining information regarding the **underlying runtime**. Solely
+ * intended for debugging and reporting. To numerically obtain the version of ALPI
+ * implemented by the runtime, use `alpi_version_{get,check}` instead.
+ *
+ * @note If the written information would surpass the maximum length of the buffer
+ *      (`max_length`), the information is truncated to fit into `buffer`
+ *
+ * @param query The type of information to obtain
+ * @param buffer A pointer to a buffer of at least `max_len` bytes where the
+ *        requested information will be stored
+ * @param max_length Maximum buffer length
+ * @param length Optional (can be NULL). Pointer to an integer in which the length of the
+ *        saved information will be reported
+ *
+ * @return 0 on success; ALPI_ERR_PARAMETER if the query is not valid or there were one or
+ *         more invalid parameters
+ */
+int alpi_info_get(alpi_info_t query, char *buffer, size_t max_length, int *length);
+
+/**
+ * Check the availability of one or more optional ALPI features
+ *
+ * Given a bitmask of flags representing ALPI features, this function determines whether
+ * the flagged features are supported. Its return value should **not** be interpreted as
+ * a boolean. Instead:
+ * - If all flagged features are supported, it returns `ALPI_SUCCESS` (0)
+ * - If at least one of the features is unsupported or unknown, it returns
+ *   `ALPI_ERR_FEATURE_UNKNOWN`
+ *
+ * @param feature_bitmask Bitmask for the ALPI features to check
+ *
+ * @return `ALPI_SUCCESS` (0) if all flagged features **are** supported;
+ * `ALPI_ERR_FEATURE_UNKNOWN` if at least one of the features is unsupported or unknown
+ */
+int alpi_feature_check(int feature_bitmask);
 
 /**
  * Check the compatibility with respect to an expected version
@@ -156,7 +211,7 @@ int alpi_task_unblock(struct alpi_task *task);
  * Block the calling task for an approximate amount of nanoseconds
  *
  * This function blocks the calling task during an approximate amount of
- * nanoseconds. The task will be automatically resumed by the tasking runtime 
+ * nanoseconds. The task will be automatically resumed by the tasking runtime
  * system after that time. The task cannot be unblocked explicitly
  *
  * The tasking runtime system should reuse the execution resources used by this
@@ -193,6 +248,24 @@ int alpi_task_waitfor_ns(uint64_t target_ns, uint64_t *actual_ns);
  *         ALPI_ERR_OUTSIDE_TASK if running outside a task
  */
 int alpi_task_events_increase(struct alpi_task *task, uint64_t increment);
+
+/**
+ * Returns if the calling task has some event
+ *
+ * This function sets the value pointed by the has_events parameter
+ * to 1 if the calling task has events, or 0 if not
+ *
+ * This function is intended as a hint. Another thread can decrease the events
+ * at any time. The result is guaranteed to be correct when it returns that has
+ * no events
+ *
+ * @param task The handle of the calling task
+ * @param has_events Pointer to the result of the operation
+ *
+ * @return 0 on success; or ALPI_ERR_PARAMETER if the task handle is invalid; or
+ *		ALPI_ERR_OUTSIDE_TASK if running outside a task
+ */
+int alpi_task_events_test(struct alpi_task *task, uint64_t *has_events);
 
 /**
  * Decrease the external events of a task and complete it if required
@@ -346,6 +419,49 @@ int alpi_cpu_logical_id(uint64_t *logical_id);
  *         invalid; or ALPI_ERR_OUTSIDE_TASK if running outside a task
  */
 int alpi_cpu_system_id(uint64_t *system_id);
+
+/**
+ * List of all suspend modes
+ * Suspend modes are executed after suspending.
+ */
+typedef enum {
+	ALPI_SUSPEND_NONE = 0,       /**< Do nothing, args will be ignored */
+	ALPI_SUSPEND_SUBMIT,         /**< Submit itself, if args is 0 will do a normal submit, if args is 1 the task will yield */
+	ALPI_SUSPEND_TIMEOUT_SUBMIT, /**< Submit itself with a timeout, args is the timeout in ns */
+	ALPI_SUSPEND_EVENT_SUBMIT,   /**< Wait for events (events == 0) and re-submit, args will be ignored */
+} alpi_suspend_mode_t;
+
+/**
+ * Set the suspend mode of the calling task
+ *
+ * This function sets the suspend mode and the arguments of the current task,
+ * to be executed if the current task suspends
+ *
+ * This function can only be called within a running task
+ *
+ * @param task The handle of the calling task
+ * @param suspend_mode Suspend mode to be executed in the next suspend
+ * @param args Extra parameter that some suspend modes use
+ *
+ * @return 0 on success; or ALPI_ERR_PARAMETER if the task handle is invalid; or
+ *         ALPI_ERR_OUTSIDE_TASK if running outside a task
+ */
+int alpi_task_suspend_mode_set(struct alpi_task *task, alpi_suspend_mode_t suspend_mode, uint64_t args);
+
+/**
+ * Mark the calling task as suspended
+ *
+ * This function marks the current task as suspended, after the task body is executed,
+ * it will execute the suspend mode instead of finishing the task
+ *
+ * This function can only be called within a running task
+ *
+ * @param task The handle of the calling task
+ *
+ * @return 0 on success; or ALPI_ERR_PARAMETER if the task handle is invalid; or
+ *         ALPI_ERR_OUTSIDE_TASK if running outside a task
+ */
+int alpi_task_suspend(struct alpi_task *task);
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2019-2024 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2019-2025 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef TASKING_MODEL_HPP
@@ -22,18 +22,29 @@ namespace tampi {
 //! The symbol declarations of the ALPI functions
 struct ALPISymbolDecl {
 	using alpi_error_string_t = SymbolDecl<const char *, int>;
+	using alpi_info_get_t = SymbolDecl<int, alpi_info_t, char *, size_t, int *>;
+	using alpi_feature_check_t = SymbolDecl<int, int>;
 	using alpi_version_check_t = SymbolDecl<int, int, int>;
 	using alpi_version_get_t = SymbolDecl<int, int *, int *>;
+
 	using alpi_task_self_t = SymbolDecl<int, struct alpi_task **>;
+
 	using alpi_task_block_t = SymbolDecl<int, struct alpi_task *>;
 	using alpi_task_unblock_t = SymbolDecl<int, struct alpi_task *>;
-	using alpi_task_events_increase_t = SymbolDecl<int, struct alpi_task *, uint64_t>;
-	using alpi_task_events_decrease_t = SymbolDecl<int, struct alpi_task *, uint64_t>;
 	using alpi_task_waitfor_ns_t = SymbolDecl<int, uint64_t, uint64_t *>;
+
+	using alpi_task_events_increase_t = SymbolDecl<int, struct alpi_task *, uint64_t>;
+	using alpi_task_events_test_t = SymbolDecl<int, struct alpi_task *, uint64_t *>;
+	using alpi_task_events_decrease_t = SymbolDecl<int, struct alpi_task *, uint64_t>;
+
 	using alpi_task_spawn_t = SymbolDecl<int, void (*)(void *), void *, void (*)(void *), void *, const char *, const struct alpi_attr *>;
+
 	using alpi_cpu_count_t = SymbolDecl<int, uint64_t *>;
 	using alpi_cpu_logical_id_t = SymbolDecl<int, uint64_t *>;
 	using alpi_cpu_system_id_t = SymbolDecl<int, uint64_t *>;
+
+	using alpi_task_suspend_mode_set_t = SymbolDecl<int, struct alpi_task *, alpi_suspend_mode_t, uint64_t>;
+	using alpi_task_suspend_t = SymbolDecl<int, struct alpi_task *>;
 };
 
 template <typename Decl>
@@ -99,7 +110,7 @@ public:
 class TaskingModel {
 public:
 	typedef struct alpi_task *task_handle_t;
-	typedef uint64_t (*polling_function_t)(void *args, uint64_t target_wait_us);
+	typedef uint64_t (*polling_function_t)(void *args);
 
 	//! Structure that stores information regarding a polling instance
 	struct PollingInstance {
@@ -119,18 +130,32 @@ public:
 private:
 	//! The symbols of the tasking model functions
 	static ALPISymbol<ALPISymbolDecl::alpi_error_string_t> _alpi_error_string;
+	static ALPISymbol<ALPISymbolDecl::alpi_info_get_t> _alpi_info_get;
+	static ALPISymbol<ALPISymbolDecl::alpi_feature_check_t> _alpi_feature_check;
 	static ALPISymbol<ALPISymbolDecl::alpi_version_check_t> _alpi_version_check;
 	static ALPISymbol<ALPISymbolDecl::alpi_version_get_t> _alpi_version_get;
+
 	static ALPISymbol<ALPISymbolDecl::alpi_task_self_t> _alpi_task_self;
+
 	static ALPISymbol<ALPISymbolDecl::alpi_task_block_t> _alpi_task_block;
 	static ALPISymbol<ALPISymbolDecl::alpi_task_unblock_t> _alpi_task_unblock;
-	static ALPISymbol<ALPISymbolDecl::alpi_task_events_increase_t> _alpi_task_events_increase;
-	static ALPISymbol<ALPISymbolDecl::alpi_task_events_decrease_t> _alpi_task_events_decrease;
 	static ALPISymbol<ALPISymbolDecl::alpi_task_waitfor_ns_t> _alpi_task_waitfor_ns;
+
+	static ALPISymbol<ALPISymbolDecl::alpi_task_events_increase_t> _alpi_task_events_increase;
+	static ALPISymbol<ALPISymbolDecl::alpi_task_events_test_t> _alpi_task_events_test;
+	static ALPISymbol<ALPISymbolDecl::alpi_task_events_decrease_t> _alpi_task_events_decrease;
+
 	static ALPISymbol<ALPISymbolDecl::alpi_task_spawn_t> _alpi_task_spawn;
+
 	static ALPISymbol<ALPISymbolDecl::alpi_cpu_count_t> _alpi_cpu_count;
 	static ALPISymbol<ALPISymbolDecl::alpi_cpu_logical_id_t> _alpi_cpu_logical_id;
 	static ALPISymbol<ALPISymbolDecl::alpi_cpu_system_id_t> _alpi_cpu_system_id;
+
+	static ALPISymbol<ALPISymbolDecl::alpi_task_suspend_mode_set_t> _alpi_task_suspend_mode_set;
+	static ALPISymbol<ALPISymbolDecl::alpi_task_suspend_t> _alpi_task_suspend;
+
+	static EnvironmentVariable<std::string> _pollingMode;
+	static void (*pollingFunction)(void *args);
 
 public:
 	//! \brief Initialize and load the symbols of the tasking model
@@ -161,7 +186,8 @@ public:
 
 		// Spawn a task that will do the periodic polling
 		_alpi_task_spawn(
-			genericPolling, static_cast<void *>(instance),
+			pollingFunction,
+			static_cast<void *>(instance),
 			genericCompleted, static_cast<void *>(instance),
 			name.data(), nullptr);
 
@@ -260,6 +286,19 @@ public:
 		return id;
 	}
 
+	//! \brief Suspend current task with timeout
+	static void suspendCurrentWithTimeout(uint64_t timeout_ns)
+	{
+		task_handle_t task = getCurrentTask();
+		if (timeout_ns == 0) {
+			/** Submit itself, if args is 0 will do a normal submit, if args is 1 the task will yield */
+			_alpi_task_suspend_mode_set(task, ALPI_SUSPEND_SUBMIT, 0);
+		} else {
+			_alpi_task_suspend_mode_set(task, ALPI_SUSPEND_TIMEOUT_SUBMIT, timeout_ns);
+		}
+		_alpi_task_suspend(task);
+	}
+
 private:
 	//! \brief Wrapper function called by all polling tasks
 	//!
@@ -270,6 +309,9 @@ private:
 	//! a time specified by that function as its return value
 	//!
 	//! \param args An opaque pointer to the polling instance
+	//
+	//! \note If alpi suspend API is available, `suspendPolling` is used
+	//! instead
 	static void genericPolling(void *args)
 	{
 		PollingInstance *instance = static_cast<PollingInstance *>(args);
@@ -280,13 +322,35 @@ private:
 		// Poll until it is externally notified to stop
 		while (!instance->_mustFinish) {
 			// Call the actual polling function
-			target = instance->_function(instance->_args, last);
+			target = instance->_function(instance->_args);
 
 			// Pause the polling task for some microseconds
 			_alpi_task_waitfor_ns(target * 1000, &last);
 
 			last = last / 1000;
 		}
+	}
+
+	//! \brief Wrapper function called by all polling tasks when alpi suspend
+	//! API is available.
+	//!
+	//! \param args An opaque pointer to the polling instance
+	static void suspendPolling(void *args)
+	{
+		PollingInstance *instance = static_cast<PollingInstance *>(args);
+		assert(instance != nullptr);
+
+		uint64_t target;
+
+		// Poll until it is externally notified to stop
+		if (instance->_mustFinish)
+			return;
+
+		// Call the actual polling function
+		target = instance->_function(instance->_args);
+
+		// Suspend the polling task for some microseconds
+		suspendCurrentWithTimeout(target * 1000);
 	}
 
 	//! \brief Function called by a polling task is completed

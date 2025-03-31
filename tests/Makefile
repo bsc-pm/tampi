@@ -37,13 +37,21 @@ TAMPI_LDFFLAGS=-L$(TAMPI_LIBRARY_PATH) -ltampi-fortran -Wl,-rpath=$(TAMPI_LIBRAR
 
 all: $(PROGS)
 
-%.oss.test: oss/%.cpp
+%.oss.nodes.test: oss/%.cpp
 	@echo "  MPICXX $@"
-	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(TAMPI_CPPFLAGS) $(CFLAGS) -fompss-2 $^ -o $@ $(TAMPI_LDCFLAGS)
+	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(TAMPI_CPPFLAGS) $(CFLAGS) -fompss-2=libnodes $^ -o $@ $(TAMPI_LDCFLAGS)
 
-%.oss.test: oss/%.F90
+%.oss.nanos6.test: oss/%.cpp
+	@echo "  MPICXX $@"
+	$(CXX_WRAPPERS) $(MPICXX) $(CPPFLAGS) $(TAMPI_CPPFLAGS) $(CFLAGS) -fompss-2=libnanos6 $^ -o $@ $(TAMPI_LDCFLAGS)
+
+%.oss.nodes.test: oss/%.F90
 	@echo "  MPIF90 $@"
-	$(F90_WRAPPERS) $(MPIF90) $(CPPFLAGS) $(FFLAGS) $(TAMPI_CPPFLAGS) --ompss-2 $^ -o $@ $(TAMPI_LDFFLAGS)
+	$(F90_WRAPPERS) $(MPIF90) $(CPPFLAGS) $(FFLAGS) $(TAMPI_CPPFLAGS) --ompss-2=libnodes $^ -o $@ $(TAMPI_LDFFLAGS)
+
+%.oss.nanos6.test: oss/%.F90
+	@echo "  MPIF90 $@"
+	$(F90_WRAPPERS) $(MPIF90) $(CPPFLAGS) $(FFLAGS) $(TAMPI_CPPFLAGS) --ompss-2=libnanos6 $^ -o $@ $(TAMPI_LDFFLAGS)
 
 %.omp.test: omp/%.cpp
 	@echo "  MPICXX $@"

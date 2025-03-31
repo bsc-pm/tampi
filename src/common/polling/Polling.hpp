@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 
-	Copyright (C) 2023-2024 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2023-2025 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef POLLING_HPP
@@ -64,10 +64,9 @@ private:
 	//! and Fortran languages (if needed)
 	//!
 	//! \param args An opaque pointer to the arguments
-	//! \param prevWaitUs The actual wait time in microseconds
 	//!
 	//! \returns How many microseconds should the task wait in the next call
-	static uint64_t polling(void *, uint64_t)
+	static uint64_t polling(void *)
 	{
 		size_t pending = 0;
 		size_t completed = 0;
@@ -92,10 +91,9 @@ private:
 	//! executed when the completion polling task is enabled
 	//!
 	//! \param args An opaque pointer to the arguments
-	//! \param prevWaitUs The actual wait time in microseconds
 	//!
 	//! \returns How many microseconds should the task wait in the next call
-	static uint64_t completions(void *, uint64_t)
+	static uint64_t completions(void *)
 	{
 		size_t completed = CompletionManager::process();
 
