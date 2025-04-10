@@ -1,0 +1,15 @@
+#   This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
+#
+#   Copyright (C) 2025 Barcelona Supercomputing Center (BSC)
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: @PACKAGE_NAME@
+Description: TAMPI provides mechanisms to improve interoperability between parallel task-based programming models and MPI operations
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -ltampi
+Cflags: -I${includedir}
+
