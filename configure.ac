@@ -3,7 +3,7 @@
 
 #	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 #
-#	Copyright (C) 2015-2024 Barcelona Supercomputing Center (BSC)
+#	Copyright (C) 2015-2025 Barcelona Supercomputing Center (BSC)
 
 AC_PREREQ([2.69])
 AC_INIT([tampi], [4.0], [pm-tools@bsc.es])
@@ -56,7 +56,7 @@ AX_CHECK_CPUS
 # enabling the position independent code (PIC) mode
 LT_INIT([shared static pic-only])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile tampi.pc])
 AC_OUTPUT
 
 echo ""

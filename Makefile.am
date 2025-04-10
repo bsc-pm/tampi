@@ -1,6 +1,6 @@
 #	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING and COPYING.LESSER files.
 #
-#	Copyright (C) 2015-2024 Barcelona Supercomputing Center (BSC)
+#	Copyright (C) 2015-2025 Barcelona Supercomputing Center (BSC)
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -96,6 +96,9 @@ noinst_HEADERS = \
  src/common/util/Utils.hpp
 
 lib_LTLIBRARIES = libtampi.la libtampi-c.la libtampi-fortran.la
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = tampi.pc
 
 libtampi_la_CPPFLAGS = $(AM_CPPFLAGS)
 libtampi_la_SOURCES = $(common_sources) $(c_api_sources)
