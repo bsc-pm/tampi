@@ -71,7 +71,7 @@ public:
 		_current(0)
 	{
 		if (_queues > MaxQueues)
-			ErrorHandler::fail("Maximum number of queues exceeded");
+			ErrorHandler::fail(__func__, ": Maximum number of queues exceeded. Runtime got: ", _queues, ", TAMPI was compiled with maximum: ", MaxQueues);
 
 		for (size_t i = 0; i < _queues; i++) {
 			_tail[i].store(0);

@@ -72,7 +72,7 @@ public:
 		_central(capacity)
 	{
 		if (_ncaches > MaxCaches)
-			ErrorHandler::fail("Maximum number of queues exceeded");
+			ErrorHandler::fail(__func__, ": Maximum number of queues exceeded. Runtime got: ", _ncaches, ", TAMPI was compiled with maximum: ", MaxCaches);
 
 		for (size_t o = 0; o < _capacity; ++o)
 			_central.push(&(_data[o].get()));

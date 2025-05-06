@@ -81,6 +81,9 @@ tampi_inc_path=
 tampi_lib_path=
 skip_omp=0
 keep_bins=0
+keep_logs=0
+
+out_dir="$(mktemp -td tampi.test.XXXXXX)"
 
 nargs=$#
 args=("$@")
@@ -102,6 +105,9 @@ while (("$i" < "$nargs")); do
 		continue
 	elif [ "$opt" == "--keep" ]; then
 		keep_bins=1
+		continue
+	elif [ "$opt" == "--keep-logs" ]; then
+		keep_logs=1
 		continue
 	elif [ "$opt" == "-h" ] || [ "$opt" == "--help" ]; then
 		usage
@@ -245,6 +251,10 @@ fi
 echo "---------------------------------------"
 echo "TOTAL TESTS: $nprogs"
 echo "---------------------------------------"
+echo "Temporary output folder: $out_dir"
+echo "---------------------------------------"
+
+report="$out_dir/tampi.failed.log"
 
 for prog in "${progs[@]}"; do
 	echo -n "${prog} "
@@ -262,11 +272,17 @@ for prog in "${progs[@]}"; do
 		fi
 	fi
 
+	output="$out_dir/tampi.$prog.log"
+
 	tic=$(date +%s.%N)
-	if ${launch_cmd} ./${prog} &> /dev/null ; then
+	if ${launch_cmd} ./${prog} &> "$output" ; then
 		echo -en "${green}PASSED${clean}"
 	else
-		echo -en "${red}FAILED${clean}"
+		ret=$?
+		echo -en "${red}FAILED${clean} with exit code: $ret"
+		echo "#### BEGIN OUTPUT $output | exit code $ret #####" >>"$report"
+		cat "$output" >>"$report"
+		echo "#### END OUTPUT $output #####" >>"$report"
 		nfailed=$(($nfailed + 1))
 	fi
 	toc=$(date +%s.%N)
@@ -286,9 +302,17 @@ if [ $nfailed -eq 0 ]; then
 else
 	echo -e "SUMMARY: ${red}${nfailed}/${nprogs} TESTS FAILED${clean} (${blue}${nskipped} SKIPPED${clean})"
 	err=1
+	cat "$report"
 fi
 echo "TOTAL TIME (excluding compilation): ${total}s"
 echo "---------------------------------------"
+
+if [ $keep_logs -eq 1 ]; then
+	echo "Outputs saved in: $out_dir"
+else
+	rm -f "$out_dir/tampi."*.log
+	rmdir "$out_dir"
+fi
 
 exit $err
 
