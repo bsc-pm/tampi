@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 4.1, Fri Jun 6, 2025
+The 4.1 release of TAMPI reworks the polling mechanism through ALPI's new suspend feature, adds compatibility with ALPI 1.2, and improves several configuration and installation options. Additionally, it introduces several bug fixes and QOL improvements.
+
+### General
+- Rework the polling mechanism through ALPI's new suspend feature
+- Add compatibility with ALPI v1.2
+- Generate a PKGCONFIG file on installation
+- Allow specifying the maximum number of CPUs of the system while configuring TAMPI
+- Improve the logging of tests
+
+### Bug Fixes
+- Fixed passing of lambdas in some boost functions to fix compatibility with v1.87.9
+- Removed `cpubind` from tests to avoid unexpected behavior depending on SLURM configuration
+
+
 ## Version 4.0, Fri Nov 15, 2024
 The 4.0 release introduces TAMPI-OPT, a newly optimized version of the library that ensures only a single thread accesses the MPI interface through delegation techniques. This approach gives access comparable to the highest MPI performance of single-threaded scenarios. Moreover, it introduces several bug fixes and usability and code improvements. Due to the new optimizations, some features have been ultimately dropped, while others will remain unsupported temporarily. For a detailed list check the bullet points below.
 
