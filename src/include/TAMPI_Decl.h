@@ -19,7 +19,7 @@ extern "C" {
 #define TAMPI_VERSION_MAJOR 4
 
 //! Constant defining the minor version of the current interface
-#define TAMPI_VERSION_MINOR 0
+#define TAMPI_VERSION_MINOR 1
 
 //! The MPI thread level that enables the task-aware blocking mode
 #define MPI_TASK_MULTIPLE (MPI_THREAD_MULTIPLE + 1)
