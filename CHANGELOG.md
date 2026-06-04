@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file.
 
 
+## Version 4.1.1, Fri Jun 19, 2026
+The 4.1.1 patch release of TAMPI focuses on maintenance and portability improvements, while avoiding the introduction of user-side API changes.
+
+### General
+- Added support for newer RISC-V systems, using native architecture instructions.
+
 ## Version 4.1, Fri Jun 6, 2025
 The 4.1 release of TAMPI reworks the polling mechanism through ALPI's new suspend feature, adds compatibility with ALPI 1.2, and improves several configuration and installation options. Additionally, it introduces several bug fixes and QOL improvements.
 
