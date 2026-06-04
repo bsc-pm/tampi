@@ -1,7 +1,7 @@
 /*
 	This file is part of Task-Aware MPI and is licensed under the terms contained in the COPYING file.
 
-	Copyright (C) 2022-2023 Barcelona Supercomputing Center (BSC)
+	Copyright (C) 2022-2026 Barcelona Supercomputing Center (BSC)
 */
 
 #ifndef SPIN_WAIT_HPP
@@ -19,6 +19,10 @@
 #define ARM_ARCH
 #endif
 
+#if defined(__riscv)
+#define RISCV_ARCH
+#endif
+
 #if defined(__SSE2__)
 #include <xmmintrin.h>
 #define SSE2_ARCH_FEATURE
@@ -27,11 +31,11 @@
 #if defined(POWER9_ARCH)
 /* Macros for adjusting thread priority (hardware multi-threading) */
 #define HMT_very_low()    asm volatile("or 31,31,31   # very low priority")
-#define HMT_low()         asm volatile("or 1,1,1	  # low priority")
-#define HMT_medium_low()  asm volatile("or 6,6,6	  # medium low priority")
-#define HMT_medium()      asm volatile("or 2,2,2	  # medium priority")
-#define HMT_medium_high() asm volatile("or 5,5,5	  # medium high priority")
-#define HMT_high()        asm volatile("or 3,3,3	  # high priority")
+#define HMT_low()         asm volatile("or 1,1,1      # low priority")
+#define HMT_medium_low()  asm volatile("or 6,6,6      # medium low priority")
+#define HMT_medium()      asm volatile("or 2,2,2      # medium priority")
+#define HMT_medium_high() asm volatile("or 5,5,5      # medium high priority")
+#define HMT_high()        asm volatile("or 3,3,3      # high priority")
 #define HMT_barrier()     asm volatile("" : : : "memory")
 #endif
 
@@ -48,6 +52,12 @@ struct SpinWait {
 		asm volatile("pause" ::: "memory");
 #elif defined(ARM_ARCH)
 		__asm__ __volatile__ ("yield");
+#elif defined(RISCV_ARCH)
+	#if defined(__riscv_zihintpause)
+		__asm__ __volatile__("pause");
+	#else
+		__asm__ __volatile__("" ::: "memory");
+	#endif
 #else
 		#pragma message ("No 'pause' instruction/intrisic found for this architecture ")
 #endif
